@@ -1,6 +1,6 @@
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
-import type { LoginInput, LoginResponse, User } from '@almus/shared-types';
+import type { LoginResponse, User } from '@almus/shared-types';
 import { LoginResponseType, UserType, LoginInputType } from './dto/auth.types';
 
 @Resolver()
@@ -8,7 +8,9 @@ export class AuthResolver {
   constructor(private authService: AuthService) {}
 
   @Mutation(() => LoginResponseType)
-  async login(@Args('input') loginInput: LoginInputType): Promise<LoginResponse> {
+  async login(
+    @Args('input') loginInput: LoginInputType
+  ): Promise<LoginResponse> {
     return this.authService.login(loginInput.email);
   }
 

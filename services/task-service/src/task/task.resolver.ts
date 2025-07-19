@@ -13,7 +13,11 @@ import type {
   TaskFilterInput,
   Task,
 } from '@almus/shared-types';
-import { TaskType, CreateTaskInputType, UpdateTaskInputType, TaskFilterInputType } from './dto/task.types';
+import {
+  TaskType,
+  UpdateTaskInputType,
+  TaskFilterInputType,
+} from './dto/task.types';
 
 @Resolver(() => TaskType)
 export class TaskResolver {
@@ -47,7 +51,11 @@ export class TaskResolver {
   ): Promise<Task> {
     // TODO: 실제 사용자 ID 가져오기
     const userId = '1';
-    return this.taskService.updateTask(id, updateTaskInput as UpdateTaskInput, userId);
+    return this.taskService.updateTask(
+      id,
+      updateTaskInput as UpdateTaskInput,
+      userId
+    );
   }
 
   @Mutation(() => Boolean)
