@@ -10,12 +10,14 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@almus/shared-types": "file:../../libs/shared-types",
     "@reduxjs/toolkit": "^1.9.7",
     "@tanstack/react-query": "^5.0.0",
     "@types/date-fns": "^2.5.3",
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-window": "^1.8.8",
     "date-fns": "^4.1.0",
+    "firebase": "^12.0.0",
     "react": "^18.2.0",
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.2.0",

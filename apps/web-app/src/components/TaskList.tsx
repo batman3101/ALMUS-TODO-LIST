@@ -1,19 +1,20 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTasks, useDeleteTask } from '../hooks/useTasks';
-import type { Task } from '@almus/shared-types';
-import { TaskStatus, TaskPriority } from '@almus/shared-types';
+import { Task, TaskStatus, TaskPriority } from '@almus/shared-types';
 
 const TaskList: React.FC = function TaskList() {
   const { data: tasks, isLoading, error } = useTasks();
   const deleteTaskMutation = useDeleteTask();
+  const { t } = useTranslation();
 
   const handleDelete = async (taskId: string) => {
-    if (window.confirm('정말로 이 태스크를 삭제하시겠습니까?')) {
+    if (window.confirm(t('task.confirmDelete'))) {
       try {
         await deleteTaskMutation.mutateAsync(taskId);
       } catch (error) {
         console.error('태스크 삭제 실패:', error);
-        alert('태스크 삭제에 실패했습니다.');
+        alert(t('task.taskDeleteFailed'));
       }
     }
   };
@@ -28,8 +29,6 @@ const TaskList: React.FC = function TaskList() {
         return 'bg-yellow-100 text-yellow-800';
       case TaskStatus.DONE:
         return 'bg-green-100 text-green-800';
-      case TaskStatus.CANCELLED:
-        return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -50,60 +49,122 @@ const TaskList: React.FC = function TaskList() {
     }
   };
 
+  const getStatusText = (status: TaskStatus) => {
+    switch (status) {
+      case TaskStatus.TODO:
+        return t('status.todo');
+      case TaskStatus.IN_PROGRESS:
+        return t('status.inProgress');
+      case TaskStatus.REVIEW:
+        return t('status.review');
+      case TaskStatus.DONE:
+        return t('status.done');
+      default:
+        return t('status.todo');
+    }
+  };
+
+  const getPriorityText = (priority: TaskPriority) => {
+    switch (priority) {
+      case TaskPriority.LOW:
+        return t('priority.low');
+      case TaskPriority.MEDIUM:
+        return t('priority.medium');
+      case TaskPriority.HIGH:
+        return t('priority.high');
+      case TaskPriority.URGENT:
+        return t('priority.urgent');
+      default:
+        return t('priority.medium');
+    }
+  };
+
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">로딩 중...</div>;
+    return <div className="flex justify-center items-center h-64">{t('common.loading')}</div>;
   }
 
   if (error) {
-    return <div className="text-red-500">태스크 목록을 불러오는데 실패했습니다.</div>;
+    return <div className="text-red-500">{t('task.loadTasksFailed')}</div>;
+  }
+
+  if (!tasks || tasks.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">{t('task.noTasks')}</p>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900">태스크 목록</h2>
-      <div className="grid gap-4">
-        {tasks?.map((task: Task) => (
-          <div
-            key={task.id}
-            className="bg-white p-4 rounded-lg shadow border border-gray-200"
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
-                {task.description && (
-                  <p className="text-gray-600 mt-1">{task.description}</p>
-                )}
-                <div className="flex items-center gap-2 mt-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                    {task.status}
-                  </span>
-                  <span className={`text-xs font-medium ${getPriorityColor(task.priority)}`}>
-                    {task.priority}
-                  </span>
-                  {task.dueDate && (
-                    <span className="text-xs text-gray-500">
-                      마감일: {new Date(task.dueDate).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleDelete(task.id)}
-                  className="px-3 py-1 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
-                >
-                  삭제
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+    <div className="bg-white rounded-lg shadow">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900">{t('task.taskList')}</h2>
       </div>
-      {tasks?.length === 0 && (
-        <div className="text-center text-gray-500 py-8">
-          등록된 태스크가 없습니다.
-        </div>
-      )}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('task.title')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('task.description')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('task.assignee')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('task.status')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('task.priority')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('task.dueDate')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('task.actions')}
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {tasks.map((task: Task) => (
+              <tr key={task.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm font-medium text-gray-900">{task.title}</div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-gray-900 max-w-xs truncate">{task.description}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">{task.assigneeId}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)}`}>
+                    {getStatusText(task.status)}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`text-sm font-medium ${getPriorityColor(task.priority)}`}>
+                    {getPriorityText(task.priority)}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '-'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    onClick={() => handleDelete(task.id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    {t('task.deleteTask')}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

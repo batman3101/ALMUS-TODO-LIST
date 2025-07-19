@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type ViewType = 'list' | 'grid' | 'kanban' | 'gantt';
 
@@ -13,38 +14,40 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
   onViewChange,
   className = '',
 }) => {
+  const { t } = useTranslation();
+
   const views = [
     {
       id: 'list' as ViewType,
-      label: '리스트',
+      label: t('view.list'),
       icon: '📋',
-      description: '간단한 리스트 형태',
+      description: t('view.listDescription'),
     },
     {
       id: 'grid' as ViewType,
-      label: '그리드',
+      label: t('view.grid'),
       icon: '📊',
-      description: '엑셀 유사 테이블 형태',
+      description: t('view.gridDescription'),
     },
     {
       id: 'kanban' as ViewType,
-      label: '칸반',
+      label: t('view.kanban'),
       icon: '📋',
-      description: '드래그 앤 드롭 보드',
+      description: t('view.kanbanDescription'),
     },
     {
       id: 'gantt' as ViewType,
-      label: '간트',
+      label: t('view.gantt'),
       icon: '📅',
-      description: '타임라인 시각화',
+      description: t('view.ganttDescription'),
     },
   ];
 
   return (
     <div className={`bg-white rounded-lg shadow border border-gray-200 ${className}`}>
       <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">뷰 선택</h3>
-        <p className="text-sm text-gray-600 mt-1">원하는 형태로 태스크를 확인하세요</p>
+        <h3 className="text-lg font-semibold text-gray-900">{t('view.switchView')}</h3>
+        <p className="text-sm text-gray-600 mt-1">{t('view.selectViewDescription')}</p>
       </div>
       
       <div className="p-4">

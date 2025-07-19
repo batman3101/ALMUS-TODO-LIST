@@ -1,0 +1,140 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 사용자 인증 확인 함수
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // 사용자가 자신의 데이터에 접근하는지 확인
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // 사용자가 팀 멤버인지 확인
+    function isTeamMember(teamId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid));
+    }
+    
+    // 사용자가 팀 관리자인지 확인
+    function isTeamAdmin(teamId) {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+    
+    // 사용자가 팀 편집자인지 확인
+    function isTeamEditor(teamId) {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid)).data.role == 'EDITOR';
+    }
+    
+    // 사용자가 팀 뷰어인지 확인
+    function isTeamViewer(teamId) {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid)).data.role == 'VIEWER';
+    }
+    
+    // 사용자가 프로젝트 멤버인지 확인
+    function isProjectMember(projectId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/projects/$(projectId)/members/$(request.auth.uid));
+    }
+    
+    // Users 컬렉션 규칙
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isTeamMember(resource.data.teamId);
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isTeamAdmin(resource.data.teamId);
+    }
+    
+    // Teams 컬렉션 규칙
+    match /teams/{teamId} {
+      allow read: if isTeamMember(teamId);
+      allow create: if isAuthenticated();
+      allow update: if isTeamAdmin(teamId);
+      allow delete: if isTeamAdmin(teamId);
+      
+      // 팀 멤버 서브컬렉션
+      match /members/{memberId} {
+        allow read: if isTeamMember(teamId);
+        allow write: if isTeamAdmin(teamId);
+      }
+    }
+    
+    // Projects 컬렉션 규칙
+    match /projects/{projectId} {
+      allow read: if isProjectMember(projectId);
+      allow create: if isAuthenticated();
+      allow update: if isProjectMember(projectId);
+      allow delete: if isProjectMember(projectId);
+      
+      // 프로젝트 멤버 서브컬렉션
+      match /members/{memberId} {
+        allow read: if isProjectMember(projectId);
+        allow write: if isProjectMember(projectId);
+      }
+    }
+    
+    // Tasks 컬렉션 규칙
+    match /tasks/{taskId} {
+      allow read: if isTeamMember(resource.data.teamId);
+      allow create: if isAuthenticated() && isTeamMember(request.resource.data.teamId) && 
+        (isTeamEditor(request.resource.data.teamId) || isTeamAdmin(request.resource.data.teamId));
+      allow update: if isTeamMember(resource.data.teamId) && 
+        (request.auth.uid == resource.data.assigneeId || 
+         request.auth.uid == resource.data.createdBy ||
+         isTeamEditor(resource.data.teamId) ||
+         isTeamAdmin(resource.data.teamId));
+      allow delete: if isTeamMember(resource.data.teamId) && 
+        (request.auth.uid == resource.data.createdBy || 
+         isTeamEditor(resource.data.teamId) ||
+         isTeamAdmin(resource.data.teamId));
+    }
+    
+    // Notifications 컬렉션 규칙
+    match /notifications/{notificationId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isAuthenticated();
+      allow update: if isOwner(resource.data.userId);
+      allow delete: if isOwner(resource.data.userId);
+    }
+    
+    // Notification Settings 컬렉션 규칙
+    match /notification_settings/{settingsId} {
+      allow read, write: if isOwner(resource.data.userId);
+    }
+    
+    // Notification Templates 컬렉션 규칙 (시스템 관리자만)
+    match /notification_templates/{templateId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.token.admin == true;
+    }
+    
+    // Task Dependencies 컬렉션 규칙
+    match /task_dependencies/{dependencyId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isTeamMember(resource.data.teamId);
+    }
+    
+    // Files 컬렉션 규칙
+    match /files/{fileId} {
+      allow read: if isAuthenticated() && 
+        (isTeamMember(resource.data.teamId) || 
+         request.auth.uid == resource.data.uploaderId);
+      allow create: if isAuthenticated() && 
+        isTeamMember(request.resource.data.teamId) &&
+        (isTeamEditor(request.resource.data.teamId) || 
+         isTeamAdmin(request.resource.data.teamId));
+      allow update: if isAuthenticated() && 
+        (request.auth.uid == resource.data.uploaderId ||
+         isTeamEditor(resource.data.teamId) ||
+         isTeamAdmin(resource.data.teamId));
+      allow delete: if isAuthenticated() && 
+        (request.auth.uid == resource.data.uploaderId ||
+         isTeamEditor(resource.data.teamId) ||
+         isTeamAdmin(resource.data.teamId));
+    }
+  }
+} 

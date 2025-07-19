@@ -42,7 +42,6 @@ export enum TaskStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   REVIEW = 'REVIEW',
   DONE = 'DONE',
-  CANCELLED = 'CANCELLED',
 }
 
 export enum TaskPriority {
@@ -224,6 +223,8 @@ export interface CreateTaskInput {
   endDate?: Date;
   dependencies?: string[];
   progress?: number;
+  teamId: string;
+  projectId?: string;
 }
 
 export interface UpdateTaskInput {
@@ -252,7 +253,7 @@ export interface TaskFilterInput {
   startDateTo?: Date;
 }
 
-// 알림 관련 GraphQL 타입
+// Notification types
 export interface CreateNotificationInput {
   userId: string;
   type: NotificationType;
@@ -333,4 +334,37 @@ export interface TaskOperation {
   taskId?: string;
   data?: Partial<Task>;
   version?: number;
-} 
+}
+
+// File upload types
+export interface FileMetadata {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  uploaderId: string;
+  uploaderName: string;
+  taskId?: string;
+  projectId?: string;
+  teamId: string;
+  version: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UploadProgress {
+  loaded: number;
+  total: number;
+  percentage: number;
+}
+
+export interface UploadState {
+  isUploading: boolean;
+  progress: UploadProgress;
+  error: string | null;
+  downloadURL?: string;
+}
+
+// Re-export from firestore-schema
+export * from './firestore-schema'; 

@@ -24,7 +24,6 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     [TaskStatus.IN_PROGRESS]: 5,
     [TaskStatus.REVIEW]: 3,
     [TaskStatus.DONE]: 20,
-    [TaskStatus.CANCELLED]: 10,
   });
 
   // 컬럼 정의
@@ -53,17 +52,11 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
       color: 'bg-green-100',
       wipLimit: wipLimits[TaskStatus.DONE],
     },
-    {
-      id: TaskStatus.CANCELLED,
-      title: '취소',
-      color: 'bg-red-100',
-      wipLimit: wipLimits[TaskStatus.CANCELLED],
-    },
   ], [wipLimits]);
 
   // 컬럼별 태스크 그룹화
   const tasksByColumn = useMemo(() => {
-    if (!tasks) return {};
+    if (!tasks) return {} as Record<TaskStatus, Task[]>;
     
     return tasks.reduce((acc: Record<TaskStatus, Task[]>, task: Task) => {
       const status = task.status;
@@ -100,10 +93,16 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     }
 
     try {
+      const task = tasks?.find((t: Task) => t.id === draggableId);
+      if (!task) return;
+
       await updateTaskMutation.mutateAsync({
-        id: draggableId,
-        status: destinationColumn,
-        version: tasks?.find((t: Task) => t.id === draggableId)?.version || 0,
+        taskId: draggableId,
+        updateData: {
+          status: destinationColumn,
+          id: draggableId,
+          version: task.version || 1,
+        },
       });
     } catch (error) {
       console.error('태스크 상태 업데이트 실패:', error);

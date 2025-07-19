@@ -129,9 +129,12 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
       }
 
       await updateTaskMutation.mutateAsync({
-        id: taskId,
-        ...updateData,
-        version: task.version,
+        taskId,
+        updateData: {
+          ...updateData,
+          id: taskId,
+          version: task.version || 1, // version 필드 추가
+        },
       });
     } catch (error) {
       console.error('태스크 업데이트 실패:', error);
@@ -176,8 +179,6 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
         return 'bg-yellow-100 text-yellow-800';
       case TaskStatus.DONE:
         return 'bg-green-100 text-green-800';
-      case TaskStatus.CANCELLED:
-        return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }

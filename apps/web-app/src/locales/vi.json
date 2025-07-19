@@ -1,0 +1,77 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Đã xảy ra lỗi.",
+    "success": "Hoàn thành thành công.",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước"
+  },
+  "app": {
+    "title": "ALMUS ToDo List",
+    "subtitle": "Hệ thống quản lý công việc nhóm",
+    "language": "Ngôn ngữ"
+  },
+  "task": {
+    "title": "Tiêu đề",
+    "description": "Mô tả",
+    "assignee": "Người phụ trách",
+    "status": "Trạng thái",
+    "priority": "Ưu tiên",
+    "dueDate": "Ngày hạn",
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Ngày cập nhật",
+    "actions": "Hành động",
+    "createTask": "Tạo nhiệm vụ",
+    "editTask": "Chỉnh sửa nhiệm vụ",
+    "deleteTask": "Xóa nhiệm vụ",
+    "confirmDelete": "Bạn có chắc chắn muốn xóa nhiệm vụ này không?",
+    "taskCreated": "Nhiệm vụ đã được tạo thành công.",
+    "taskUpdated": "Nhiệm vụ đã được cập nhật thành công.",
+    "taskDeleted": "Nhiệm vụ đã được xóa thành công.",
+    "taskCreateFailed": "Tạo nhiệm vụ thất bại.",
+    "taskUpdateFailed": "Cập nhật nhiệm vụ thất bại.",
+    "taskDeleteFailed": "Xóa nhiệm vụ thất bại.",
+    "titleRequired": "Vui lòng nhập tiêu đề.",
+    "assigneeRequired": "Vui lòng nhập người phụ trách.",
+    "loadTasksFailed": "Không thể tải danh sách nhiệm vụ.",
+    "taskList": "Danh sách nhiệm vụ",
+    "noTasks": "Không có nhiệm vụ nào."
+  },
+  "status": {
+    "todo": "Cần làm",
+    "inProgress": "Đang thực hiện",
+    "review": "Đánh giá",
+    "done": "Hoàn thành",
+    "cancelled": "Đã hủy"
+  },
+  "priority": {
+    "low": "Thấp",
+    "medium": "Trung bình",
+    "high": "Cao",
+    "urgent": "Khẩn cấp"
+  },
+  "view": {
+    "list": "Danh sách",
+    "grid": "Lưới",
+    "kanban": "Kanban",
+    "gantt": "Gantt",
+    "switchView": "Chuyển đổi chế độ xem",
+    "selectViewDescription": "Xem nhiệm vụ theo hình thức mong muốn",
+    "listDescription": "Hình thức danh sách đơn giản",
+    "gridDescription": "Hình thức bảng giống Excel",
+    "kanbanDescription": "Bảng kéo thả",
+    "ganttDescription": "Trực quan hóa thời gian"
+  },
+  "language": {
+    "korean": "Tiếng Hàn",
+    "vietnamese": "Tiếng Việt",
+    "switchLanguage": "Thay đổi ngôn ngữ"
+  }
+} 
