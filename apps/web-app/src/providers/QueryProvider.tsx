@@ -11,7 +11,7 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5분
       gcTime: 10 * 60 * 1000, // 10분 (기존 cacheTime)
       retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
     },
@@ -34,4 +34,4 @@ export const QueryProvider = ({ children }: QueryProviderProps) => {
       )}
     </QueryClientProvider>
   );
-}; 
+};

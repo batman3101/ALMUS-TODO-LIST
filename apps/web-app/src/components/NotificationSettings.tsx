@@ -121,7 +121,9 @@ const NotificationSettings: React.FC = () => {
               <input
                 type="checkbox"
                 checked={settings.pushEnabled}
-                onChange={(e) => handleSettingChange('pushEnabled', e.target.checked)}
+                onChange={e =>
+                  handleSettingChange('pushEnabled', e.target.checked)
+                }
                 className="mr-2"
               />
               Push 알림
@@ -130,7 +132,9 @@ const NotificationSettings: React.FC = () => {
               <input
                 type="checkbox"
                 checked={settings.emailEnabled}
-                onChange={(e) => handleSettingChange('emailEnabled', e.target.checked)}
+                onChange={e =>
+                  handleSettingChange('emailEnabled', e.target.checked)
+                }
                 className="mr-2"
               />
               이메일 알림
@@ -139,7 +143,9 @@ const NotificationSettings: React.FC = () => {
               <input
                 type="checkbox"
                 checked={settings.inAppEnabled}
-                onChange={(e) => handleSettingChange('inAppEnabled', e.target.checked)}
+                onChange={e =>
+                  handleSettingChange('inAppEnabled', e.target.checked)
+                }
                 className="mr-2"
               />
               In-App 알림
@@ -155,7 +161,9 @@ const NotificationSettings: React.FC = () => {
               <input
                 type="checkbox"
                 checked={settings.taskCreated}
-                onChange={(e) => handleSettingChange('taskCreated', e.target.checked)}
+                onChange={e =>
+                  handleSettingChange('taskCreated', e.target.checked)
+                }
                 className="mr-2"
               />
               새 Task 생성
@@ -164,7 +172,9 @@ const NotificationSettings: React.FC = () => {
               <input
                 type="checkbox"
                 checked={settings.taskUpdated}
-                onChange={(e) => handleSettingChange('taskUpdated', e.target.checked)}
+                onChange={e =>
+                  handleSettingChange('taskUpdated', e.target.checked)
+                }
                 className="mr-2"
               />
               Task 업데이트
@@ -173,7 +183,9 @@ const NotificationSettings: React.FC = () => {
               <input
                 type="checkbox"
                 checked={settings.taskDueSoon}
-                onChange={(e) => handleSettingChange('taskDueSoon', e.target.checked)}
+                onChange={e =>
+                  handleSettingChange('taskDueSoon', e.target.checked)
+                }
                 className="mr-2"
               />
               마감일 임박
@@ -182,7 +194,9 @@ const NotificationSettings: React.FC = () => {
               <input
                 type="checkbox"
                 checked={settings.taskOverdue}
-                onChange={(e) => handleSettingChange('taskOverdue', e.target.checked)}
+                onChange={e =>
+                  handleSettingChange('taskOverdue', e.target.checked)
+                }
                 className="mr-2"
               />
               마감일 지연
@@ -191,7 +205,9 @@ const NotificationSettings: React.FC = () => {
               <input
                 type="checkbox"
                 checked={settings.teamUpdates}
-                onChange={(e) => handleSettingChange('teamUpdates', e.target.checked)}
+                onChange={e =>
+                  handleSettingChange('teamUpdates', e.target.checked)
+                }
                 className="mr-2"
               />
               팀 업데이트
@@ -207,7 +223,9 @@ const NotificationSettings: React.FC = () => {
               <input
                 type="checkbox"
                 checked={settings.quietHours.enabled}
-                onChange={(e) => handleQuietHoursChange('enabled', e.target.checked)}
+                onChange={e =>
+                  handleQuietHoursChange('enabled', e.target.checked)
+                }
                 className="mr-2"
               />
               조용한 시간 활성화
@@ -215,20 +233,28 @@ const NotificationSettings: React.FC = () => {
             {settings.quietHours.enabled && (
               <div className="flex items-center space-x-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">시작 시간</label>
+                  <label className="block text-sm font-medium mb-1">
+                    시작 시간
+                  </label>
                   <input
                     type="time"
                     value={settings.quietHours.start}
-                    onChange={(e) => handleQuietHoursChange('start', e.target.value)}
+                    onChange={e =>
+                      handleQuietHoursChange('start', e.target.value)
+                    }
                     className="border rounded px-3 py-1"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">종료 시간</label>
+                  <label className="block text-sm font-medium mb-1">
+                    종료 시간
+                  </label>
                   <input
                     type="time"
                     value={settings.quietHours.end}
-                    onChange={(e) => handleQuietHoursChange('end', e.target.value)}
+                    onChange={e =>
+                      handleQuietHoursChange('end', e.target.value)
+                    }
                     className="border rounded px-3 py-1"
                   />
                 </div>
@@ -266,4 +292,4 @@ const NotificationSettings: React.FC = () => {
   );
 };
 
-export default NotificationSettings; 
+export default NotificationSettings;

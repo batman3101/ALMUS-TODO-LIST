@@ -56,7 +56,11 @@ export interface TaskDependency {
   id: string;
   sourceTaskId: string;
   targetTaskId: string;
-  type: 'finish-to-start' | 'start-to-start' | 'finish-to-finish' | 'start-to-finish';
+  type:
+    | 'finish-to-start'
+    | 'start-to-start'
+    | 'finish-to-finish'
+    | 'start-to-finish';
   lag?: number; // 지연일수 (일)
 }
 
@@ -367,4 +371,4 @@ export interface UploadState {
 }
 
 // Re-export from firestore-schema
-export * from './firestore-schema'; 
+export * from './firestore-schema';

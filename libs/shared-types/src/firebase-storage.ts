@@ -88,7 +88,7 @@ export interface FileDeleteResult {
 }
 
 // 파일 업로드 이벤트 타입
-export type FileUploadEvent = 
+export type FileUploadEvent =
   | { type: 'START'; file: File }
   | { type: 'PROGRESS'; progress: FileUploadProgress }
   | { type: 'SUCCESS'; result: FileUploadResult }
@@ -96,10 +96,18 @@ export type FileUploadEvent =
 
 // 파일 업로드 훅 반환 타입
 export interface UseFileUploadReturn {
-  uploadFile: (file: File, path: string, metadata?: Partial<FileMetadata>) => Promise<FileUploadResult>;
-  uploadMultipleFiles: (files: File[], path: string, metadata?: Partial<FileMetadata>) => Promise<FileUploadResult[]>;
+  uploadFile: (
+    file: File,
+    path: string,
+    metadata?: Partial<FileMetadata>
+  ) => Promise<FileUploadResult>;
+  uploadMultipleFiles: (
+    files: File[],
+    path: string,
+    metadata?: Partial<FileMetadata>
+  ) => Promise<FileUploadResult[]>;
   deleteFile: (fileId: string, path: string) => Promise<FileDeleteResult>;
   downloadFile: (fileId: string, path: string) => Promise<FileDownloadResult>;
   uploadState: FileUploadState;
   resetUploadState: () => void;
-} 
+}

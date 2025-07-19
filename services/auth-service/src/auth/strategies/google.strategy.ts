@@ -9,7 +9,7 @@ import { OAuthProfile } from '@almus/shared-types';
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     private configService: ConfigService,
-    private authService: AuthService,
+    private authService: AuthService
   ) {
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT_ID'),
@@ -22,10 +22,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   async validate(
     accessToken: string,
     refreshToken: string,
-    profile: any,
+    profile: any
   ): Promise<any> {
     const { name, emails, photos } = profile;
-    
+
     const oauthProfile: OAuthProfile = {
       provider: 'google',
       id: profile.id,
@@ -37,4 +37,4 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const user = await this.authService.validateOAuthProfile(oauthProfile);
     return user;
   }
-} 
+}

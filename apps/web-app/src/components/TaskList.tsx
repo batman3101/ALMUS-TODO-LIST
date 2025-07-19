@@ -80,7 +80,11 @@ const TaskList: React.FC = function TaskList() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">{t('common.loading')}</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        {t('common.loading')}
+      </div>
+    );
   }
 
   if (error) {
@@ -98,7 +102,9 @@ const TaskList: React.FC = function TaskList() {
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">{t('task.taskList')}</h2>
+        <h2 className="text-lg font-semibold text-gray-900">
+          {t('task.taskList')}
+        </h2>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
@@ -131,26 +137,36 @@ const TaskList: React.FC = function TaskList() {
             {tasks.map((task: Task) => (
               <tr key={task.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{task.title}</div>
+                  <div className="text-sm font-medium text-gray-900">
+                    {task.title}
+                  </div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900 max-w-xs truncate">{task.description}</div>
+                  <div className="text-sm text-gray-900 max-w-xs truncate">
+                    {task.description}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">{task.assigneeId}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)}`}>
+                  <span
+                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)}`}
+                  >
                     {getStatusText(task.status)}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`text-sm font-medium ${getPriorityColor(task.priority)}`}>
+                  <span
+                    className={`text-sm font-medium ${getPriorityColor(task.priority)}`}
+                  >
                     {getPriorityText(task.priority)}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '-'}
+                  {task.dueDate
+                    ? new Date(task.dueDate).toLocaleDateString()
+                    : '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button
@@ -169,4 +185,4 @@ const TaskList: React.FC = function TaskList() {
   );
 };
 
-export default TaskList; 
+export default TaskList;

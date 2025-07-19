@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { storage, firestore } from '../config/firebase';
 import { useAuth } from './useAuth';
@@ -13,10 +18,20 @@ export interface UploadProgress {
 }
 
 export interface UseFileUploadReturn {
-  uploadFile: (file: File, path: string, metadata?: Partial<FileMetadata>) => Promise<FileMetadata>;
-  uploadMultipleFiles: (files: File[], path: string, metadata?: Partial<FileMetadata>) => Promise<FileMetadata[]>;
+  uploadFile: (
+    file: File,
+    path: string,
+    metadata?: Partial<FileMetadata>
+  ) => Promise<FileMetadata>;
+  uploadMultipleFiles: (
+    files: File[],
+    path: string,
+    metadata?: Partial<FileMetadata>
+  ) => Promise<FileMetadata[]>;
   deleteFile: (fileId: string) => Promise<{ success: boolean; error?: string }>;
-  downloadFile: (fileId: string) => Promise<{ success: boolean; url?: string; error?: string }>;
+  downloadFile: (
+    fileId: string
+  ) => Promise<{ success: boolean; url?: string; error?: string }>;
   uploadState: UploadState;
   resetUploadState: () => void;
 }
@@ -29,7 +44,11 @@ export const useFileUpload = (): UseFileUploadReturn => {
     error: null,
   });
 
-  const uploadFile = async (file: File, path: string, metadata?: Partial<FileMetadata>): Promise<FileMetadata> => {
+  const uploadFile = async (
+    file: File,
+    path: string,
+    metadata?: Partial<FileMetadata>
+  ): Promise<FileMetadata> => {
     if (!user) {
       throw new Error('인증이 필요합니다.');
     }
@@ -66,10 +85,10 @@ export const useFileUpload = (): UseFileUploadReturn => {
     try {
       // Storage에 파일 업로드
       const storageRef = ref(storage, `${path}/${Date.now()}_${file.name}`);
-      
+
       // 업로드 진행률 모니터링 (Firebase Storage는 기본적으로 진행률을 제공하지 않음)
       const uploadTask = uploadBytes(storageRef, file);
-      
+
       // 진행률 시뮬레이션 (실제로는 Firebase Storage에서 제공하지 않음)
       const progressInterval = setInterval(() => {
         setUploadState(prev => ({
@@ -77,7 +96,10 @@ export const useFileUpload = (): UseFileUploadReturn => {
           progress: {
             loaded: prev.progress.loaded + file.size / 10,
             total: file.size,
-            percentage: Math.min((prev.progress.loaded + file.size / 10) / file.size * 100, 90),
+            percentage: Math.min(
+              ((prev.progress.loaded + file.size / 10) / file.size) * 100,
+              90
+            ),
           },
         }));
       }, 100);
@@ -119,19 +141,30 @@ export const useFileUpload = (): UseFileUploadReturn => {
       setUploadState({
         isUploading: false,
         progress: { loaded: 0, total: 0, percentage: 0 },
-        error: error instanceof Error ? error.message : '파일 업로드에 실패했습니다.',
+        error:
+          error instanceof Error
+            ? error.message
+            : '파일 업로드에 실패했습니다.',
       });
       throw error;
     }
   };
 
-  const uploadMultipleFiles = async (files: File[], path: string, metadata?: Partial<FileMetadata>): Promise<FileMetadata[]> => {
+  const uploadMultipleFiles = async (
+    files: File[],
+    path: string,
+    metadata?: Partial<FileMetadata>
+  ): Promise<FileMetadata[]> => {
     const results = await Promise.allSettled(
       files.map(file => uploadFile(file, path, metadata))
     );
 
-    const successResults = results.filter(result => result.status === 'fulfilled') as PromiseFulfilledResult<FileMetadata>[];
-    const errorResults = results.filter(result => result.status === 'rejected') as PromiseRejectedResult[];
+    const successResults = results.filter(
+      result => result.status === 'fulfilled'
+    ) as PromiseFulfilledResult<FileMetadata>[];
+    const errorResults = results.filter(
+      result => result.status === 'rejected'
+    ) as PromiseRejectedResult[];
 
     if (errorResults.length > 0) {
       console.error('일부 파일 업로드 실패:', errorResults);
@@ -140,7 +173,9 @@ export const useFileUpload = (): UseFileUploadReturn => {
     return successResults.map(result => result.value);
   };
 
-  const deleteFile = async (fileId: string): Promise<{ success: boolean; error?: string }> => {
+  const deleteFile = async (
+    fileId: string
+  ): Promise<{ success: boolean; error?: string }> => {
     if (!user) {
       return { success: false, error: '인증이 필요합니다.' };
     }
@@ -170,14 +205,17 @@ export const useFileUpload = (): UseFileUploadReturn => {
 
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : '파일 삭제에 실패했습니다.' 
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : '파일 삭제에 실패했습니다.',
       };
     }
   };
 
-  const downloadFile = async (fileId: string): Promise<{ success: boolean; url?: string; error?: string }> => {
+  const downloadFile = async (
+    fileId: string
+  ): Promise<{ success: boolean; url?: string; error?: string }> => {
     try {
       // Firestore에서 파일 메타데이터 조회
       const fileDoc = await doc(firestore, 'files', fileId);
@@ -191,9 +229,12 @@ export const useFileUpload = (): UseFileUploadReturn => {
 
       return { success: true, url: fileData.url };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : '파일 다운로드에 실패했습니다.' 
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : '파일 다운로드에 실패했습니다.',
       };
     }
   };
@@ -214,4 +255,4 @@ export const useFileUpload = (): UseFileUploadReturn => {
     uploadState,
     resetUploadState,
   };
-}; 
+};

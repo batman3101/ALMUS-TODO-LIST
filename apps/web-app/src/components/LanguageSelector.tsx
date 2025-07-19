@@ -37,4 +37,4 @@ const LanguageSelector: React.FC = () => {
   );
 };
 
-export default LanguageSelector; 
+export default LanguageSelector;

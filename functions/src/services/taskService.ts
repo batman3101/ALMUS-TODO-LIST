@@ -102,8 +102,9 @@ export class TaskService {
 
       // null 값 제거
       Object.keys(updateDoc).forEach(key => {
-        if (updateDoc[key] === null || updateDoc[key] === undefined) {
-          delete updateDoc[key];
+        const typedKey = key as keyof typeof updateDoc;
+        if (updateDoc[typedKey] === null || updateDoc[typedKey] === undefined) {
+          delete updateDoc[typedKey];
         }
       });
 

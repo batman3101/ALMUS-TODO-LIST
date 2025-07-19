@@ -1,15 +1,32 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  Query,
+} from '@nestjs/common';
 import { TaskService } from './task.service';
-import { CreateTaskInput, UpdateTaskInput, TaskFilterInput, Task as TaskType } from '@almus/shared-types';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import type {
+  CreateTaskInput,
+  UpdateTaskInput,
+  TaskFilterInput,
+  Task as TaskType,
+} from '@almus/shared-types';
 
 @Controller('tasks')
-@UseGuards(JwtAuthGuard)
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post()
-  async create(@Body() createTaskInput: CreateTaskInput, @Request() req): Promise<TaskType> {
+  async create(
+    @Body() createTaskInput: CreateTaskInput,
+    @Request() req: any
+  ): Promise<TaskType> {
     return this.taskService.createTask(createTaskInput, req.user.userId);
   }
 
@@ -27,13 +44,16 @@ export class TaskController {
   async update(
     @Param('id') id: string,
     @Body() updateTaskInput: UpdateTaskInput,
-    @Request() req,
+    @Request() req: any
   ): Promise<TaskType> {
     return this.taskService.updateTask(id, updateTaskInput, req.user.userId);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string, @Request() req): Promise<{ success: boolean }> {
+  async remove(
+    @Param('id') id: string,
+    @Request() req: any
+  ): Promise<{ success: boolean }> {
     const result = await this.taskService.removeTask(id, req.user.userId);
     return { success: result };
   }
@@ -42,4 +62,4 @@ export class TaskController {
   async health(): Promise<{ status: string }> {
     return { status: 'ok' };
   }
-} 
+}

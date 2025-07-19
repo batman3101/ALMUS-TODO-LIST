@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { QueryProvider } from './providers/QueryProvider';
 import { useAuth } from './hooks/useAuth';
@@ -15,7 +14,7 @@ import LoginForm from './components/LoginForm';
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('list');
   const { t } = useTranslation();
-  const { user, loading, isAuthenticated } = useAuth();
+  const { loading, isAuthenticated } = useAuth();
 
   const renderCurrentView = () => {
     switch (currentView) {
@@ -53,16 +52,18 @@ function App() {
           <header className="mb-8">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{t('app.title')}</h1>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {t('app.title')}
+                </h1>
                 <p className="text-gray-600 mt-2">{t('app.subtitle')}</p>
               </div>
               <LanguageSelector />
             </div>
           </header>
-          
+
           <main className="space-y-8">
             <CreateTaskForm />
-            <ViewSelector 
+            <ViewSelector
               currentView={currentView}
               onViewChange={setCurrentView}
               className="mb-6"
@@ -75,4 +76,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

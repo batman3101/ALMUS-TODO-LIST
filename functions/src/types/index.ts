@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { CallableRequest } from 'firebase-functions/v2/https';
 import { TaskStatus, TaskPriority } from '@almus/shared-types';
 
 // HTTP 요청/응답 타입

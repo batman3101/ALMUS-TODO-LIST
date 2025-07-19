@@ -1,6 +1,13 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginInput, LoginResponse, User } from '@almus/shared-types';
+import type { LoginInput, LoginResponse, User } from '@almus/shared-types';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
@@ -13,13 +20,15 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refresh(@Body() body: { refreshToken: string }): Promise<LoginResponse> {
+  async refresh(
+    @Body() body: { refreshToken: string }
+  ): Promise<LoginResponse> {
     return this.authService.refreshToken(body.refreshToken);
   }
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  async getProfile(@Request() req): Promise<User> {
+  async getProfile(@Request() req: any): Promise<User> {
     return req.user;
   }
 
@@ -27,4 +36,4 @@ export class AuthController {
   async health(): Promise<{ status: string }> {
     return { status: 'ok' };
   }
-} 
+}

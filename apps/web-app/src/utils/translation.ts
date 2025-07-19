@@ -39,8 +39,10 @@ export const translateText = async (
   const now = Date.now();
 
   // 캐시에서 확인
-  if (translationCache[cacheKey] && 
-      now - translationCache[cacheKey].timestamp < CACHE_DURATION) {
+  if (
+    translationCache[cacheKey] &&
+    now - translationCache[cacheKey].timestamp < CACHE_DURATION
+  ) {
     return translationCache[cacheKey].translatedText;
   }
 
@@ -107,6 +109,6 @@ export const getTranslatedText = async (
   if (targetLanguage === 'ko') {
     return text; // 한국어는 번역하지 않음
   }
-  
+
   return await translateText(text, targetLanguage);
-}; 
+};

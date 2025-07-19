@@ -1,6 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User, UserRole, LoginResponse, OAuthProfile } from '@almus/shared-types';
+import {
+  User,
+  UserRole,
+  LoginResponse,
+  OAuthProfile,
+} from '@almus/shared-types';
 
 @Injectable()
 export class AuthService {
@@ -58,7 +63,7 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify(token);
       const user = await this.validateUser(payload.email);
-      
+
       if (!user) {
         throw new UnauthorizedException('Invalid token');
       }
@@ -70,7 +75,9 @@ export class AuthService {
       };
 
       const accessToken = this.jwtService.sign(newPayload);
-      const refreshToken = this.jwtService.sign(newPayload, { expiresIn: '7d' });
+      const refreshToken = this.jwtService.sign(newPayload, {
+        expiresIn: '7d',
+      });
 
       return {
         accessToken,
@@ -81,4 +88,4 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
-} 
+}

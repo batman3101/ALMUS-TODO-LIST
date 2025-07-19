@@ -1,6 +1,5 @@
 import { onDocumentCreated, onDocumentUpdated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
 import { firestore } from 'firebase-admin';
-import { NotificationRequest } from '../types';
 import { FCMService } from '../services/fcmService';
 
 // Task 생성 시 알림 트리거
@@ -230,19 +229,6 @@ export const checkOverdueTasks = onDocumentCreated(
     }
   }
 );
-
-// 알림 생성 헬퍼 함수
-async function createNotification(notification: NotificationRequest): Promise<void> {
-  try {
-    await firestore().collection('notifications').add({
-      ...notification,
-      createdAt: new Date(),
-      isRead: false,
-    });
-  } catch (error) {
-    console.error('알림 생성 오류:', error);
-  }
-}
 
 // 팀 멤버 조회 헬퍼 함수
 async function getTeamMembers(teamId: string): Promise<Array<{ id: string; role: string }>> {

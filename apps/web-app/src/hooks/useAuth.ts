@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { User, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, firestore } from '../config/firebase';
 
@@ -19,12 +23,14 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async firebaseUser => {
       try {
         if (firebaseUser) {
           // Firestore에서 사용자 정보 조회
-          const userDoc = await getDoc(doc(firestore, 'users', firebaseUser.uid));
-          
+          const userDoc = await getDoc(
+            doc(firestore, 'users', firebaseUser.uid)
+          );
+
           if (userDoc.exists()) {
             const userData = userDoc.data();
             setUser({
@@ -53,7 +59,9 @@ export const useAuth = () => {
         }
       } catch (err) {
         console.error('Auth state change error:', err);
-        setError(err instanceof Error ? err.message : '인증 오류가 발생했습니다.');
+        setError(
+          err instanceof Error ? err.message : '인증 오류가 발생했습니다.'
+        );
       } finally {
         setLoading(false);
       }
@@ -68,7 +76,8 @@ export const useAuth = () => {
       const result = await signInWithEmailAndPassword(auth, email, password);
       return result;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '로그인에 실패했습니다.';
+      const errorMessage =
+        err instanceof Error ? err.message : '로그인에 실패했습니다.';
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -79,7 +88,8 @@ export const useAuth = () => {
       setError(null);
       await signOut(auth);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '로그아웃에 실패했습니다.';
+      const errorMessage =
+        err instanceof Error ? err.message : '로그아웃에 실패했습니다.';
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -88,7 +98,10 @@ export const useAuth = () => {
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'ADMIN';
   const isEditor = user?.role === 'EDITOR' || user?.role === 'ADMIN';
-  const isViewer = user?.role === 'VIEWER' || user?.role === 'EDITOR' || user?.role === 'ADMIN';
+  const isViewer =
+    user?.role === 'VIEWER' ||
+    user?.role === 'EDITOR' ||
+    user?.role === 'ADMIN';
 
   return {
     user,
@@ -101,4 +114,4 @@ export const useAuth = () => {
     isEditor,
     isViewer,
   };
-}; 
+};

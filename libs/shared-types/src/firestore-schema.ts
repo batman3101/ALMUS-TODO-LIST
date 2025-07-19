@@ -10,18 +10,29 @@ export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
 
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
-export type NotificationType = 
-  | 'TASK_ASSIGNED' 
-  | 'TASK_DUE' 
-  | 'TASK_COMPLETED' 
-  | 'TASK_COMMENT' 
-  | 'TASK_OVERDUE' 
-  | 'MENTION' 
+export type NotificationType =
+  | 'TASK_ASSIGNED'
+  | 'TASK_DUE'
+  | 'TASK_COMPLETED'
+  | 'TASK_COMMENT'
+  | 'TASK_OVERDUE'
+  | 'MENTION'
   | 'SYSTEM_ANNOUNCEMENT';
 
-export type NotificationChannel = 'EMAIL' | 'PUSH' | 'IN_APP' | 'SLACK' | 'TEAMS' | 'KAKAO';
+export type NotificationChannel =
+  | 'EMAIL'
+  | 'PUSH'
+  | 'IN_APP'
+  | 'SLACK'
+  | 'TEAMS'
+  | 'KAKAO';
 
-export type NotificationFrequency = 'IMMEDIATE' | 'HOURLY' | 'DAILY' | 'WEEKLY' | 'NEVER';
+export type NotificationFrequency =
+  | 'IMMEDIATE'
+  | 'HOURLY'
+  | 'DAILY'
+  | 'WEEKLY'
+  | 'NEVER';
 
 // 컬렉션 이름 상수
 export const FIRESTORE_COLLECTIONS = {
@@ -122,7 +133,11 @@ export interface FirestoreTaskDependency {
   id: string;
   sourceTaskId: string;
   targetTaskId: string;
-  type: 'finish-to-start' | 'start-to-start' | 'finish-to-finish' | 'start-to-finish';
+  type:
+    | 'finish-to-start'
+    | 'start-to-start'
+    | 'finish-to-finish'
+    | 'start-to-finish';
   lag?: number; // 지연일수 (일)
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -238,4 +253,4 @@ export interface FirestoreMigration {
   description: string;
   up: () => Promise<void>;
   down: () => Promise<void>;
-} 
+}

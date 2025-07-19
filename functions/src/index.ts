@@ -1,6 +1,5 @@
 import { initializeApp } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
+import { onCall } from 'firebase-functions/v2/https';
 
 // Firebase Admin 초기화
 initializeApp();

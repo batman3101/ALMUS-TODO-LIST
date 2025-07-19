@@ -285,9 +285,9 @@ export class FCMService {
             link: '/tasks',
           },
         },
-      };
+      } as any; // 타입 캐스팅으로 임시 해결
 
-      const response = await messaging().send(message);
+      const response = await messaging().send(message as any);
       console.log(`FCM 메시지 발송 성공: ${response}`);
     } catch (error) {
       console.error(`FCM 메시지 발송 실패 (토큰: ${token.token}):`, error);

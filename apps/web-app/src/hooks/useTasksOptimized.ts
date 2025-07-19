@@ -1,24 +1,32 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
-  limit, 
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+} from '@tanstack/react-query';
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
   startAfter,
-  onSnapshot,
-  QuerySnapshot,
-  DocumentData
 } from 'firebase/firestore';
 import { firestore } from '../config/firebase';
 import { useAuth } from './useAuth';
-import { Task, TaskStatus, TaskPriority, CreateTaskInput, UpdateTaskInput } from '@almus/shared-types';
+import {
+  Task,
+  TaskStatus,
+  TaskPriority,
+  CreateTaskInput,
+  UpdateTaskInput,
+} from '@almus/shared-types';
 
 export interface TaskFilters {
   status?: TaskStatus;
@@ -89,9 +97,10 @@ export const useTasksOptimized = (filters: TaskFilters = {}) => {
       let filteredTasks = tasks;
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
-        filteredTasks = tasks.filter(task => 
-          task.title.toLowerCase().includes(searchLower) ||
-          task.description?.toLowerCase().includes(searchLower)
+        filteredTasks = tasks.filter(
+          task =>
+            task.title.toLowerCase().includes(searchLower) ||
+            task.description?.toLowerCase().includes(searchLower)
         );
       }
 
@@ -101,7 +110,7 @@ export const useTasksOptimized = (filters: TaskFilters = {}) => {
         hasMore: snapshot.docs.length === PAGE_SIZE,
       };
     },
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: lastPage => lastPage.nextCursor,
     enabled: !!user?.teamId,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
@@ -135,7 +144,13 @@ export const useTasksOptimized = (filters: TaskFilters = {}) => {
 
   // Task 업데이트
   const updateTaskMutation = useMutation({
-    mutationFn: async ({ taskId, data }: { taskId: string; data: UpdateTaskInput }) => {
+    mutationFn: async ({
+      taskId,
+      data,
+    }: {
+      taskId: string;
+      data: UpdateTaskInput;
+    }) => {
       const taskRef = doc(firestore, 'tasks', taskId);
       const updateData = {
         ...data,
@@ -207,7 +222,7 @@ export const useTasksOptimized = (filters: TaskFilters = {}) => {
 
         // 각 상태별 개수 조회
         const statuses = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'] as const;
-        const promises = statuses.map(async (status) => {
+        const promises = statuses.map(async status => {
           const q = query(
             collection(firestore, 'tasks'),
             where('teamId', '==', user.teamId),
@@ -218,7 +233,7 @@ export const useTasksOptimized = (filters: TaskFilters = {}) => {
         });
 
         const results = await Promise.all(promises);
-        
+
         // 통계 계산
         results.forEach(({ status, count }) => {
           stats.total += count;
@@ -271,4 +286,4 @@ export const useTasksOptimized = (filters: TaskFilters = {}) => {
     useTask,
     useTaskStats,
   };
-}; 
+};

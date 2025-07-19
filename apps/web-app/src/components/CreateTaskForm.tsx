@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCreateTask } from '../hooks/useTasks';
-import { CreateTaskInput, TaskStatus, TaskPriority, FileMetadata } from '@almus/shared-types';
+import {
+  CreateTaskInput,
+  TaskStatus,
+  TaskPriority,
+  FileMetadata,
+} from '@almus/shared-types';
 import { FileUpload } from './FileUpload';
 import { useAuth } from '../hooks/useAuth';
 
@@ -24,7 +29,7 @@ const CreateTaskForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title.trim()) {
       alert(t('task.titleRequired'));
       return;
@@ -124,30 +129,38 @@ const CreateTaskForm: React.FC = () => {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('task.createTask')}</h2>
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        {t('task.createTask')}
+      </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="title"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             {t('task.title')} *
           </label>
           <input
             type="text"
             id="title"
             value={formData.title}
-            onChange={(e) => handleInputChange('title', e.target.value)}
+            onChange={e => handleInputChange('title', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder={t('task.title')}
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             {t('task.description')}
           </label>
           <textarea
             id="description"
             value={formData.description || ''}
-            onChange={(e) => handleInputChange('description', e.target.value)}
+            onChange={e => handleInputChange('description', e.target.value)}
             rows={3}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder={t('task.description')}
@@ -155,14 +168,17 @@ const CreateTaskForm: React.FC = () => {
         </div>
 
         <div>
-          <label htmlFor="assignee" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="assignee"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             {t('task.assignee')} *
           </label>
           <input
             type="text"
             id="assignee"
             value={formData.assigneeId}
-            onChange={(e) => handleInputChange('assigneeId', e.target.value)}
+            onChange={e => handleInputChange('assigneeId', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder={t('task.assignee')}
           />
@@ -170,16 +186,21 @@ const CreateTaskForm: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="status"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               {t('task.status')}
             </label>
             <select
               id="status"
               value={formData.status}
-              onChange={(e) => handleInputChange('status', e.target.value as TaskStatus)}
+              onChange={e =>
+                handleInputChange('status', e.target.value as TaskStatus)
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {taskStatusOptions.map((status) => (
+              {taskStatusOptions.map(status => (
                 <option key={status} value={status}>
                   {getStatusText(status)}
                 </option>
@@ -188,16 +209,21 @@ const CreateTaskForm: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="priority"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               {t('task.priority')}
             </label>
             <select
               id="priority"
               value={formData.priority}
-              onChange={(e) => handleInputChange('priority', e.target.value as TaskPriority)}
+              onChange={e =>
+                handleInputChange('priority', e.target.value as TaskPriority)
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {taskPriorityOptions.map((priority) => (
+              {taskPriorityOptions.map(priority => (
                 <option key={priority} value={priority}>
                   {getPriorityText(priority)}
                 </option>
@@ -206,14 +232,26 @@ const CreateTaskForm: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="dueDate"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               {t('task.dueDate')}
             </label>
             <input
               type="date"
               id="dueDate"
-              value={formData.dueDate ? new Date(formData.dueDate).toISOString().split('T')[0] : ''}
-              onChange={(e) => handleInputChange('dueDate', e.target.value ? new Date(e.target.value) : undefined)}
+              value={
+                formData.dueDate
+                  ? new Date(formData.dueDate).toISOString().split('T')[0]
+                  : ''
+              }
+              onChange={e =>
+                handleInputChange(
+                  'dueDate',
+                  e.target.value ? new Date(e.target.value) : undefined
+                )
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -243,7 +281,9 @@ const CreateTaskForm: React.FC = () => {
         {/* 업로드된 파일 목록 */}
         {uploadedFiles.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">업로드된 파일:</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">
+              업로드된 파일:
+            </h4>
             <ul className="space-y-1">
               {uploadedFiles.map((file, index) => (
                 <li key={index} className="text-sm text-gray-600">
@@ -260,7 +300,9 @@ const CreateTaskForm: React.FC = () => {
             disabled={createTaskMutation.isPending}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            {createTaskMutation.isPending ? t('common.loading') : t('task.createTask')}
+            {createTaskMutation.isPending
+              ? t('common.loading')
+              : t('task.createTask')}
           </button>
         </div>
       </form>
@@ -268,4 +310,4 @@ const CreateTaskForm: React.FC = () => {
   );
 };
 
-export default CreateTaskForm; 
+export default CreateTaskForm;

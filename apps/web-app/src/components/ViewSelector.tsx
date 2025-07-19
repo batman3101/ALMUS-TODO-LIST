@@ -44,15 +44,21 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
   ];
 
   return (
-    <div className={`bg-white rounded-lg shadow border border-gray-200 ${className}`}>
+    <div
+      className={`bg-white rounded-lg shadow border border-gray-200 ${className}`}
+    >
       <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">{t('view.switchView')}</h3>
-        <p className="text-sm text-gray-600 mt-1">{t('view.selectViewDescription')}</p>
+        <h3 className="text-lg font-semibold text-gray-900">
+          {t('view.switchView')}
+        </h3>
+        <p className="text-sm text-gray-600 mt-1">
+          {t('view.selectViewDescription')}
+        </p>
       </div>
-      
+
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {views.map((view) => (
+          {views.map(view => (
             <button
               key={view.id}
               onClick={() => onViewChange(view.id)}
@@ -66,7 +72,9 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
                 <span className="text-2xl">{view.icon}</span>
                 <div className="text-left">
                   <div className="font-medium">{view.label}</div>
-                  <div className="text-xs text-gray-500 mt-1">{view.description}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {view.description}
+                  </div>
                 </div>
               </div>
             </button>
@@ -77,4 +85,4 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
   );
 };
 
-export default ViewSelector; 
+export default ViewSelector;

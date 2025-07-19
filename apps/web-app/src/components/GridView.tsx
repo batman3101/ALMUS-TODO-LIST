@@ -47,7 +47,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
       <input
         type="text"
         value={editValue}
-        onChange={(e) => setEditValue(e.target.value)}
+        onChange={e => setEditValue(e.target.value)}
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
         className="w-full px-2 py-1 text-sm border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -78,15 +78,18 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
   } | null>(null);
 
   // 컬럼 정의
-  const columns = useMemo(() => [
-    { key: 'title', label: '제목', width: 200 },
-    { key: 'description', label: '설명', width: 300 },
-    { key: 'status', label: '상태', width: 120 },
-    { key: 'priority', label: '우선순위', width: 120 },
-    { key: 'assigneeId', label: '담당자', width: 120 },
-    { key: 'dueDate', label: '마감일', width: 120 },
-    { key: 'actions', label: '작업', width: 100 },
-  ], []);
+  const columns = useMemo(
+    () => [
+      { key: 'title', label: '제목', width: 200 },
+      { key: 'description', label: '설명', width: 300 },
+      { key: 'status', label: '상태', width: 120 },
+      { key: 'priority', label: '우선순위', width: 120 },
+      { key: 'assigneeId', label: '담당자', width: 120 },
+      { key: 'dueDate', label: '마감일', width: 120 },
+      { key: 'actions', label: '작업', width: 100 },
+    ],
+    []
+  );
 
   const handleSelectTask = (taskId: string, checked: boolean) => {
     const newSelected = new Set(selectedTasks);
@@ -110,7 +113,11 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
     setEditingCell({ taskId, field });
   };
 
-  const handleSaveCell = async (taskId: string, field: keyof Task, value: string) => {
+  const handleSaveCell = async (
+    taskId: string,
+    field: keyof Task,
+    value: string
+  ) => {
     try {
       const task = tasks?.find((t: Task) => t.id === taskId);
       if (!task) return;
@@ -155,11 +162,17 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
 
   const handleBulkDelete = async () => {
     if (selectedTasks.size === 0) return;
-    
-    if (window.confirm(`선택된 ${selectedTasks.size}개의 태스크를 삭제하시겠습니까?`)) {
+
+    if (
+      window.confirm(
+        `선택된 ${selectedTasks.size}개의 태스크를 삭제하시겠습니까?`
+      )
+    ) {
       try {
         await Promise.all(
-          Array.from(selectedTasks).map(taskId => deleteTaskMutation.mutateAsync(taskId))
+          Array.from(selectedTasks).map(taskId =>
+            deleteTaskMutation.mutateAsync(taskId)
+          )
         );
         setSelectedTasks(new Set());
       } catch (error) {
@@ -169,46 +182,19 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
     }
   };
 
-  const getStatusColor = (status: TaskStatus) => {
-    switch (status) {
-      case TaskStatus.TODO:
-        return 'bg-gray-100 text-gray-800';
-      case TaskStatus.IN_PROGRESS:
-        return 'bg-blue-100 text-blue-800';
-      case TaskStatus.REVIEW:
-        return 'bg-yellow-100 text-yellow-800';
-      case TaskStatus.DONE:
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPriorityColor = (priority: TaskPriority) => {
-    switch (priority) {
-      case TaskPriority.LOW:
-        return 'text-gray-500';
-      case TaskPriority.MEDIUM:
-        return 'text-blue-500';
-      case TaskPriority.HIGH:
-        return 'text-orange-500';
-      case TaskPriority.URGENT:
-        return 'text-red-500';
-      default:
-        return 'text-gray-500';
-    }
-  };
-
-  const renderCell = (task: Task, column: typeof columns[0]) => {
-    const isEditing = editingCell?.taskId === task.id && editingCell?.field === column.key;
+  const renderCell = (task: Task, column: (typeof columns)[0]) => {
+    const isEditing =
+      editingCell?.taskId === task.id && editingCell?.field === column.key;
 
     switch (column.key) {
       case 'title':
       case 'description':
         return (
           <EditableCell
-            value={task[column.key] as string || ''}
-            onSave={(value) => handleSaveCell(task.id, column.key as keyof Task, value)}
+            value={(task[column.key] as string) || ''}
+            onSave={value =>
+              handleSaveCell(task.id, column.key as keyof Task, value)
+            }
             isEditing={isEditing}
             onEdit={() => handleEditCell(task.id, column.key as keyof Task)}
             onCancel={() => setEditingCell(null)}
@@ -219,7 +205,7 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
         return (
           <EditableCell
             value={task.status}
-            onSave={(value) => handleSaveCell(task.id, 'status', value)}
+            onSave={value => handleSaveCell(task.id, 'status', value)}
             isEditing={isEditing}
             onEdit={() => handleEditCell(task.id, 'status')}
             onCancel={() => setEditingCell(null)}
@@ -230,7 +216,7 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
         return (
           <EditableCell
             value={task.priority}
-            onSave={(value) => handleSaveCell(task.id, 'priority', value)}
+            onSave={value => handleSaveCell(task.id, 'priority', value)}
             isEditing={isEditing}
             onEdit={() => handleEditCell(task.id, 'priority')}
             onCancel={() => setEditingCell(null)}
@@ -241,7 +227,7 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
         return (
           <EditableCell
             value={task.assigneeId}
-            onSave={(value) => handleSaveCell(task.id, 'assigneeId', value)}
+            onSave={value => handleSaveCell(task.id, 'assigneeId', value)}
             isEditing={isEditing}
             onEdit={() => handleEditCell(task.id, 'assigneeId')}
             onCancel={() => setEditingCell(null)}
@@ -251,8 +237,12 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
       case 'dueDate':
         return (
           <EditableCell
-            value={task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : ''}
-            onSave={(value) => handleSaveCell(task.id, 'dueDate', value)}
+            value={
+              task.dueDate
+                ? new Date(task.dueDate).toISOString().split('T')[0]
+                : ''
+            }
+            onSave={value => handleSaveCell(task.id, 'dueDate', value)}
             isEditing={isEditing}
             onEdit={() => handleEditCell(task.id, 'dueDate')}
             onCancel={() => setEditingCell(null)}
@@ -272,11 +262,21 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
         );
 
       default:
-        return <div className="px-2 py-1 text-sm">{task[column.key as keyof Task] as string}</div>;
+        return (
+          <div className="px-2 py-1 text-sm">
+            {task[column.key as keyof Task] as string}
+          </div>
+        );
     }
   };
 
-  const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+  const Row = ({
+    index,
+    style,
+  }: {
+    index: number;
+    style: React.CSSProperties;
+  }) => {
     const task = tasks?.[index];
     if (!task) return null;
 
@@ -293,11 +293,11 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
           <input
             type="checkbox"
             checked={isSelected}
-            onChange={(e) => handleSelectTask(task.id, e.target.checked)}
+            onChange={e => handleSelectTask(task.id, e.target.checked)}
             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
           />
         </div>
-        {columns.map((column) => (
+        {columns.map(column => (
           <div
             key={column.key}
             className="border-r border-gray-200 last:border-r-0"
@@ -311,11 +311,15 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">로딩 중...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">로딩 중...</div>
+    );
   }
 
   if (error) {
-    return <div className="text-red-500">태스크 목록을 불러오는데 실패했습니다.</div>;
+    return (
+      <div className="text-red-500">태스크 목록을 불러오는데 실패했습니다.</div>
+    );
   }
 
   return (
@@ -338,12 +342,15 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
         <div className="w-12 p-2">
           <input
             type="checkbox"
-            checked={selectedTasks.size === (tasks?.length || 0) && selectedTasks.size > 0}
-            onChange={(e) => handleSelectAll(e.target.checked)}
+            checked={
+              selectedTasks.size === (tasks?.length || 0) &&
+              selectedTasks.size > 0
+            }
+            onChange={e => handleSelectAll(e.target.checked)}
             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
           />
         </div>
-        {columns.map((column) => (
+        {columns.map(column => (
           <div
             key={column.key}
             className="px-2 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 last:border-r-0"
@@ -379,4 +386,4 @@ const GridView: React.FC<GridViewProps> = ({ className = '' }) => {
   );
 };
 
-export default GridView; 
+export default GridView;

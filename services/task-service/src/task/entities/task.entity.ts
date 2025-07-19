@@ -12,45 +12,45 @@ import { TaskStatus, TaskPriority } from '@almus/shared-types';
 @Entity('tasks')
 export class Task {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'varchar', length: 255 })
-  title: string;
+  title!: string;
 
   @Column({ type: 'text', nullable: true })
   description?: string;
 
   @Column({ type: 'uuid' })
-  assigneeId: string;
+  assigneeId!: string;
 
   @Column({
     type: 'enum',
     enum: TaskStatus,
     default: TaskStatus.TODO,
   })
-  status: TaskStatus;
+  status!: TaskStatus;
 
   @Column({
     type: 'enum',
     enum: TaskPriority,
     default: TaskPriority.MEDIUM,
   })
-  priority: TaskPriority;
+  priority!: TaskPriority;
 
   @Column({ type: 'timestamp', nullable: true })
   dueDate?: Date;
 
   @Column({ type: 'uuid' })
-  createdBy: string;
+  createdBy!: string;
 
   @Column({ type: 'int', default: 1 })
-  version: number;
+  version!: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // Relations
   @ManyToOne(() => Task, { nullable: true })
@@ -60,4 +60,4 @@ export class Task {
   @ManyToOne(() => Task, { nullable: true })
   @JoinColumn({ name: 'createdBy' })
   createdByUser?: any;
-} 
+}

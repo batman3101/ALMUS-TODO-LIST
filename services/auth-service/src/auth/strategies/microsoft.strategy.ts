@@ -9,7 +9,7 @@ import { OAuthProfile } from '@almus/shared-types';
 export class MicrosoftStrategy extends PassportStrategy(Strategy, 'microsoft') {
   constructor(
     private configService: ConfigService,
-    private authService: AuthService,
+    private authService: AuthService
   ) {
     super({
       clientID: configService.get<string>('MICROSOFT_CLIENT_ID'),
@@ -22,10 +22,10 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy, 'microsoft') {
   async validate(
     accessToken: string,
     refreshToken: string,
-    profile: any,
+    profile: any
   ): Promise<any> {
     const { name, emails, photos } = profile;
-    
+
     const oauthProfile: OAuthProfile = {
       provider: 'microsoft',
       id: profile.id,
@@ -37,4 +37,4 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy, 'microsoft') {
     const user = await this.authService.validateOAuthProfile(oauthProfile);
     return user;
   }
-} 
+}

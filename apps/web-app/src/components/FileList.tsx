@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { firestore } from '../config/firebase';
 import { useFileUpload } from '../hooks/useFileUpload';
 import { FileMetadata } from '@almus/shared-types';
@@ -48,7 +48,7 @@ export const FileList: React.FC<FileListProps> = ({
       const querySnapshot = await getDocs(q);
       const fileList: FileMetadata[] = [];
 
-      querySnapshot.forEach((doc) => {
+      querySnapshot.forEach(doc => {
         const data = doc.data();
         fileList.push({
           id: doc.id,
@@ -69,7 +69,11 @@ export const FileList: React.FC<FileListProps> = ({
 
       setFiles(fileList);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '파일 목록을 불러오는데 실패했습니다.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : '파일 목록을 불러오는데 실패했습니다.'
+      );
     } finally {
       setLoading(false);
     }
@@ -85,7 +89,9 @@ export const FileList: React.FC<FileListProps> = ({
         setError(result.error || '파일 삭제에 실패했습니다.');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '파일 삭제에 실패했습니다.');
+      setError(
+        err instanceof Error ? err.message : '파일 삭제에 실패했습니다.'
+      );
     }
   };
 
@@ -104,7 +110,9 @@ export const FileList: React.FC<FileListProps> = ({
         setError(result.error || '파일 다운로드에 실패했습니다.');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '파일 다운로드에 실패했습니다.');
+      setError(
+        err instanceof Error ? err.message : '파일 다운로드에 실패했습니다.'
+      );
     }
   };
 
@@ -159,9 +167,9 @@ export const FileList: React.FC<FileListProps> = ({
   return (
     <div className={`file-list ${className}`}>
       <h3 className="text-lg font-medium text-gray-900 mb-4">첨부 파일</h3>
-      
+
       <div className="space-y-2">
-        {files.map((file) => (
+        {files.map(file => (
           <div
             key={file.id}
             className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -173,11 +181,12 @@ export const FileList: React.FC<FileListProps> = ({
                   {file.name}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {formatFileSize(file.size)} • {file.uploaderName} • {file.createdAt.toLocaleDateString()}
+                  {formatFileSize(file.size)} • {file.uploaderName} •{' '}
+                  {file.createdAt.toLocaleDateString()}
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => handleDownloadFile(file.id)}
@@ -197,4 +206,4 @@ export const FileList: React.FC<FileListProps> = ({
       </div>
     </div>
   );
-}; 
+};

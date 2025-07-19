@@ -8,16 +8,6 @@ afterAll(() => {
   // 테스트 정리
 });
 
-// 전역 타입 정의
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toBeValidTask(): R;
-      toHavePermission(): R;
-    }
-  }
-}
-
 // 커스텀 매처
 expect.extend({
   toBeValidTask(received: any) {

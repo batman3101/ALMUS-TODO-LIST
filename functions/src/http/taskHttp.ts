@@ -23,22 +23,23 @@ export const createTask = onRequest(
       // 요청 데이터 검증
       const taskData: CreateTaskRequest = req.body;
       if (!taskData.title || !taskData.assigneeId || !taskData.teamId) {
-        return apiRes.status(400).json({
+        apiRes.status(400).json({
           success: false,
           error: '필수 필드가 누락되었습니다.',
         });
+        return;
       }
 
       // Task 생성
       const result = await TaskService.createTask(user.uid, taskData);
 
-      return apiRes.status(201).json({
+      apiRes.status(201).json({
         success: true,
         data: result,
       });
     } catch (error) {
       console.error('Task 생성 오류:', error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Task 생성에 실패했습니다.',
       });
@@ -64,31 +65,33 @@ export const updateTask = onRequest(
 
       const taskId = req.params.taskId;
       if (!taskId) {
-        return apiRes.status(400).json({
+        apiRes.status(400).json({
           success: false,
           error: 'Task ID가 필요합니다.',
         });
+        return;
       }
 
       // 요청 데이터 검증
       const updateData: UpdateTaskRequest = req.body;
       if (Object.keys(updateData).length === 0) {
-        return apiRes.status(400).json({
+        apiRes.status(400).json({
           success: false,
           error: '수정할 데이터가 없습니다.',
         });
+        return;
       }
 
       // Task 수정
       const result = await TaskService.updateTask(user.uid, taskId, updateData);
 
-      return apiRes.status(200).json({
+      apiRes.status(200).json({
         success: true,
         data: result,
       });
     } catch (error) {
       console.error('Task 수정 오류:', error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Task 수정에 실패했습니다.',
       });
@@ -114,22 +117,23 @@ export const deleteTask = onRequest(
 
       const taskId = req.params.taskId;
       if (!taskId) {
-        return apiRes.status(400).json({
+        apiRes.status(400).json({
           success: false,
           error: 'Task ID가 필요합니다.',
         });
+        return;
       }
 
       // Task 삭제
       await TaskService.deleteTask(user.uid, taskId);
 
-      return apiRes.status(200).json({
+      apiRes.status(200).json({
         success: true,
         message: 'Task가 삭제되었습니다.',
       });
     } catch (error) {
       console.error('Task 삭제 오류:', error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Task 삭제에 실패했습니다.',
       });
@@ -155,22 +159,23 @@ export const getTask = onRequest(
 
       const taskId = req.params.taskId;
       if (!taskId) {
-        return apiRes.status(400).json({
+        apiRes.status(400).json({
           success: false,
           error: 'Task ID가 필요합니다.',
         });
+        return;
       }
 
       // Task 조회
       const result = await TaskService.getTask(user.uid, taskId);
 
-      return apiRes.status(200).json({
+      apiRes.status(200).json({
         success: true,
         data: result,
       });
     } catch (error) {
       console.error('Task 조회 오류:', error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Task 조회에 실패했습니다.',
       });
@@ -205,22 +210,23 @@ export const getTasks = onRequest(
       };
 
       if (!query.teamId) {
-        return apiRes.status(400).json({
+        apiRes.status(400).json({
           success: false,
           error: '팀 ID가 필요합니다.',
         });
+        return;
       }
 
       // Task 목록 조회
       const result = await TaskService.getTasks(user.uid, query);
 
-      return apiRes.status(200).json({
+      apiRes.status(200).json({
         success: true,
         data: result,
       });
     } catch (error) {
       console.error('Task 목록 조회 오류:', error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Task 목록 조회에 실패했습니다.',
       });
@@ -246,22 +252,23 @@ export const getTaskAggregation = onRequest(
 
       const teamId = req.params.teamId;
       if (!teamId) {
-        return apiRes.status(400).json({
+        apiRes.status(400).json({
           success: false,
           error: '팀 ID가 필요합니다.',
         });
+        return;
       }
 
       // Task 집계 조회
       const result = await TaskService.getTaskAggregation(user.uid, teamId);
 
-      return apiRes.status(200).json({
+      apiRes.status(200).json({
         success: true,
         data: result,
       });
     } catch (error) {
       console.error('Task 집계 조회 오류:', error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Task 집계 조회에 실패했습니다.',
       });

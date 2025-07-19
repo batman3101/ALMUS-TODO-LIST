@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { getMessaging, getToken, onMessage, deleteToken } from 'firebase/messaging';
+import {
+  getMessaging,
+  getToken,
+  onMessage,
+  deleteToken,
+} from 'firebase/messaging';
 import { useAuth } from './useAuth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -22,7 +27,9 @@ interface NotificationSettings {
   updatedAt: Date;
 }
 
-const API_BASE_URL = process.env.VITE_FUNCTIONS_URL || 'http://localhost:5001/almus-todo-app/asia-northeast3';
+const API_BASE_URL =
+  process.env.VITE_FUNCTIONS_URL ||
+  'http://localhost:5001/almus-todo-app/asia-northeast3';
 
 export const useFCM = () => {
   const { user, isAuthenticated } = useAuth();
@@ -58,12 +65,18 @@ export const useFCM = () => {
 
   // FCM 토큰 저장
   const saveTokenMutation = useMutation({
-    mutationFn: async ({ token, platform }: { token: string; platform: string }) => {
+    mutationFn: async ({
+      token,
+      platform,
+    }: {
+      token: string;
+      platform: string;
+    }) => {
       const response = await fetch(`${API_BASE_URL}/saveFCMToken`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.uid}`,
+          Authorization: `Bearer ${user?.uid}`,
         },
         body: JSON.stringify({ token, platform }),
       });
@@ -77,7 +90,7 @@ export const useFCM = () => {
     onSuccess: () => {
       console.log('FCM 토큰이 저장되었습니다.');
     },
-    onError: (error) => {
+    onError: error => {
       console.error('FCM 토큰 저장 오류:', error);
     },
   });
@@ -89,7 +102,7 @@ export const useFCM = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.uid}`,
+          Authorization: `Bearer ${user?.uid}`,
         },
         body: JSON.stringify({ token }),
       });
@@ -103,7 +116,7 @@ export const useFCM = () => {
     onSuccess: () => {
       console.log('FCM 토큰이 삭제되었습니다.');
     },
-    onError: (error) => {
+    onError: error => {
       console.error('FCM 토큰 삭제 오류:', error);
     },
   });
@@ -114,7 +127,7 @@ export const useFCM = () => {
     queryFn: async (): Promise<NotificationSettings> => {
       const response = await fetch(`${API_BASE_URL}/getNotificationSettings`, {
         headers: {
-          'Authorization': `Bearer ${user?.uid}`,
+          Authorization: `Bearer ${user?.uid}`,
         },
       });
 
@@ -134,7 +147,7 @@ export const useFCM = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.uid}`,
+          Authorization: `Bearer ${user?.uid}`,
         },
         body: JSON.stringify(settings),
       });
@@ -149,7 +162,7 @@ export const useFCM = () => {
       queryClient.invalidateQueries({ queryKey: ['notificationSettings'] });
       console.log('알림 설정이 저장되었습니다.');
     },
-    onError: (error) => {
+    onError: error => {
       console.error('알림 설정 저장 오류:', error);
     },
   });
@@ -160,7 +173,7 @@ export const useFCM = () => {
       const response = await fetch(`${API_BASE_URL}/sendTestNotification`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${user?.uid}`,
+          Authorization: `Bearer ${user?.uid}`,
         },
       });
 
@@ -173,7 +186,7 @@ export const useFCM = () => {
     onSuccess: () => {
       console.log('테스트 알림이 발송되었습니다.');
     },
-    onError: (error) => {
+    onError: error => {
       console.error('테스트 알림 발송 오류:', error);
     },
   });
@@ -191,24 +204,27 @@ export const useFCM = () => {
   // 포그라운드 메시지 처리
   useEffect(() => {
     if (messaging) {
-      const unsubscribe = onMessage(messaging, (payload) => {
+      const unsubscribe = onMessage(messaging, payload => {
         console.log('포그라운드 메시지 수신:', payload);
-        
+
         // 브라우저 알림 표시
         if ('Notification' in window && Notification.permission === 'granted') {
-          const notification = new Notification(payload.notification?.title || '알림', {
-            body: payload.notification?.body,
-            icon: '/icon-192x192.png',
-            badge: '/badge-72x72.png',
-            tag: payload.data?.type,
-            data: payload.data,
-          });
+          const notification = new Notification(
+            payload.notification?.title || '알림',
+            {
+              body: payload.notification?.body,
+              icon: '/icon-192x192.png',
+              badge: '/badge-72x72.png',
+              tag: payload.data?.type,
+              data: payload.data,
+            }
+          );
 
           // 알림 클릭 시 처리
           notification.onclick = () => {
             window.focus();
             notification.close();
-            
+
             // Task 페이지로 이동
             if (payload.data?.taskId) {
               window.location.href = `/tasks/${payload.data.taskId}`;
@@ -255,4 +271,4 @@ export const useFCM = () => {
     requestNotificationPermission,
     unsubscribeFromFCM,
   };
-}; 
+};

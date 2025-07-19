@@ -1,22 +1,25 @@
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
-import { LoginInput, LoginResponse, User } from '@almus/shared-types';
+import type { LoginInput, LoginResponse, User } from '@almus/shared-types';
+import { LoginResponseType, UserType, LoginInputType } from './dto/auth.types';
 
 @Resolver()
 export class AuthResolver {
   constructor(private authService: AuthService) {}
 
-  @Mutation(() => LoginResponse)
-  async login(@Args('input') loginInput: LoginInput): Promise<LoginResponse> {
+  @Mutation(() => LoginResponseType)
+  async login(@Args('input') loginInput: LoginInputType): Promise<LoginResponse> {
     return this.authService.login(loginInput.email);
   }
 
-  @Mutation(() => LoginResponse)
-  async refreshToken(@Args('refreshToken') refreshToken: string): Promise<LoginResponse> {
+  @Mutation(() => LoginResponseType)
+  async refreshToken(
+    @Args('refreshToken') refreshToken: string
+  ): Promise<LoginResponse> {
     return this.authService.refreshToken(refreshToken);
   }
 
-  @Query(() => User)
+  @Query(() => UserType)
   async me(): Promise<User> {
     // TODO: 실제 사용자 정보 반환
     return {
@@ -28,4 +31,4 @@ export class AuthResolver {
       updatedAt: new Date(),
     };
   }
-} 
+}

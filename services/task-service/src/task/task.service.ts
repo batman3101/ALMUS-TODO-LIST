@@ -1,17 +1,31 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
-import { CreateTaskInput, UpdateTaskInput, TaskFilterInput, Task as TaskType, TaskConflict } from '@almus/shared-types';
+import {
+  CreateTaskInput,
+  UpdateTaskInput,
+  TaskFilterInput,
+  Task as TaskType,
+  TaskConflict,
+} from '@almus/shared-types';
 
 @Injectable()
 export class TaskService {
   constructor(
     @InjectRepository(Task)
-    private taskRepository: Repository<Task>,
+    private taskRepository: Repository<Task>
   ) {}
 
-  async createTask(createTaskInput: CreateTaskInput, userId: string): Promise<TaskType> {
+  async createTask(
+    createTaskInput: CreateTaskInput,
+    userId: string
+  ): Promise<TaskType> {
     const task = this.taskRepository.create({
       ...createTaskInput,
       createdBy: userId,
@@ -27,22 +41,34 @@ export class TaskService {
 
     if (filter) {
       if (filter.status) {
-        queryBuilder.andWhere('task.status = :status', { status: filter.status });
+        queryBuilder.andWhere('task.status = :status', {
+          status: filter.status,
+        });
       }
       if (filter.priority) {
-        queryBuilder.andWhere('task.priority = :priority', { priority: filter.priority });
+        queryBuilder.andWhere('task.priority = :priority', {
+          priority: filter.priority,
+        });
       }
       if (filter.assigneeId) {
-        queryBuilder.andWhere('task.assigneeId = :assigneeId', { assigneeId: filter.assigneeId });
+        queryBuilder.andWhere('task.assigneeId = :assigneeId', {
+          assigneeId: filter.assigneeId,
+        });
       }
       if (filter.createdBy) {
-        queryBuilder.andWhere('task.createdBy = :createdBy', { createdBy: filter.createdBy });
+        queryBuilder.andWhere('task.createdBy = :createdBy', {
+          createdBy: filter.createdBy,
+        });
       }
       if (filter.dueDateFrom) {
-        queryBuilder.andWhere('task.dueDate >= :dueDateFrom', { dueDateFrom: filter.dueDateFrom });
+        queryBuilder.andWhere('task.dueDate >= :dueDateFrom', {
+          dueDateFrom: filter.dueDateFrom,
+        });
       }
       if (filter.dueDateTo) {
-        queryBuilder.andWhere('task.dueDate <= :dueDateTo', { dueDateTo: filter.dueDateTo });
+        queryBuilder.andWhere('task.dueDate <= :dueDateTo', {
+          dueDateTo: filter.dueDateTo,
+        });
       }
     }
 
@@ -58,7 +84,11 @@ export class TaskService {
     return this.mapToTaskType(task);
   }
 
-  async updateTask(id: string, updateTaskInput: UpdateTaskInput, userId: string): Promise<TaskType> {
+  async updateTask(
+    id: string,
+    updateTaskInput: UpdateTaskInput,
+    userId: string
+  ): Promise<TaskType> {
     const task = await this.taskRepository.findOne({ where: { id } });
     if (!task) {
       throw new NotFoundException(`Task with ID ${id} not found`);
@@ -102,7 +132,10 @@ export class TaskService {
     return true;
   }
 
-  async checkConflict(taskId: string, clientVersion: number): Promise<TaskConflict | null> {
+  async checkConflict(
+    taskId: string,
+    clientVersion: number
+  ): Promise<TaskConflict | null> {
     const task = await this.taskRepository.findOne({ where: { id: taskId } });
     if (!task) {
       return null;
@@ -114,7 +147,7 @@ export class TaskService {
         serverVersion: task.version,
         clientVersion,
         serverData: this.mapToTaskType(task),
-        clientData: null, // 클라이언트에서 제공해야 함
+        clientData: null as any, // 클라이언트에서 제공해야 함
       };
     }
 
@@ -136,4 +169,4 @@ export class TaskService {
       updatedAt: task.updatedAt,
     };
   }
-} 
+}
