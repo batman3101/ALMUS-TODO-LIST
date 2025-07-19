@@ -12,6 +12,7 @@
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
+    "lint-staged": "lint-staged",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepare": "husky install",
     "test:performance": "node scripts/run-performance-tests.js",
