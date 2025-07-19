@@ -1,0 +1,37 @@
+{
+  "name": "notification-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@almus/shared-types": "^1.0.0",
+    "@aws-sdk/client-sns": "^3.848.0",
+    "@aws-sdk/client-sqs": "^3.848.0",
+    "@nestjs/common": "^10.4.19",
+    "@nestjs/config": "^3.3.0",
+    "@nestjs/core": "^10.4.19",
+    "@nestjs/platform-express": "^10.4.19",
+    "@nestjs/schedule": "^4.1.2",
+    "@nestjs/typeorm": "^10.0.2",
+    "@types/nodemailer": "^6.4.17",
+    "nodemailer": "^7.0.5",
+    "pg": "^8.16.3",
+    "reflect-metadata": "^0.1.14",
+    "rxjs": "^7.8.2",
+    "typeorm": "^0.3.25"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.4.9",
+    "@nestjs/testing": "^10.4.19",
+    "@types/node": "^24.0.15",
+    "@types/pg": "^8.15.4",
+    "typescript": "^5.8.3"
+  }
+}
