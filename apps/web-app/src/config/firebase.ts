@@ -5,16 +5,28 @@ import { getAuth } from 'firebase/auth';
 
 // Firebase 설정
 const firebaseConfig = {
-  apiKey: process.env.VITE_FIREBASE_API_KEY || 'your-api-key',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'your-api-key',
   authDomain:
-    process.env.VITE_FIREBASE_AUTH_DOMAIN || 'almus-todo-app.firebaseapp.com',
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'almus-todo-app',
+    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'almus-todo-app.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'almus-todo-app',
   storageBucket:
-    process.env.VITE_FIREBASE_STORAGE_BUCKET || 'almus-todo-app.appspot.com',
+    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'almus-todo-app.appspot.com',
   messagingSenderId:
-    process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '123456789',
-  appId: process.env.VITE_FIREBASE_APP_ID || 'your-app-id',
+    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '123456789',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || 'your-app-id',
 };
+
+// 개발 모드에서만 Firebase 설정 확인
+if (import.meta.env.DEV) {
+  console.log('Firebase Config:', {
+    apiKey: firebaseConfig.apiKey?.substring(0, 10) + '...',
+    authDomain: firebaseConfig.authDomain,
+    projectId: firebaseConfig.projectId,
+    storageBucket: firebaseConfig.storageBucket,
+    messagingSenderId: firebaseConfig.messagingSenderId,
+    appId: firebaseConfig.appId?.substring(0, 15) + '...',
+  });
+}
 
 // Firebase 앱 초기화
 const app = initializeApp(firebaseConfig);

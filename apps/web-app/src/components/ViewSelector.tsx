@@ -45,13 +45,13 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
 
   return (
     <div
-      className={`bg-white rounded-lg shadow border border-gray-200 ${className}`}
+      className={`bg-white dark:bg-dark-100 rounded-lg shadow border border-gray-200 dark:border-dark-300 transition-colors duration-200 ${className}`}
     >
-      <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">
+      <div className="p-4 border-b border-gray-200 dark:border-dark-300">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-900">
           {t('view.switchView')}
         </h3>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-gray-600 dark:text-dark-600 mt-1">
           {t('view.selectViewDescription')}
         </p>
       </div>
@@ -64,15 +64,15 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
               onClick={() => onViewChange(view.id)}
               className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                 currentView === view.id
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                  : 'border-gray-200 dark:border-dark-300 bg-white dark:bg-dark-50 text-gray-700 dark:text-dark-700 hover:border-gray-300 dark:hover:border-dark-400 hover:bg-gray-50 dark:hover:bg-dark-100'
               }`}
             >
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{view.icon}</span>
                 <div className="text-left">
                   <div className="font-medium">{view.label}</div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-gray-500 dark:text-dark-500 mt-1">
                     {view.description}
                   </div>
                 </div>

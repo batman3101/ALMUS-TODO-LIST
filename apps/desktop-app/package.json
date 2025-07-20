@@ -1,6 +1,8 @@
 {
   "name": "@almus/desktop-app",
   "version": "1.0.0",
+  "description": "ALMUS Desktop Todo Application",
+  "author": "ALMUS Team",
   "private": true,
   "main": "dist/main.js",
   "scripts": {
@@ -9,11 +11,10 @@
     "lint": "echo 'Desktop app linting skipped - not implemented yet'",
     "test": "jest"
   },
-  "dependencies": {
-    "electron": "^25.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "electron": "^25.0.0",
     "electron-builder": "^24.0.0",
     "typescript": "^5.0.0"
   },

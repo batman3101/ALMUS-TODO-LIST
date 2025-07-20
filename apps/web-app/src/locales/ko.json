@@ -24,6 +24,7 @@
     "assignee": "담당자",
     "status": "상태",
     "priority": "우선순위",
+    "startDate": "시작일",
     "dueDate": "마감일",
     "createdAt": "생성일",
     "updatedAt": "수정일",

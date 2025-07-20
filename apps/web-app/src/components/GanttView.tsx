@@ -75,13 +75,13 @@ const GanttView: React.FC = () => {
     );
 
     return (
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-gray-200 dark:border-dark-300">
         {Array.from({ length: days }, (_, i) => {
           const date = new Date(start.getTime() + i * 24 * 60 * 60 * 1000);
           return (
             <div
               key={i}
-              className="flex-1 text-xs text-gray-500 border-r border-gray-100 p-1 text-center"
+              className="flex-1 text-xs text-gray-500 dark:text-dark-500 border-r border-gray-100 dark:border-dark-300 p-1 text-center"
             >
               {format(date, 'MM/dd')}
             </div>
@@ -111,22 +111,22 @@ const GanttView: React.FC = () => {
     const getStatusColor = (status: string) => {
       switch (status) {
         case 'TODO':
-          return 'bg-gray-300';
+          return 'bg-gray-300 dark:bg-gray-600';
         case 'IN_PROGRESS':
-          return 'bg-blue-500';
+          return 'bg-blue-500 dark:bg-blue-600';
         case 'REVIEW':
-          return 'bg-yellow-500';
+          return 'bg-yellow-500 dark:bg-yellow-600';
         case 'DONE':
-          return 'bg-green-500';
+          return 'bg-green-500 dark:bg-green-600';
         default:
-          return 'bg-gray-300';
+          return 'bg-gray-300 dark:bg-gray-600';
       }
     };
 
     return (
       <div
         className={`absolute h-6 rounded ${getStatusColor(task.status)} ${
-          task.isDelayed ? 'border-2 border-red-500' : ''
+          task.isDelayed ? 'border-2 border-red-500 dark:border-red-400' : ''
         }`}
         style={{
           left: `${left}%`,
@@ -144,21 +144,21 @@ const GanttView: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div className="p-4">로딩 중...</div>;
+    return <div className="p-4 text-gray-900 dark:text-dark-900">로딩 중...</div>;
   }
 
   if (error) {
     return (
-      <div className="p-4 text-red-500">
+      <div className="p-4 text-red-500 dark:text-red-400">
         오류가 발생했습니다: {error.message}
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white dark:bg-dark-100 rounded-lg shadow p-6 transition-colors duration-200">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-900">
           {t('view.gantt')}
         </h2>
 
@@ -166,7 +166,7 @@ const GanttView: React.FC = () => {
           <select
             value={config.zoomLevel}
             onChange={e => handleZoomChange(e.target.value as ZoomLevel)}
-            className="px-3 py-1 border border-gray-300 rounded text-sm"
+            className="px-3 py-1 border border-gray-300 dark:border-dark-300 bg-white dark:bg-dark-50 text-gray-900 dark:text-dark-900 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200"
           >
             <option value={ZoomLevel.DAY}>일</option>
             <option value={ZoomLevel.WEEK}>주</option>
@@ -175,7 +175,7 @@ const GanttView: React.FC = () => {
             <option value={ZoomLevel.YEAR}>년</option>
           </select>
 
-          <label className="flex items-center space-x-2 text-sm">
+          <label className="flex items-center space-x-2 text-sm text-gray-900 dark:text-dark-900">
             <input
               type="checkbox"
               checked={config.showDependencies}
@@ -185,19 +185,19 @@ const GanttView: React.FC = () => {
                   showDependencies: e.target.checked,
                 }))
               }
-              className="rounded"
+              className="rounded border-gray-300 dark:border-dark-300 text-primary-600 focus:ring-primary-500"
             />
             <span>의존성 표시</span>
           </label>
 
-          <label className="flex items-center space-x-2 text-sm">
+          <label className="flex items-center space-x-2 text-sm text-gray-900 dark:text-dark-900">
             <input
               type="checkbox"
               checked={config.showProgress}
               onChange={e =>
                 setConfig(prev => ({ ...prev, showProgress: e.target.checked }))
               }
-              className="rounded"
+              className="rounded border-gray-300 dark:border-dark-300 text-primary-600 focus:ring-primary-500"
             />
             <span>진행률 표시</span>
           </label>
@@ -214,13 +214,13 @@ const GanttView: React.FC = () => {
             {ganttTasks.map(task => (
               <div
                 key={task.id}
-                className="relative h-10 border-b border-gray-100"
+                className="relative h-10 border-b border-gray-100 dark:border-dark-300"
               >
-                <div className="absolute left-0 top-0 w-48 h-full bg-gray-50 border-r border-gray-200 p-2">
-                  <div className="text-sm font-medium truncate">
+                <div className="absolute left-0 top-0 w-48 h-full bg-gray-50 dark:bg-dark-200 border-r border-gray-200 dark:border-dark-300 p-2">
+                  <div className="text-sm font-medium truncate text-gray-900 dark:text-dark-900">
                     {task.title}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-500 dark:text-dark-500">
                     {format(task.startDate, 'MM/dd')} -{' '}
                     {format(task.endDate, 'MM/dd')}
                   </div>

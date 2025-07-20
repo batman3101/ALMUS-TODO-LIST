@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { Resolver, Query, Mutation, Args, ResolveField, Parent, } from '@nestjs/graphql';
 import { TaskService } from './task.service';
-import { TaskType, UpdateTaskInputType, TaskFilterInputType } from './dto/task.types';
+import { TaskType, UpdateTaskInputType, TaskFilterInputType, } from './dto/task.types';
 let TaskResolver = class TaskResolver {
     constructor(taskService) {
         this.taskService = taskService;

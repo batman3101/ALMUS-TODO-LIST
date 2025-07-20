@@ -1,20 +1,30 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTasks, useDeleteTask } from '../hooks/useTasks';
+import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
 import { Task, TaskStatus, TaskPriority } from '@almus/shared-types';
+import { createToast, showConfirm } from '../utils/toast';
 
 const TaskList: React.FC = function TaskList() {
-  const { data: tasks, isLoading, error } = useTasks();
+  const { user } = useAuth();
+  const { theme } = useTheme();
+  const toast = createToast(theme === 'dark');
+  const { data: tasks, isLoading, error } = useTasks({
+    teamId: user?.teamId || '',
+  });
   const deleteTaskMutation = useDeleteTask();
   const { t } = useTranslation();
 
   const handleDelete = async (taskId: string) => {
-    if (window.confirm(t('task.confirmDelete'))) {
+    const confirmed = await showConfirm(t('task.confirmDelete'));
+    if (confirmed) {
       try {
         await deleteTaskMutation.mutateAsync(taskId);
+        toast.success('태스크가 성공적으로 삭제되었습니다.');
       } catch (error) {
         console.error('태스크 삭제 실패:', error);
-        alert(t('task.taskDeleteFailed'));
+        toast.error(t('task.taskDeleteFailed'));
       }
     }
   };
@@ -22,30 +32,30 @@ const TaskList: React.FC = function TaskList() {
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
       case TaskStatus.TODO:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200';
       case TaskStatus.IN_PROGRESS:
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200';
       case TaskStatus.REVIEW:
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200';
       case TaskStatus.DONE:
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200';
     }
   };
 
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {
       case TaskPriority.LOW:
-        return 'text-gray-500';
+        return 'text-gray-500 dark:text-gray-400';
       case TaskPriority.MEDIUM:
-        return 'text-blue-500';
+        return 'text-blue-500 dark:text-blue-400';
       case TaskPriority.HIGH:
-        return 'text-orange-500';
+        return 'text-orange-500 dark:text-orange-400';
       case TaskPriority.URGENT:
-        return 'text-red-500';
+        return 'text-red-500 dark:text-red-400';
       default:
-        return 'text-gray-500';
+        return 'text-gray-500 dark:text-gray-400';
     }
   };
 
@@ -81,73 +91,76 @@ const TaskList: React.FC = function TaskList() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center h-64 text-gray-900 dark:text-dark-900">
         {t('common.loading')}
       </div>
     );
   }
 
   if (error) {
-    return <div className="text-red-500">{t('task.loadTasksFailed')}</div>;
+    return <div className="text-red-500 dark:text-red-400">{t('task.loadTasksFailed')}</div>;
   }
 
   if (!tasks || tasks.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">{t('task.noTasks')}</p>
+        <p className="text-gray-500 dark:text-dark-500">{t('task.noTasks')}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">
+    <div className="bg-white dark:bg-dark-100 rounded-lg shadow transition-colors duration-200">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-300">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-900">
           {t('task.taskList')}
         </h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-dark-300">
+          <thead className="bg-gray-50 dark:bg-dark-200">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-500 uppercase tracking-wider">
                 {t('task.title')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-500 uppercase tracking-wider">
                 {t('task.description')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-500 uppercase tracking-wider">
                 {t('task.assignee')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-500 uppercase tracking-wider">
                 {t('task.status')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-500 uppercase tracking-wider">
                 {t('task.priority')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-500 uppercase tracking-wider">
+                {t('task.startDate')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-500 uppercase tracking-wider">
                 {t('task.dueDate')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-500 uppercase tracking-wider">
                 {t('task.actions')}
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-dark-100 divide-y divide-gray-200 dark:divide-dark-300">
             {tasks.map((task: Task) => (
-              <tr key={task.id} className="hover:bg-gray-50">
+              <tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-dark-200 transition-colors duration-200">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-gray-900 dark:text-dark-900">
                     {task.title}
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900 max-w-xs truncate">
+                  <div className="text-sm text-gray-900 dark:text-dark-900 max-w-xs truncate">
                     {task.description}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{task.assigneeId}</div>
+                  <div className="text-sm text-gray-900 dark:text-dark-900">{task.assigneeId}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
@@ -163,7 +176,12 @@ const TaskList: React.FC = function TaskList() {
                     {getPriorityText(task.priority)}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-900">
+                  {task.startDate
+                    ? new Date(task.startDate).toLocaleDateString()
+                    : '-'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-900">
                   {task.dueDate
                     ? new Date(task.dueDate).toLocaleDateString()
                     : '-'}
@@ -171,7 +189,7 @@ const TaskList: React.FC = function TaskList() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button
                     onClick={() => handleDelete(task.id)}
-                    className="text-red-600 hover:text-red-900"
+                    className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-200"
                   >
                     {t('task.deleteTask')}
                   </button>

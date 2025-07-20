@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCreateTask } from '../hooks/useTasks';
 import {
@@ -9,15 +9,20 @@ import {
 } from '@almus/shared-types';
 import { FileUpload } from './FileUpload';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
+import { createToast } from '../utils/toast';
 
 const CreateTaskForm: React.FC = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const toast = createToast(theme === 'dark');
   const [formData, setFormData] = useState<CreateTaskInput>({
     title: '',
     description: '',
     assigneeId: '',
     status: TaskStatus.TODO,
     priority: TaskPriority.MEDIUM,
+    startDate: undefined,
     dueDate: undefined,
     teamId: user?.teamId || '',
   });
@@ -27,22 +32,49 @@ const CreateTaskForm: React.FC = () => {
   const createTaskMutation = useCreateTask();
   const { t } = useTranslation();
 
+  // user가 변경되면 formData의 teamId 업데이트
+  useEffect(() => {
+    if (user?.teamId) {
+      setFormData(prev => ({
+        ...prev,
+        teamId: user.teamId,
+        assigneeId: user.uid, // 기본적으로 자신을 할당자로 설정
+      }));
+    }
+  }, [user]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log('Form submission - user:', user);
+    console.log('Form submission - formData:', formData);
+
     if (!formData.title.trim()) {
-      alert(t('task.titleRequired'));
+      toast.error(t('task.titleRequired'));
       return;
     }
 
     if (!formData.assigneeId.trim()) {
-      alert(t('task.assigneeRequired'));
+      toast.error(t('task.assigneeRequired'));
       return;
     }
 
-    if (!formData.teamId) {
-      alert('팀 ID가 필요합니다.');
+    if (!formData.teamId || !user?.teamId) {
+      console.error('TeamId validation failed:', {
+        formDataTeamId: formData.teamId,
+        userTeamId: user?.teamId,
+        user: user
+      });
+      toast.error('팀 ID가 필요합니다. 로그인을 다시 시도해주세요.');
       return;
+    }
+
+    // 시작일과 마감일 유효성 검사
+    if (formData.startDate && formData.dueDate) {
+      if (formData.startDate > formData.dueDate) {
+        toast.warning('시작일은 마감일보다 이전이어야 합니다.');
+        return;
+      }
     }
 
     try {
@@ -53,13 +85,14 @@ const CreateTaskForm: React.FC = () => {
         assigneeId: '',
         status: TaskStatus.TODO,
         priority: TaskPriority.MEDIUM,
+        startDate: undefined,
         dueDate: undefined,
         teamId: user?.teamId || '',
       });
-      alert(t('task.taskCreated'));
+      toast.success(t('task.taskCreated'));
     } catch (error) {
       console.error('태스크 생성 실패:', error);
-      alert(t('task.taskCreateFailed'));
+      toast.error(t('task.taskCreateFailed'));
     }
   };
 
@@ -78,7 +111,7 @@ const CreateTaskForm: React.FC = () => {
 
   const handleFileUploadError = (error: string) => {
     console.error('파일 업로드 실패:', error);
-    alert(`파일 업로드 실패: ${error}`);
+    toast.error(`파일 업로드 실패: ${error}`);
   };
 
   const getStatusText = (status: TaskStatus) => {
@@ -127,17 +160,27 @@ const CreateTaskForm: React.FC = () => {
     TaskPriority.URGENT,
   ] as const;
 
+  // 공통 input 스타일
+  const inputClassName = `
+    w-full px-3 py-2 
+    border border-gray-300 dark:border-dark-300 
+    bg-white dark:bg-dark-50
+    text-gray-900 dark:text-dark-900
+    placeholder-gray-500 dark:placeholder-dark-500
+    rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+    transition-colors duration-200
+  `;
+
+  const labelClassName = "block text-sm font-medium text-gray-700 dark:text-dark-700 mb-1";
+
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="bg-white dark:bg-dark-100 rounded-lg shadow-md dark:shadow-lg p-6 transition-colors duration-200">
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-900 mb-4">
         {t('task.createTask')}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label
-            htmlFor="title"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="title" className={labelClassName}>
             {t('task.title')} *
           </label>
           <input
@@ -145,16 +188,13 @@ const CreateTaskForm: React.FC = () => {
             id="title"
             value={formData.title}
             onChange={e => handleInputChange('title', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClassName}
             placeholder={t('task.title')}
           />
         </div>
 
         <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="description" className={labelClassName}>
             {t('task.description')}
           </label>
           <textarea
@@ -162,16 +202,13 @@ const CreateTaskForm: React.FC = () => {
             value={formData.description || ''}
             onChange={e => handleInputChange('description', e.target.value)}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClassName}
             placeholder={t('task.description')}
           />
         </div>
 
         <div>
-          <label
-            htmlFor="assignee"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="assignee" className={labelClassName}>
             {t('task.assignee')} *
           </label>
           <input
@@ -179,17 +216,14 @@ const CreateTaskForm: React.FC = () => {
             id="assignee"
             value={formData.assigneeId}
             onChange={e => handleInputChange('assigneeId', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClassName}
             placeholder={t('task.assignee')}
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label
-              htmlFor="status"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="status" className={labelClassName}>
               {t('task.status')}
             </label>
             <select
@@ -198,7 +232,7 @@ const CreateTaskForm: React.FC = () => {
               onChange={e =>
                 handleInputChange('status', e.target.value as TaskStatus)
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClassName}
             >
               {taskStatusOptions.map(status => (
                 <option key={status} value={status}>
@@ -209,10 +243,7 @@ const CreateTaskForm: React.FC = () => {
           </div>
 
           <div>
-            <label
-              htmlFor="priority"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="priority" className={labelClassName}>
               {t('task.priority')}
             </label>
             <select
@@ -221,7 +252,7 @@ const CreateTaskForm: React.FC = () => {
               onChange={e =>
                 handleInputChange('priority', e.target.value as TaskPriority)
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClassName}
             >
               {taskPriorityOptions.map(priority => (
                 <option key={priority} value={priority}>
@@ -230,12 +261,33 @@ const CreateTaskForm: React.FC = () => {
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="startDate" className={labelClassName}>
+              {t('task.startDate')}
+            </label>
+            <input
+              type="date"
+              id="startDate"
+              value={
+                formData.startDate
+                  ? new Date(formData.startDate).toISOString().split('T')[0]
+                  : ''
+              }
+              onChange={e =>
+                handleInputChange(
+                  'startDate',
+                  e.target.value ? new Date(e.target.value) : undefined
+                )
+              }
+              className={inputClassName}
+            />
+          </div>
 
           <div>
-            <label
-              htmlFor="dueDate"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="dueDate" className={labelClassName}>
               {t('task.dueDate')}
             </label>
             <input
@@ -252,14 +304,14 @@ const CreateTaskForm: React.FC = () => {
                   e.target.value ? new Date(e.target.value) : undefined
                 )
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClassName}
             />
           </div>
         </div>
 
         {/* 파일 업로드 섹션 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={labelClassName}>
             {t('task.attachments')}
           </label>
           <FileUpload
@@ -281,12 +333,12 @@ const CreateTaskForm: React.FC = () => {
         {/* 업로드된 파일 목록 */}
         {uploadedFiles.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-dark-700 mb-2">
               업로드된 파일:
             </h4>
             <ul className="space-y-1">
               {uploadedFiles.map((file, index) => (
-                <li key={index} className="text-sm text-gray-600">
+                <li key={index} className="text-sm text-gray-600 dark:text-dark-600">
                   ✓ {file.name} ({Math.round(file.size / 1024)}KB)
                 </li>
               ))}
@@ -298,7 +350,15 @@ const CreateTaskForm: React.FC = () => {
           <button
             type="submit"
             disabled={createTaskMutation.isPending}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            className="
+              px-4 py-2 
+              bg-primary-600 hover:bg-primary-700 
+              text-white rounded-md 
+              focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+              dark:focus:ring-offset-dark-100
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition-colors duration-200
+            "
           >
             {createTaskMutation.isPending
               ? t('common.loading')

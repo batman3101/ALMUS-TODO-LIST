@@ -6,8 +6,11 @@ import {
   DropResult,
 } from 'react-beautiful-dnd';
 import { useTasks, useUpdateTask } from '../hooks/useTasks';
+import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
 import type { Task } from '@almus/shared-types';
 import { TaskStatus, TaskPriority } from '@almus/shared-types';
+import { createToast } from '../utils/toast';
 
 interface KanbanViewProps {
   className?: string;
@@ -21,7 +24,12 @@ interface Column {
 }
 
 const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
-  const { data: tasks, isLoading, error } = useTasks();
+  const { user } = useAuth();
+  const { theme } = useTheme();
+  const toast = createToast(theme === 'dark');
+  const { data: tasks, isLoading, error } = useTasks({
+    teamId: user?.teamId || '',
+  });
   const updateTaskMutation = useUpdateTask();
 
   const [wipLimits, setWipLimits] = useState<Record<TaskStatus, number>>({
@@ -37,25 +45,25 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
       {
         id: TaskStatus.TODO,
         title: '할 일',
-        color: 'bg-gray-100',
+        color: 'bg-gray-100 dark:bg-dark-200',
         wipLimit: wipLimits[TaskStatus.TODO],
       },
       {
         id: TaskStatus.IN_PROGRESS,
         title: '진행 중',
-        color: 'bg-blue-100',
+        color: 'bg-blue-100 dark:bg-blue-900/30',
         wipLimit: wipLimits[TaskStatus.IN_PROGRESS],
       },
       {
         id: TaskStatus.REVIEW,
         title: '검토',
-        color: 'bg-yellow-100',
+        color: 'bg-yellow-100 dark:bg-yellow-900/30',
         wipLimit: wipLimits[TaskStatus.REVIEW],
       },
       {
         id: TaskStatus.DONE,
         title: '완료',
-        color: 'bg-green-100',
+        color: 'bg-green-100 dark:bg-green-900/30',
         wipLimit: wipLimits[TaskStatus.DONE],
       },
     ],
@@ -98,7 +106,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     const destinationTasks = tasksByColumn[destinationColumn] || [];
     if (destinationColumn !== sourceColumn && wipLimits[destinationColumn]) {
       if (destinationTasks.length >= wipLimits[destinationColumn]!) {
-        alert(
+        toast.warning(
           `${columns.find(col => col.id === destinationColumn)?.title} 컬럼의 WIP 제한에 도달했습니다.`
         );
         return;
@@ -119,7 +127,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
       });
     } catch (error) {
       console.error('태스크 상태 업데이트 실패:', error);
-      alert('태스크 상태 업데이트에 실패했습니다.');
+      toast.error('태스크 상태 업데이트에 실패했습니다.');
     }
   };
 
@@ -133,15 +141,15 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {
       case TaskPriority.LOW:
-        return 'text-gray-500';
+        return 'text-gray-500 dark:text-gray-400';
       case TaskPriority.MEDIUM:
-        return 'text-blue-500';
+        return 'text-blue-500 dark:text-blue-400';
       case TaskPriority.HIGH:
-        return 'text-orange-500';
+        return 'text-orange-500 dark:text-orange-400';
       case TaskPriority.URGENT:
-        return 'text-red-500';
+        return 'text-red-500 dark:text-red-400';
       default:
-        return 'text-gray-500';
+        return 'text-gray-500 dark:text-gray-400';
     }
   };
 
@@ -154,26 +162,26 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">로딩 중...</div>
+      <div className="flex justify-center items-center h-64 text-gray-900 dark:text-dark-900">로딩 중...</div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-red-500">태스크 목록을 불러오는데 실패했습니다.</div>
+      <div className="text-red-500 dark:text-red-400">태스크 목록을 불러오는데 실패했습니다.</div>
     );
   }
 
   return (
     <div className={`${className}`}>
       {/* 헤더 */}
-      <div className="flex items-center justify-between p-4 bg-white rounded-t-lg border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-900">칸반 보드</h2>
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-dark-100 rounded-t-lg border-b border-gray-200 dark:border-dark-300 transition-colors duration-200">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">칸반 보드</h2>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">WIP 제한 설정:</span>
+          <span className="text-sm text-gray-600 dark:text-dark-600">WIP 제한 설정:</span>
           {columns.map(column => (
             <div key={column.id} className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">{column.title}</span>
+              <span className="text-xs text-gray-500 dark:text-dark-500">{column.title}</span>
               <input
                 type="number"
                 min="0"
@@ -182,7 +190,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                 onChange={e =>
                   handleWipLimitChange(column.id, parseInt(e.target.value) || 0)
                 }
-                className="w-12 px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-12 px-1 py-1 text-xs border border-gray-300 dark:border-dark-300 bg-white dark:bg-dark-50 text-gray-900 dark:text-dark-900 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors duration-200"
               />
             </div>
           ))}
@@ -191,7 +199,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
 
       {/* 칸반 보드 */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 p-4 bg-gray-50 min-h-96">
+        <div className="flex gap-4 p-4 bg-gray-50 dark:bg-dark-50 min-h-96 transition-colors duration-200">
           {columns.map(column => {
             const columnTasks = tasksByColumn[column.id] || [];
             const isOverLimit =
@@ -203,16 +211,16 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                 <div className={`${column.color} rounded-lg p-4 h-full`}>
                   {/* 컬럼 헤더 */}
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold text-gray-900 dark:text-dark-900">
                       {column.title}
                     </h3>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 dark:text-dark-600">
                         {columnTasks.length}
                         {wipLimits[column.id] && `/${wipLimits[column.id]}`}
                       </span>
                       {isOverLimit && (
-                        <span className="text-xs text-red-600 font-medium">
+                        <span className="text-xs text-red-600 dark:text-red-400 font-medium">
                           초과!
                         </span>
                       )}
@@ -226,8 +234,8 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                         className={`min-h-64 transition-colors ${
-                          snapshot.isDraggingOver ? 'bg-blue-50' : ''
-                        } ${isOverLimit ? 'bg-red-50' : ''}`}
+                          snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                        } ${isOverLimit ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
                       >
                         {columnTasks.map((task: Task, index: number) => (
                           <Draggable
@@ -240,20 +248,20 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                className={`bg-white p-3 rounded-lg shadow-sm border border-gray-200 mb-3 cursor-move transition-shadow ${
+                                className={`bg-white dark:bg-dark-100 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-dark-300 mb-3 cursor-move transition-all duration-200 ${
                                   snapshot.isDragging
                                     ? 'shadow-lg'
                                     : 'hover:shadow-md'
                                 }`}
                               >
                                 {/* 태스크 제목 */}
-                                <h4 className="font-medium text-gray-900 text-sm mb-2 line-clamp-2">
+                                <h4 className="font-medium text-gray-900 dark:text-dark-900 text-sm mb-2 line-clamp-2">
                                   {task.title}
                                 </h4>
 
                                 {/* 태스크 설명 */}
                                 {task.description && (
-                                  <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                                  <p className="text-xs text-gray-600 dark:text-dark-600 mb-2 line-clamp-2">
                                     {task.description}
                                   </p>
                                 )}
@@ -267,12 +275,12 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                       {task.priority}
                                     </span>
                                     {task.dueDate && (
-                                      <span className="text-gray-500">
+                                      <span className="text-gray-500 dark:text-dark-500">
                                         {formatDate(task.dueDate)}
                                       </span>
                                     )}
                                   </div>
-                                  <span className="text-gray-400">
+                                  <span className="text-gray-400 dark:text-dark-400">
                                     {task.assigneeId}
                                   </span>
                                 </div>
@@ -292,7 +300,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
       </DragDropContext>
 
       {tasks?.length === 0 && (
-        <div className="text-center text-gray-500 py-8 bg-white rounded-b-lg">
+        <div className="text-center text-gray-500 dark:text-dark-500 py-8 bg-white dark:bg-dark-100 rounded-b-lg transition-colors duration-200">
           등록된 태스크가 없습니다.
         </div>
       )}

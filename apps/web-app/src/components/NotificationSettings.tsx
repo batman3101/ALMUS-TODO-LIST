@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useFCM } from '../hooks/useFCM';
+import { useTheme } from '../contexts/ThemeContext';
+import { createToast, showConfirm } from '../utils/toast';
 
 const NotificationSettings: React.FC = () => {
+  const { theme } = useTheme();
+  const toast = createToast(theme === 'dark');
   const {
     notificationSettings,
     settingsLoading,
@@ -49,9 +53,9 @@ const NotificationSettings: React.FC = () => {
   const handleRequestPermission = async () => {
     const granted = await requestNotificationPermission();
     if (granted) {
-      alert('알림 권한이 허용되었습니다.');
+      toast.success('알림 권한이 허용되었습니다.');
     } else {
-      alert('알림 권한이 거부되었습니다.');
+      toast.error('알림 권한이 거부되었습니다.');
     }
   };
 
@@ -60,9 +64,10 @@ const NotificationSettings: React.FC = () => {
   };
 
   const handleUnsubscribe = async () => {
-    if (confirm('FCM 구독을 해제하시겠습니까?')) {
+    const confirmed = await showConfirm('FCM 구독을 해제하시겠습니까?');
+    if (confirmed) {
       await unsubscribeFromFCM();
-      alert('FCM 구독이 해제되었습니다.');
+      toast.success('FCM 구독이 해제되었습니다.');
     }
   };
 

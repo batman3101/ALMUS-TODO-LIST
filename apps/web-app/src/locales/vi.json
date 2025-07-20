@@ -24,6 +24,7 @@
     "assignee": "Người phụ trách",
     "status": "Trạng thái",
     "priority": "Ưu tiên",
+    "startDate": "Ngày bắt đầu",
     "dueDate": "Ngày hạn",
     "createdAt": "Ngày tạo",
     "updatedAt": "Ngày cập nhật",
