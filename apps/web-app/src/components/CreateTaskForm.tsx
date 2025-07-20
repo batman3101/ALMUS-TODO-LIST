@@ -9,13 +9,19 @@ import {
 } from '@almus/shared-types';
 import { FileUpload } from './FileUpload';
 import { useAuth } from '../hooks/useAuth';
-import { useTheme } from '../contexts/ThemeContext';
-import { createToast } from '../utils/toast';
+import { useNotification } from '../contexts/NotificationContext';
 
-const CreateTaskForm: React.FC = () => {
+interface CreateTaskFormProps {
+  onTaskCreated?: () => void;
+  isModal?: boolean;
+}
+
+const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
+  onTaskCreated,
+  isModal = false,
+}) => {
   const { user } = useAuth();
-  const { theme } = useTheme();
-  const toast = createToast(theme === 'dark');
+  const { success, error: showError, warning } = useNotification();
   const [formData, setFormData] = useState<CreateTaskInput>({
     title: '',
     description: '',
@@ -50,12 +56,12 @@ const CreateTaskForm: React.FC = () => {
     console.log('Form submission - formData:', formData);
 
     if (!formData.title.trim()) {
-      toast.error(t('task.titleRequired'));
+      showError(t('task.titleRequired'));
       return;
     }
 
     if (!formData.assigneeId.trim()) {
-      toast.error(t('task.assigneeRequired'));
+      showError(t('task.assigneeRequired'));
       return;
     }
 
@@ -63,16 +69,16 @@ const CreateTaskForm: React.FC = () => {
       console.error('TeamId validation failed:', {
         formDataTeamId: formData.teamId,
         userTeamId: user?.teamId,
-        user: user
+        user: user,
       });
-      toast.error('팀 ID가 필요합니다. 로그인을 다시 시도해주세요.');
+      showError('팀 ID가 필요합니다. 로그인을 다시 시도해주세요.');
       return;
     }
 
     // 시작일과 마감일 유효성 검사
     if (formData.startDate && formData.dueDate) {
       if (formData.startDate > formData.dueDate) {
-        toast.warning('시작일은 마감일보다 이전이어야 합니다.');
+        warning('시작일은 마감일보다 이전이어야 합니다.');
         return;
       }
     }
@@ -89,10 +95,11 @@ const CreateTaskForm: React.FC = () => {
         dueDate: undefined,
         teamId: user?.teamId || '',
       });
-      toast.success(t('task.taskCreated'));
+      success(t('task.taskCreated'));
+      onTaskCreated?.();
     } catch (error) {
       console.error('태스크 생성 실패:', error);
-      toast.error(t('task.taskCreateFailed'));
+      showError(t('task.taskCreateFailed'));
     }
   };
 
@@ -111,7 +118,7 @@ const CreateTaskForm: React.FC = () => {
 
   const handleFileUploadError = (error: string) => {
     console.error('파일 업로드 실패:', error);
-    toast.error(`파일 업로드 실패: ${error}`);
+    showError(`파일 업로드 실패: ${error}`);
   };
 
   const getStatusText = (status: TaskStatus) => {
@@ -171,13 +178,22 @@ const CreateTaskForm: React.FC = () => {
     transition-colors duration-200
   `;
 
-  const labelClassName = "block text-sm font-medium text-gray-700 dark:text-dark-700 mb-1";
+  const labelClassName =
+    'block text-sm font-medium text-gray-700 dark:text-dark-700 mb-1';
 
   return (
-    <div className="bg-white dark:bg-dark-100 rounded-lg shadow-md dark:shadow-lg p-6 transition-colors duration-200">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-900 mb-4">
-        {t('task.createTask')}
-      </h2>
+    <div
+      className={
+        isModal
+          ? ''
+          : 'bg-white dark:bg-dark-100 rounded-lg shadow-md dark:shadow-lg p-6 transition-colors duration-200'
+      }
+    >
+      {!isModal && (
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-900 mb-4">
+          {t('task.createTask')}
+        </h2>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="title" className={labelClassName}>
@@ -311,9 +327,7 @@ const CreateTaskForm: React.FC = () => {
 
         {/* 파일 업로드 섹션 */}
         <div>
-          <label className={labelClassName}>
-            {t('task.attachments')}
-          </label>
+          <label className={labelClassName}>{t('task.attachments')}</label>
           <FileUpload
             path="tasks"
             metadata={{
@@ -338,7 +352,10 @@ const CreateTaskForm: React.FC = () => {
             </h4>
             <ul className="space-y-1">
               {uploadedFiles.map((file, index) => (
-                <li key={index} className="text-sm text-gray-600 dark:text-dark-600">
+                <li
+                  key={index}
+                  className="text-sm text-gray-600 dark:text-dark-600"
+                >
                   ✓ {file.name} ({Math.round(file.size / 1024)}KB)
                 </li>
               ))}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useNotification } from '../contexts/NotificationContext';
 import ThemeToggle from './ThemeToggle';
 
 const LoginForm: React.FC = () => {
@@ -7,6 +8,7 @@ const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp, error } = useAuth();
+  const { error: showError, success } = useNotification();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,14 +29,14 @@ const LoginForm: React.FC = () => {
 
   const handleSignUp = async () => {
     if (!email || !password) {
-      alert('이메일과 비밀번호를 입력해주세요.');
+      showError('이메일과 비밀번호를 입력해주세요.');
       return;
     }
 
     setIsLoading(true);
     try {
       await signUp(email, password);
-      alert('회원가입이 완료되었습니다!');
+      success('회원가입이 완료되었습니다!');
     } catch (err) {
       console.error('회원가입 실패:', err);
     } finally {
@@ -112,7 +114,9 @@ const LoginForm: React.FC = () => {
           </div>
 
           {error && (
-            <div className="text-red-600 dark:text-red-400 text-sm text-center">{error}</div>
+            <div className="text-red-600 dark:text-red-400 text-sm text-center">
+              {error}
+            </div>
           )}
 
           <div>

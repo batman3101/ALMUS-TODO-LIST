@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-export type ViewType = 'list' | 'grid' | 'kanban' | 'gantt';
+export type ViewType = 'list' | 'calendar' | 'kanban' | 'gantt';
 
 interface ViewSelectorProps {
   currentView: ViewType;
@@ -24,10 +24,10 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
       description: t('view.listDescription'),
     },
     {
-      id: 'grid' as ViewType,
-      label: t('view.grid'),
-      icon: '📊',
-      description: t('view.gridDescription'),
+      id: 'calendar' as ViewType,
+      label: '캘린더',
+      icon: '📅',
+      description: '월별 캘린더에서 태스크 일정 확인',
     },
     {
       id: 'kanban' as ViewType,
@@ -38,7 +38,7 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
     {
       id: 'gantt' as ViewType,
       label: t('view.gantt'),
-      icon: '📅',
+      icon: '📊',
       description: t('view.ganttDescription'),
     },
   ];
@@ -57,7 +57,7 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
       </div>
 
       <div className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {views.map(view => (
             <button
               key={view.id}

@@ -4,20 +4,32 @@ import { useTasks, useDeleteTask } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
 import { Task, TaskStatus, TaskPriority } from '@almus/shared-types';
-import { createToast, showConfirm } from '../utils/toast';
+import { createToast } from '../utils/toast';
+import { useNotification } from '../contexts/NotificationContext';
 
 const TaskList: React.FC = function TaskList() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const toast = createToast(theme === 'dark');
-  const { data: tasks, isLoading, error } = useTasks({
+  const { showConfirm } = useNotification();
+  const {
+    data: tasks,
+    isLoading,
+    error,
+  } = useTasks({
     teamId: user?.teamId || '',
   });
   const deleteTaskMutation = useDeleteTask();
   const { t } = useTranslation();
 
   const handleDelete = async (taskId: string) => {
-    const confirmed = await showConfirm(t('task.confirmDelete'));
+    const confirmed = await showConfirm({
+      title: '태스크 삭제',
+      message: t('task.confirmDelete'),
+      confirmText: '삭제',
+      cancelText: '취소',
+      variant: 'danger',
+    });
     if (confirmed) {
       try {
         await deleteTaskMutation.mutateAsync(taskId);
@@ -98,7 +110,11 @@ const TaskList: React.FC = function TaskList() {
   }
 
   if (error) {
-    return <div className="text-red-500 dark:text-red-400">{t('task.loadTasksFailed')}</div>;
+    return (
+      <div className="text-red-500 dark:text-red-400">
+        {t('task.loadTasksFailed')}
+      </div>
+    );
   }
 
   if (!tasks || tasks.length === 0) {
@@ -148,7 +164,10 @@ const TaskList: React.FC = function TaskList() {
           </thead>
           <tbody className="bg-white dark:bg-dark-100 divide-y divide-gray-200 dark:divide-dark-300">
             {tasks.map((task: Task) => (
-              <tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-dark-200 transition-colors duration-200">
+              <tr
+                key={task.id}
+                className="hover:bg-gray-50 dark:hover:bg-dark-200 transition-colors duration-200"
+              >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900 dark:text-dark-900">
                     {task.title}
@@ -160,7 +179,9 @@ const TaskList: React.FC = function TaskList() {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900 dark:text-dark-900">{task.assigneeId}</div>
+                  <div className="text-sm text-gray-900 dark:text-dark-900">
+                    {task.assigneeId}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span

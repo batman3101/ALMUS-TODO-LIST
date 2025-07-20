@@ -27,7 +27,11 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const toast = createToast(theme === 'dark');
-  const { data: tasks, isLoading, error } = useTasks({
+  const {
+    data: tasks,
+    isLoading,
+    error,
+  } = useTasks({
     teamId: user?.teamId || '',
   });
   const updateTaskMutation = useUpdateTask();
@@ -162,13 +166,17 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64 text-gray-900 dark:text-dark-900">로딩 중...</div>
+      <div className="flex justify-center items-center h-64 text-gray-900 dark:text-dark-900">
+        로딩 중...
+      </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-red-500 dark:text-red-400">태스크 목록을 불러오는데 실패했습니다.</div>
+      <div className="text-red-500 dark:text-red-400">
+        태스크 목록을 불러오는데 실패했습니다.
+      </div>
     );
   }
 
@@ -176,12 +184,18 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     <div className={`${className}`}>
       {/* 헤더 */}
       <div className="flex items-center justify-between p-4 bg-white dark:bg-dark-100 rounded-t-lg border-b border-gray-200 dark:border-dark-300 transition-colors duration-200">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">칸반 보드</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
+          칸반 보드
+        </h2>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600 dark:text-dark-600">WIP 제한 설정:</span>
+          <span className="text-sm text-gray-600 dark:text-dark-600">
+            WIP 제한 설정:
+          </span>
           {columns.map(column => (
             <div key={column.id} className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 dark:text-dark-500">{column.title}</span>
+              <span className="text-xs text-gray-500 dark:text-dark-500">
+                {column.title}
+              </span>
               <input
                 type="number"
                 min="0"
@@ -234,7 +248,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                         className={`min-h-64 transition-colors ${
-                          snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                          snapshot.isDraggingOver
+                            ? 'bg-blue-50 dark:bg-blue-900/20'
+                            : ''
                         } ${isOverLimit ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
                       >
                         {columnTasks.map((task: Task, index: number) => (

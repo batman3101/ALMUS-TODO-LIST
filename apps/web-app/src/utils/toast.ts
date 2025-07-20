@@ -136,7 +136,7 @@ export const showToast = {
 
 // 확인 대화상자를 위한 Promise 기반 함수 (간소화 버전)
 export const showConfirm = (message: string): Promise<boolean> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     // 브라우저 기본 confirm을 사용하되, 스타일링된 toast로 대체할 예정
     const result = window.confirm(message);
     resolve(result);

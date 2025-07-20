@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useFCM } from '../hooks/useFCM';
 import { useTheme } from '../contexts/ThemeContext';
-import { createToast, showConfirm } from '../utils/toast';
+import { createToast } from '../utils/toast';
+import { useNotification } from '../contexts/NotificationContext';
 
 const NotificationSettings: React.FC = () => {
   const { theme } = useTheme();
   const toast = createToast(theme === 'dark');
+  const { showConfirm } = useNotification();
   const {
     notificationSettings,
     settingsLoading,
@@ -64,7 +66,13 @@ const NotificationSettings: React.FC = () => {
   };
 
   const handleUnsubscribe = async () => {
-    const confirmed = await showConfirm('FCM 구독을 해제하시겠습니까?');
+    const confirmed = await showConfirm({
+      title: '알림 구독 해제',
+      message: 'FCM 구독을 해제하시겠습니까?',
+      confirmText: '해제',
+      cancelText: '취소',
+      variant: 'warning',
+    });
     if (confirmed) {
       await unsubscribeFromFCM();
       toast.success('FCM 구독이 해제되었습니다.');

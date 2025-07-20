@@ -144,7 +144,9 @@ const GanttView: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div className="p-4 text-gray-900 dark:text-dark-900">로딩 중...</div>;
+    return (
+      <div className="p-4 text-gray-900 dark:text-dark-900">로딩 중...</div>
+    );
   }
 
   if (error) {

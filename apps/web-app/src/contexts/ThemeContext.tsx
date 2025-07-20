@@ -21,24 +21,24 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     if (savedTheme) {
       return savedTheme;
     }
-    
+
     // Check system preference
     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
     }
-    
+
     return 'light';
   });
 
   useEffect(() => {
     const root = window.document.documentElement;
-    
+
     // Remove previous theme classes
     root.classList.remove('light', 'dark');
-    
+
     // Add new theme class
     root.classList.add(theme);
-    
+
     // Save to localStorage
     localStorage.setItem('almus-theme', theme);
   }, [theme]);
@@ -46,7 +46,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // Listen for system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       // Only update if user hasn't manually set a preference
       const savedTheme = localStorage.getItem('almus-theme');
@@ -60,7 +60,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, []);
 
   const toggleTheme = () => {
-    setThemeState(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+    setThemeState(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
   const setTheme = (newTheme: Theme) => {
@@ -74,9 +74,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   };
 
   return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 };
 

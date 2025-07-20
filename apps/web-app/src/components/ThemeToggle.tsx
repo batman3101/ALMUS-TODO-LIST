@@ -24,9 +24,10 @@ const ThemeToggle: React.FC = () => {
       <svg
         className={`
           absolute inset-0 w-5 h-5 m-auto transition-all duration-300
-          ${theme === 'light' 
-            ? 'opacity-100 rotate-0 scale-100' 
-            : 'opacity-0 rotate-90 scale-75'
+          ${
+            theme === 'light'
+              ? 'opacity-100 rotate-0 scale-100'
+              : 'opacity-0 rotate-90 scale-75'
           }
         `}
         fill="none"
@@ -46,9 +47,10 @@ const ThemeToggle: React.FC = () => {
       <svg
         className={`
           absolute inset-0 w-5 h-5 m-auto transition-all duration-300
-          ${theme === 'dark' 
-            ? 'opacity-100 rotate-0 scale-100' 
-            : 'opacity-0 -rotate-90 scale-75'
+          ${
+            theme === 'dark'
+              ? 'opacity-100 rotate-0 scale-100'
+              : 'opacity-0 -rotate-90 scale-75'
           }
         `}
         fill="none"

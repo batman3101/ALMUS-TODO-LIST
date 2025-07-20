@@ -9,7 +9,6 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
   limit,
   serverTimestamp,
 } from 'firebase/firestore';
@@ -110,7 +109,7 @@ export const useCreateTask = () => {
 
       const docRef = await addDoc(collection(firestore, 'tasks'), taskData);
       const newDoc = await getDoc(docRef);
-      
+
       return {
         id: docRef.id,
         ...newDoc.data(),
@@ -130,7 +129,13 @@ export const useUpdateTask = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: UpdateTaskInput }): Promise<void> => {
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: UpdateTaskInput;
+    }): Promise<void> => {
       const taskRef = doc(firestore, 'tasks', id);
       await updateDoc(taskRef, {
         ...updates,
@@ -165,7 +170,7 @@ export const useTask = (taskId: string) => {
     queryFn: async (): Promise<Task | null> => {
       const taskRef = doc(firestore, 'tasks', taskId);
       const taskDoc = await getDoc(taskRef);
-      
+
       if (!taskDoc.exists()) {
         return null;
       }
