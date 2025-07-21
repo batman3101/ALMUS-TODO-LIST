@@ -176,17 +176,22 @@ const GanttView: React.FC = () => {
           {timeUnits.map((unit, i) => (
             <div
               key={i}
-              className={`flex-1 text-sm font-semibold text-gray-700 dark:text-dark-700 border-r-2 border-gray-300 dark:border-dark-400 p-3 text-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-dark-100 dark:to-dark-200 ${
-                unit.type === 'day' ? 'min-w-[60px]' :
+              className={`flex-1 text-sm font-semibold text-gray-700 dark:text-dark-700 border-r-2 border-gray-300 dark:border-dark-400 p-2 text-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-dark-100 dark:to-dark-200 ${
+                unit.type === 'day' ? 'min-w-[70px]' :
                 unit.type === 'week' ? 'min-w-[100px]' :
                 unit.type === 'month' ? 'min-w-[120px]' :
                 unit.type === 'quarter' ? 'min-w-[150px]' :
                 'min-w-[80px]'
               }`}
             >
-              <div className="font-bold text-primary-600 dark:text-primary-400">
+              <div className="font-bold text-primary-600 dark:text-primary-400 text-xs">
                 {unit.label}
               </div>
+              {unit.type === 'day' && (
+                <div className="text-xs text-gray-500 dark:text-dark-500 mt-1">
+                  {format(unit.date, 'E')}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -246,15 +251,15 @@ const GanttView: React.FC = () => {
     return (
       <div className="relative">
         <div
-          className={`absolute h-7 rounded shadow-sm ${getStatusColor(task.status)} ${getPriorityBorder(task.priority)} ${
+          className={`absolute h-8 rounded shadow-sm ${getStatusColor(task.status)} ${getPriorityBorder(task.priority)} ${
             task.isDelayed ? 'ring-2 ring-red-500 ring-opacity-50' : ''
           } transition-all duration-200 hover:shadow-md cursor-pointer group`}
           style={{
             left: `${left}%`,
             width: `${width}%`,
-            top: '6px',
+            top: '36px', // 중앙 정렬을 위해 조정
           }}
-          title={`${task.title} (${format(task.startDate, 'MM/dd')} - ${format(task.endDate, 'MM/dd')})`}
+          title={`${task.title} (${format(task.startDate, 'yyyy/MM/dd')} - ${format(task.endDate, 'yyyy/MM/dd')})`}
         >
           {/* 진행률 표시 */}
           {config.showProgress && task.progress > 0 && (
@@ -266,11 +271,16 @@ const GanttView: React.FC = () => {
           
           <div className="flex items-center justify-between px-2 h-full text-white text-xs font-medium">
             <span className="truncate flex-1">{task.title}</span>
-            {config.showProgress && task.progress > 0 && (
-              <span className="ml-1 text-xs bg-black bg-opacity-30 px-1 rounded">
-                {task.progress}%
+            <div className="flex items-center gap-1">
+              {config.showProgress && task.progress > 0 && (
+                <span className="text-xs bg-black bg-opacity-30 px-1 rounded">
+                  {task.progress}%
+                </span>
+              )}
+              <span className="text-xs bg-black bg-opacity-50 px-1 rounded">
+                {format(task.startDate, 'MM/dd')}~{format(task.endDate, 'MM/dd')}
               </span>
-            )}
+            </div>
           </div>
 
           {/* 호버 시 상세 정보 */}
@@ -402,7 +412,8 @@ const GanttView: React.FC = () => {
       <div className="border-2 border-gray-300 dark:border-dark-400 rounded-lg">
         {/* 헤더 영역 */}
         <div className="flex bg-gray-200 dark:bg-dark-300 border-b-2 border-gray-300 dark:border-dark-400">
-          <div className="w-80 flex-shrink-0 p-4 border-r-2 border-gray-300 dark:border-dark-400 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-dark-200 dark:to-dark-300">
+          {/* 태스크 목록 헤더 */}
+          <div className="w-96 flex-shrink-0 p-4 border-r-2 border-gray-300 dark:border-dark-400 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-dark-200 dark:to-dark-300">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-800 dark:text-dark-800">
                 📋 태스크 목록
@@ -412,28 +423,16 @@ const GanttView: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <div className="p-4 bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-dark-800">
-                  📅 간트 차트
-                </h3>
-                <div className="text-sm text-gray-600 dark:text-dark-600">
-                  {config.zoomLevel === ZoomLevel.DAY ? '일별 보기' :
-                   config.zoomLevel === ZoomLevel.WEEK ? '주별 보기' :
-                   config.zoomLevel === ZoomLevel.MONTH ? '월별 보기' :
-                   config.zoomLevel === ZoomLevel.QUARTER ? '분기별 보기' :
-                   '연별 보기'}
-                </div>
-              </div>
-            </div>
+          {/* 날짜 헤더 */}
+          <div className="flex-1 overflow-x-auto">
+            {renderTimeline()}
           </div>
         </div>
 
         {/* 컨텐츠 영역 */}
         <div className="flex">
           {/* 왼쪽: 태스크 목록 */}
-          <div className="w-80 flex-shrink-0 border-r-2 border-gray-300 dark:border-dark-400 bg-gray-50 dark:bg-dark-100">
+          <div className="w-96 flex-shrink-0 border-r-2 border-gray-300 dark:border-dark-400 bg-gray-50 dark:bg-dark-100">
             {ganttTasks.length === 0 ? (
               <div className="p-8 text-center text-gray-500 dark:text-dark-500">
                 태스크가 없습니다
@@ -443,28 +442,30 @@ const GanttView: React.FC = () => {
                 {ganttTasks.map((task, index) => (
                   <div
                     key={task.id}
-                    className={`h-16 border-b border-gray-200 dark:border-dark-300 p-3 ${
+                    className={`min-h-20 border-b border-gray-200 dark:border-dark-300 p-4 ${
                       index % 2 === 0 ? 'bg-white dark:bg-dark-50' : 'bg-gray-100 dark:bg-dark-100'
                     } hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
                   >
-                    <div className="flex items-center justify-between h-full">
+                    <div className="flex items-start justify-between h-full">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className={`w-3 h-3 rounded-full ${
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-4 h-4 rounded-full flex-shrink-0 ${
                             task.status === 'TODO' ? 'bg-gray-400' :
                             task.status === 'IN_PROGRESS' ? 'bg-blue-500' :
                             task.status === 'REVIEW' ? 'bg-yellow-500' :
                             'bg-green-500'
                           }`} />
-                          <span className="text-sm font-bold text-gray-900 dark:text-dark-900 truncate">
+                          <span className="text-sm font-bold text-gray-900 dark:text-dark-900 break-words">
                             {task.title}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-600 dark:text-dark-600 mb-1">
-                          📅 {format(task.startDate, 'MM/dd')} ~ {format(task.endDate, 'MM/dd')}
+                        <div className="text-xs text-gray-600 dark:text-dark-600 mb-2 space-y-1">
+                          <div>📅 시작: {format(task.startDate, 'yyyy/MM/dd')}</div>
+                          <div>⏰ 마감: {format(task.endDate, 'yyyy/MM/dd')}</div>
+                          <div>👤 담당: {task.assigneeId}</div>
                         </div>
-                        <div className="flex items-center gap-2 text-xs">
-                          <span className={`px-2 py-1 rounded text-white ${
+                        <div className="flex items-center gap-2 text-xs flex-wrap">
+                          <span className={`px-2 py-1 rounded text-white font-medium ${
                             task.priority === 'LOW' ? 'bg-gray-400' :
                             task.priority === 'MEDIUM' ? 'bg-blue-500' :
                             task.priority === 'HIGH' ? 'bg-orange-500' :
@@ -472,15 +473,23 @@ const GanttView: React.FC = () => {
                           }`}>
                             {task.priority}
                           </span>
+                          <span className={`px-2 py-1 rounded text-white font-medium ${
+                            task.status === 'TODO' ? 'bg-gray-500' :
+                            task.status === 'IN_PROGRESS' ? 'bg-blue-600' :
+                            task.status === 'REVIEW' ? 'bg-yellow-600' :
+                            'bg-green-600'
+                          }`}>
+                            {task.status}
+                          </span>
                           {task.isDelayed && (
-                            <span className="px-2 py-1 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded">
+                            <span className="px-2 py-1 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded font-medium">
                               지연
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-primary-600 dark:text-primary-400">
+                      <div className="text-right ml-3">
+                        <div className="text-xl font-bold text-primary-600 dark:text-primary-400">
                           {task.progress}%
                         </div>
                         <div className="text-xs text-gray-500 dark:text-dark-500">
@@ -496,9 +505,6 @@ const GanttView: React.FC = () => {
 
           {/* 오른쪽: 간트 차트 */}
           <div className="flex-1 overflow-x-auto">
-            {/* 타임라인 헤더 */}
-            {renderTimeline()}
-            
             {/* 태스크 바들 */}
             <div className="relative bg-white dark:bg-dark-50">
               {ganttTasks.length === 0 ? (
@@ -509,7 +515,7 @@ const GanttView: React.FC = () => {
                 ganttTasks.map((task, index) => (
                   <div
                     key={task.id}
-                    className={`relative h-16 border-b border-gray-200 dark:border-dark-300 ${
+                    className={`relative min-h-20 border-b border-gray-200 dark:border-dark-300 ${
                       index % 2 === 0 ? 'bg-white dark:bg-dark-50' : 'bg-gray-50 dark:bg-dark-100'
                     } hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
                   >
