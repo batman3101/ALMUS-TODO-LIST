@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   DragDropContext,
   Droppable,
@@ -107,17 +107,15 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     return grouped;
   }, [tasks]);
 
-  const handleDragStart = useCallback((start: any) => {
+  const handleDragStart = () => {
     // 드래그 시작시 haptic feedback 등을 추가할 수 있음
-  }, []);
+  };
 
-  const handleDragEnd = useCallback(async (result: DropResult) => {
+  const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
     // 드래그가 유효한 위치에서 끝나지 않았거나, 같은 위치에 드롭된 경우
-    if (!destination) {
-      return;
-    }
+    if (!destination) return;
 
     if (
       destination.droppableId === source.droppableId &&
@@ -145,40 +143,36 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
       }
     }
 
-    const task = tasks?.find((t: Task) => t.id === draggableId);
-    if (!task) {
-      toast.error('태스크를 찾을 수 없습니다.');
-      return;
-    }
-
     try {
-      // 즉시 mutate 호출 (낙관적 업데이트)
-      updateTaskMutation.mutate({
+      const task = tasks?.find((t: Task) => t.id === draggableId);
+      if (!task) {
+        toast.error('태스크를 찾을 수 없습니다.');
+        return;
+      }
+
+      // 즉시 업데이트
+      await updateTaskMutation.mutateAsync({
         id: draggableId,
         updates: {
           status: destinationColumn,
         },
       });
 
-      // 성공 메시지 (즉시 표시)
+      // 성공 메시지
       const sourceColumnTitle = columns.find(
         col => col.id === sourceColumn
       )?.title;
       const destinationColumnTitle = columns.find(
         col => col.id === destinationColumn
       )?.title;
-
-      // 약간의 딜레이 후 성공 메시지 표시
-      setTimeout(() => {
-        toast.success(
-          `태스크를 "${sourceColumnTitle}"에서 "${destinationColumnTitle}"로 이동했습니다.`
-        );
-      }, 200);
+      toast.success(
+        `태스크를 "${sourceColumnTitle}"에서 "${destinationColumnTitle}"로 이동했습니다.`
+      );
     } catch (error) {
       console.error('태스크 상태 업데이트 실패:', error);
       toast.error('태스크 상태 업데이트에 실패했습니다. 다시 시도해주세요.');
     }
-  }, [tasks, tasksByColumn, wipLimits, columns, updateTaskMutation, toast]);
+  };
 
   const handleWipLimitChange = (columnId: TaskStatus, limit: number) => {
     setWipLimits(prev => ({
@@ -300,7 +294,6 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
         </div>
 
         {/* 칸반 보드 */}
-        {!isLoading && !error && tasks && (
         <DragDropContext
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
@@ -336,16 +329,16 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                     </div>
 
                     {/* 드롭 영역 */}
-                    <Droppable droppableId={column.id} key={column.id}>
+                    <Droppable droppableId={column.id}>
                       {(provided, snapshot) => (
                         <div
                           ref={provided.innerRef}
                           {...provided.droppableProps}
-                          className={`flex-1 min-h-32 rounded-md transition-all duration-200 ease-in-out overflow-y-auto ${
+                          className={`flex-1 min-h-32 rounded-md transition-colors overflow-y-auto ${
                             snapshot.isDraggingOver
-                              ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-200 dark:ring-blue-700 ring-opacity-50'
+                              ? 'bg-blue-50 dark:bg-blue-900/20'
                               : ''
-                          } ${isOverLimit ? 'bg-red-50 dark:bg-red-900/20 ring-1 ring-red-200 dark:ring-red-700' : ''}`}
+                          } ${isOverLimit ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
                           style={{ scrollBehavior: 'smooth' }}
                         >
                           {columnTasks.map((task: Task, index: number) => (
@@ -359,16 +352,15 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  className={`bg-white dark:bg-dark-100 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-dark-300 mb-3 group ${
+                                  className={`bg-white dark:bg-dark-100 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-dark-300 mb-3 transition-all duration-200 group ${
                                     snapshot.isDragging
-                                      ? 'shadow-xl transform rotate-1 cursor-grabbing z-50 scale-105'
-                                      : 'hover:shadow-md hover:border-primary-300 cursor-grab transition-shadow duration-150'
+                                      ? 'shadow-lg transform rotate-2 cursor-grabbing z-10'
+                                      : 'hover:shadow-md hover:border-primary-300 cursor-grab'
                                   } ${
                                     isTaskOverdue(task) && !snapshot.isDragging
                                       ? 'border-red-300 bg-red-50 dark:bg-red-900/10'
                                       : ''
                                   }`}
-                                  style={snapshot.isDragging ? { transition: 'none' } : {}}
                                 >
                                   {/* 헤더 영역 */}
                                   <div className="flex items-center justify-between mb-2">
@@ -416,12 +408,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                       {/* 편집 버튼 */}
                                       <button
                                         onClick={e => {
-                                          e.preventDefault();
                                           e.stopPropagation();
                                           handleTaskClick(task, e);
                                         }}
-                                        onMouseDown={e => e.stopPropagation()}
-                                        onTouchStart={e => e.stopPropagation()}
                                         className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-100 dark:hover:bg-dark-200 cursor-pointer"
                                         title="편집"
                                         type="button"
@@ -496,7 +485,6 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
             })}
           </div>
         </DragDropContext>
-        )}
 
         {/* 전체 빈 상태 */}
         {(!tasks || tasks.length === 0) && !isLoading && (
