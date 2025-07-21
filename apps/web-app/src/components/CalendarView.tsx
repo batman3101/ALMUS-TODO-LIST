@@ -263,7 +263,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
 
                 {/* 태스크 막대들 */}
                 <div className="space-y-1">
-                  {tasksForDate.map((taskInfo, index) => {
+                  {tasksForDate.map((taskInfo: any, index: number) => {
                     const { task, isStart, isEnd, isContinuation } = taskInfo;
 
                     return (

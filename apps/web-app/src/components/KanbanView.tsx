@@ -143,31 +143,35 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
       }
     }
 
-    try {
-      const task = tasks?.find((t: Task) => t.id === draggableId);
-      if (!task) {
-        toast.error('태스크를 찾을 수 없습니다.');
-        return;
-      }
+    const task = tasks?.find((t: Task) => t.id === draggableId);
+    if (!task) {
+      toast.error('태스크를 찾을 수 없습니다.');
+      return;
+    }
 
-      // 낙관적 업데이트를 위해 즉시 UI 업데이트
-      await updateTaskMutation.mutateAsync({
+    try {
+      // 즉시 mutate 호출 (낙관적 업데이트)
+      updateTaskMutation.mutate({
         id: draggableId,
         updates: {
           status: destinationColumn,
         },
       });
 
-      // 성공 메시지
+      // 성공 메시지 (즉시 표시)
       const sourceColumnTitle = columns.find(
         col => col.id === sourceColumn
       )?.title;
       const destinationColumnTitle = columns.find(
         col => col.id === destinationColumn
       )?.title;
-      toast.success(
-        `태스크를 "${sourceColumnTitle}"에서 "${destinationColumnTitle}"로 이동했습니다.`
-      );
+
+      // 약간의 딜레이 후 성공 메시지 표시
+      setTimeout(() => {
+        toast.success(
+          `태스크를 "${sourceColumnTitle}"에서 "${destinationColumnTitle}"로 이동했습니다.`
+        );
+      }, 200);
     } catch (error) {
       console.error('태스크 상태 업데이트 실패:', error);
       toast.error('태스크 상태 업데이트에 실패했습니다. 다시 시도해주세요.');
@@ -334,11 +338,11 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                         <div
                           ref={provided.innerRef}
                           {...provided.droppableProps}
-                          className={`flex-1 min-h-32 rounded-md transition-colors overflow-y-auto ${
+                          className={`flex-1 min-h-32 rounded-md transition-all duration-200 ease-in-out overflow-y-auto ${
                             snapshot.isDraggingOver
-                              ? 'bg-blue-50 dark:bg-blue-900/20'
+                              ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-200 dark:ring-blue-700 ring-opacity-50'
                               : ''
-                          } ${isOverLimit ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
+                          } ${isOverLimit ? 'bg-red-50 dark:bg-red-900/20 ring-1 ring-red-200 dark:ring-red-700' : ''}`}
                           style={{ scrollBehavior: 'smooth' }}
                         >
                           {columnTasks.map((task: Task, index: number) => (
@@ -352,10 +356,10 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  className={`bg-white dark:bg-dark-100 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-dark-300 mb-3 transition-all duration-200 group ${
+                                  className={`bg-white dark:bg-dark-100 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-dark-300 mb-3 group ${
                                     snapshot.isDragging
-                                      ? 'shadow-lg transform rotate-2 cursor-grabbing z-10'
-                                      : 'hover:shadow-md hover:border-primary-300 cursor-grab'
+                                      ? 'shadow-xl transform rotate-1 cursor-grabbing z-50 scale-105 transition-all duration-150 ease-out'
+                                      : 'hover:shadow-md hover:border-primary-300 cursor-grab transition-all duration-200 ease-in-out'
                                   } ${
                                     isTaskOverdue(task) && !snapshot.isDragging
                                       ? 'border-red-300 bg-red-50 dark:bg-red-900/10'

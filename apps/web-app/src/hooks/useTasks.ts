@@ -164,9 +164,11 @@ export const useUpdateTask = () => {
         queryClient.setQueryData(['tasks'], context.previousTasks);
       }
     },
-    onSettled: () => {
-      // 성공/실패 관계없이 서버 데이터로 동기화
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    onSuccess: () => {
+      // 성공 시에만 서버 데이터로 동기화 (딜레이 추가)
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      }, 100);
     },
   });
 };
