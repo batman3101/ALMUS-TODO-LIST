@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALMUS ToDo List Gantt</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #2e2e2e; /* Dark background */
+            color: #ffffff;
+            margin: 20px;
+        }
+
+        .gantt-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #3f3f3f; /* Slightly lighter dark background for the chart area */
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.2em;
+            margin-bottom: 5px;
+            color: #ffffff;
+            text-align: left;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #cccccc;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        /* Calendar Header */
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .month-display {
+            background-color: #555555;
+            padding: 10px 15px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            width: 80px; /* Fixed width for month display */
+            box-sizing: border-box;
+        }
+
+        .month-display .year {
+            font-size: 0.8em;
+            color: #cccccc;
+        }
+
+        .month-display .month {
+            font-size: 1.2em;
+            color: #ffffff;
+            margin-top: 2px;
+        }
+
+        .day-columns {
+            display: flex;
+            flex-grow: 1;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .day-column {
+            flex: 1;
+            padding: 8px 0;
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #cccccc;
+        }
+
+        .day-column.current-day {
+            background-color: #6a6a6a; /* Highlight for current day */
+            border-radius: 5px;
+            color: #ffffff;
+        }
+
+        /* Gantt Chart Rows */
+        .gantt-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .task-card {
+            background-color: #4a4a4a;
+            border-radius: 8px;
+            padding: 10px 15px;
+            width: 150px; /* Fixed width for task cards */
+            margin-right: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .task-card .priority-indicator {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .task-card .priority-high { background-color: #ff6347; } /* Example color */
+        .task-card .priority-medium { background-color: #ffd700; } /* Example color */
+        .task-card .priority-low { background-color: #32cd32; } /* Example color */
+
+        .task-card .task-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        .task-card .options {
+            align-self: flex-end;
+            color: #cccccc;
+            font-size: 1.2em;
+        }
+
+        .progress-bar-container {
+            flex-grow: 1;
+            display: flex;
+            height: 30px; /* Height of the progress bar */
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            background-color: #5a5a5a; /* Background for empty part of bar */
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 15px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            box-sizing: border-box;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .progress-bar.purple {
+            background: linear-gradient(to right, #9370DB, #8A2BE2); /* Dark purple */
+        }
+
+        .progress-bar.red {
+            background: linear-gradient(to right, #F08080, #CD5C5C); /* Reddish */
+        }
+
+        .progress-bar.blue {
+            background: linear-gradient(to right, #6A5ACD, #4169E1); /* Bluish */
+        }
+
+        .progress-bar.green {
+            background: linear-gradient(to right, #3CB371, #2E8B57); /* Greenish */
+        }
+
+        .progress-text {
+            position: absolute;
+            right: 15px;
+            color: #ffffff;
+            z-index: 1; /* Ensure text is above background */
+        }
+    </style>
+</head>
+<body>
+    <div class="gantt-container">
+        <div class="subtitle">태스크의 진행도를 점검하세요</div>
+        <h1>ALMUS ToDo List Gantt</h1>
+
+        <div class="calendar-header">
+            <div class="month-display">
+                <span class="year">2025</span>
+                <span class="month">7월</span>
+            </div>
+            <div class="day-columns">
+                <div class="day-column">일<br>01</div>
+                <div class="day-column">월<br>02</div>
+                <div class="day-column">화<br>03</div>
+                <div class="day-column current-day">수<br>04</div>
+                <div class="day-column">목<br>05</div>
+                <div class="day-column">금<br>06</div>
+                <div class="day-column">토<br>07</div>
+            </div>
+        </div>
+
+        <div class="gantt-row">
+            <div class="task-card">
+                <span class="priority-indicator priority-high"></span>
+                <div class="task-title">Task 1</div>
+                <div class="options">...</div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar purple" style="width: 54%;"></div>
+                <span class="progress-text">진행도 54%</span>
+            </div>
+        </div>
+
+        <div class="gantt-row">
+            <div class="task-card">
+                <span class="priority-indicator priority-medium"></span>
+                <div class="task-title">Task 2</div>
+                <div class="options">...</div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar red" style="width: 25%;"></div>
+                <span class="progress-text">진행도 25%</span>
+            </div>
+        </div>
+
+        <div class="gantt-row">
+            <div class="task-card">
+                <span class="priority-indicator priority-low"></span>
+                <div class="task-title">Task 3</div>
+                <div class="options">...</div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar blue" style="width: 31%;"></div>
+                <span class="progress-text">진행도 31%</span>
+            </div>
+        </div>
+
+        <div class="gantt-row">
+            <div class="task-card">
+                <span class="priority-indicator priority-low"></span>
+                <div class="task-title">Task 4</div>
+                <div class="options">...</div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar green" style="width: 67%;"></div>
+                <span class="progress-text">진행도 67%</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
