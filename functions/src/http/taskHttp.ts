@@ -2,7 +2,13 @@ import { Request, Response } from 'express';
 import { onRequest } from 'firebase-functions/v2/https';
 import { TaskService } from '../services/taskService';
 import { AuthUtils } from '../utils/auth';
-import { CreateTaskRequest, UpdateTaskRequest, TaskQueryRequest, ApiRequest, ApiResponse } from '../types';
+import {
+  CreateTaskRequest,
+  UpdateTaskRequest,
+  TaskQueryRequest,
+  ApiRequest,
+  ApiResponse,
+} from '../types';
 
 // Task 생성 HTTP 함수
 export const createTask = onRequest(
@@ -41,7 +47,8 @@ export const createTask = onRequest(
       console.error('Task 생성 오류:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Task 생성에 실패했습니다.',
+        error:
+          error instanceof Error ? error.message : 'Task 생성에 실패했습니다.',
       });
     }
   }
@@ -93,7 +100,8 @@ export const updateTask = onRequest(
       console.error('Task 수정 오류:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Task 수정에 실패했습니다.',
+        error:
+          error instanceof Error ? error.message : 'Task 수정에 실패했습니다.',
       });
     }
   }
@@ -135,7 +143,8 @@ export const deleteTask = onRequest(
       console.error('Task 삭제 오류:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Task 삭제에 실패했습니다.',
+        error:
+          error instanceof Error ? error.message : 'Task 삭제에 실패했습니다.',
       });
     }
   }
@@ -177,7 +186,8 @@ export const getTask = onRequest(
       console.error('Task 조회 오류:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Task 조회에 실패했습니다.',
+        error:
+          error instanceof Error ? error.message : 'Task 조회에 실패했습니다.',
       });
     }
   }
@@ -228,7 +238,10 @@ export const getTasks = onRequest(
       console.error('Task 목록 조회 오류:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Task 목록 조회에 실패했습니다.',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Task 목록 조회에 실패했습니다.',
       });
     }
   }
@@ -270,8 +283,11 @@ export const getTaskAggregation = onRequest(
       console.error('Task 집계 조회 오류:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Task 집계 조회에 실패했습니다.',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Task 집계 조회에 실패했습니다.',
       });
     }
   }
-); 
+);

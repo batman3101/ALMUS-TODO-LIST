@@ -6,21 +6,27 @@ const path = require('path');
 
 class MigrationRunner {
   constructor() {
-    this.migrationScript = path.join(__dirname, 'postgresql-to-firestore-migration.ts');
-    this.checkpointPath = path.join(__dirname, '../data/migration-checkpoints.json');
+    this.migrationScript = path.join(
+      __dirname,
+      'postgresql-to-firestore-migration.ts'
+    );
+    this.checkpointPath = path.join(
+      __dirname,
+      '../data/migration-checkpoints.json'
+    );
   }
 
   async checkPrerequisites() {
     console.log('🔍 마이그레이션 사전 조건 확인...');
-    
+
     const errors = [];
 
     // 1. 환경 변수 확인
     const requiredEnvVars = [
       'PG_HOST',
-      'PG_DATABASE', 
+      'PG_DATABASE',
       'PG_USER',
-      'PG_PASSWORD'
+      'PG_PASSWORD',
     ];
 
     for (const envVar of requiredEnvVars) {
@@ -30,9 +36,14 @@ class MigrationRunner {
     }
 
     // 2. Firebase 서비스 계정 파일 확인
-    const serviceAccountPath = path.join(__dirname, '../config/firebase-service-account.json');
+    const serviceAccountPath = path.join(
+      __dirname,
+      '../config/firebase-service-account.json'
+    );
     if (!fs.existsSync(serviceAccountPath)) {
-      errors.push('Firebase 서비스 계정 파일이 없습니다: config/firebase-service-account.json');
+      errors.push(
+        'Firebase 서비스 계정 파일이 없습니다: config/firebase-service-account.json'
+      );
     }
 
     // 3. TypeScript 컴파일러 확인
@@ -62,7 +73,7 @@ class MigrationRunner {
 
   async runMigration() {
     console.log('🚀 PostgreSQL → Firestore 마이그레이션 시작...');
-    
+
     try {
       // 1. 사전 조건 확인
       const prerequisitesOk = await this.checkPrerequisites();
@@ -75,15 +86,19 @@ class MigrationRunner {
 
       // 3. TypeScript 컴파일
       console.log('🔨 TypeScript 컴파일 중...');
-      execSync(`npx tsc ${this.migrationScript} --outDir ./dist`, { stdio: 'inherit' });
+      execSync(`npx tsc ${this.migrationScript} --outDir ./dist`, {
+        stdio: 'inherit',
+      });
 
       // 4. 마이그레이션 실행
       console.log('🔄 마이그레이션 실행 중...');
-      const compiledScript = path.join(__dirname, '../dist/scripts/postgresql-to-firestore-migration.js');
+      const compiledScript = path.join(
+        __dirname,
+        '../dist/scripts/postgresql-to-firestore-migration.js'
+      );
       execSync(`node ${compiledScript}`, { stdio: 'inherit' });
 
       console.log('✅ 마이그레이션이 성공적으로 완료되었습니다!');
-      
     } catch (error) {
       console.error('❌ 마이그레이션 실패:', error.message);
       process.exit(1);
@@ -92,7 +107,7 @@ class MigrationRunner {
 
   async validateMigration() {
     console.log('🔍 마이그레이션 검증 시작...');
-    
+
     try {
       // 검증 스크립트 실행
       const validationScript = path.join(__dirname, 'validate-migration.ts');
@@ -101,7 +116,6 @@ class MigrationRunner {
       } else {
         console.log('⚠️ 검증 스크립트가 없습니다.');
       }
-      
     } catch (error) {
       console.error('❌ 마이그레이션 검증 실패:', error.message);
     }
@@ -109,7 +123,7 @@ class MigrationRunner {
 
   async rollbackMigration() {
     console.log('🔄 마이그레이션 롤백 시작...');
-    
+
     try {
       // 롤백 스크립트 실행
       const rollbackScript = path.join(__dirname, 'rollback-migration.ts');
@@ -119,7 +133,6 @@ class MigrationRunner {
       } else {
         console.log('⚠️ 롤백 스크립트가 없습니다.');
       }
-      
     } catch (error) {
       console.error('❌ 마이그레이션 롤백 실패:', error.message);
     }
@@ -181,4 +194,4 @@ if (require.main === module) {
   main().catch(console.error);
 }
 
-module.exports = { MigrationRunner }; 
+module.exports = { MigrationRunner };

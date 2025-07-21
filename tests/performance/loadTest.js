@@ -21,7 +21,7 @@ class PerformanceTest {
 
   async measurePageLoad(url, testName) {
     const page = await this.context.newPage();
-    
+
     // 네트워크 요청 모니터링
     const requests = [];
     page.on('request', request => {
@@ -34,26 +34,30 @@ class PerformanceTest {
 
     // 성능 메트릭 수집
     const startTime = Date.now();
-    
+
     try {
       await page.goto(url, { waitUntil: 'networkidle' });
-      
+
       // 성능 메트릭 수집
       const metrics = await page.evaluate(() => {
         const navigation = performance.getEntriesByType('navigation')[0];
         const paint = performance.getEntriesByType('paint');
-        
+
         return {
-          domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+          domContentLoaded:
+            navigation.domContentLoadedEventEnd -
+            navigation.domContentLoadedEventStart,
           loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
           firstPaint: paint.find(p => p.name === 'first-paint')?.startTime || 0,
-          firstContentfulPaint: paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0,
+          firstContentfulPaint:
+            paint.find(p => p.name === 'first-contentful-paint')?.startTime ||
+            0,
           largestContentfulPaint: 0, // LCP는 별도 측정 필요
         };
       });
 
       const totalTime = Date.now() - startTime;
-      
+
       const result = {
         testName,
         url,
@@ -64,8 +68,10 @@ class PerformanceTest {
       };
 
       this.results.push(result);
-      console.log(`✅ ${testName}: ${totalTime}ms (${requests.length} requests)`);
-      
+      console.log(
+        `✅ ${testName}: ${totalTime}ms (${requests.length} requests)`
+      );
+
       return result;
     } catch (error) {
       console.error(`❌ ${testName} 실패:`, error.message);
@@ -77,7 +83,7 @@ class PerformanceTest {
 
   async measureTaskOperations(baseUrl, testName) {
     const page = await this.context.newPage();
-    
+
     try {
       // 로그인
       await page.goto(`${baseUrl}/login`);
@@ -90,7 +96,10 @@ class PerformanceTest {
       const createStart = Date.now();
       await page.click('button[data-testid="create-task"]');
       await page.fill('input[name="title"]', 'Performance Test Task');
-      await page.fill('textarea[name="description"]', 'This is a performance test task');
+      await page.fill(
+        'textarea[name="description"]',
+        'This is a performance test task'
+      );
       await page.click('button[type="submit"]');
       await page.waitForSelector('[data-testid="task-item"]');
       const createTime = Date.now() - createStart;
@@ -116,8 +125,10 @@ class PerformanceTest {
       };
 
       this.results.push(result);
-      console.log(`✅ ${testName}: 생성=${createTime}ms, 목록=${listTime}ms, 검색=${searchTime}ms`);
-      
+      console.log(
+        `✅ ${testName}: 생성=${createTime}ms, 목록=${listTime}ms, 검색=${searchTime}ms`
+      );
+
       return result;
     } catch (error) {
       console.error(`❌ ${testName} 실패:`, error.message);
@@ -129,7 +140,7 @@ class PerformanceTest {
 
   async measureConcurrentUsers(baseUrl, userCount, testName) {
     const promises = [];
-    
+
     for (let i = 0; i < userCount; i++) {
       promises.push(this.simulateUser(baseUrl, i));
     }
@@ -152,14 +163,16 @@ class PerformanceTest {
     };
 
     this.results.push(result);
-    console.log(`✅ ${testName}: ${successful}/${userCount} 성공, 평균=${result.averageTime}ms`);
-    
+    console.log(
+      `✅ ${testName}: ${successful}/${userCount} 성공, 평균=${result.averageTime}ms`
+    );
+
     return result;
   }
 
   async simulateUser(baseUrl, userId) {
     const page = await this.context.newPage();
-    
+
     try {
       // 로그인
       await page.goto(`${baseUrl}/login`);
@@ -170,7 +183,7 @@ class PerformanceTest {
 
       // Task 목록 조회
       await page.waitForSelector('[data-testid="task-list"]');
-      
+
       // 검색 수행
       await page.fill('input[data-testid="search-input"]', 'test');
       await page.waitForTimeout(300);
@@ -193,7 +206,10 @@ class PerformanceTest {
       recommendations: this.generateRecommendations(),
     };
 
-    const reportPath = path.join(__dirname, '../reports/performance-report.json');
+    const reportPath = path.join(
+      __dirname,
+      '../reports/performance-report.json'
+    );
     fs.mkdirSync(path.dirname(reportPath), { recursive: true });
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
 
@@ -207,8 +223,10 @@ class PerformanceTest {
     // 페이지 로드 시간 분석
     const pageLoadResults = this.results.filter(r => r.totalTime);
     if (pageLoadResults.length > 0) {
-      const avgLoadTime = pageLoadResults.reduce((sum, r) => sum + r.totalTime, 0) / pageLoadResults.length;
-      
+      const avgLoadTime =
+        pageLoadResults.reduce((sum, r) => sum + r.totalTime, 0) /
+        pageLoadResults.length;
+
       if (avgLoadTime > 1000) {
         recommendations.push({
           type: 'PAGE_LOAD',
@@ -222,14 +240,19 @@ class PerformanceTest {
     // 동시 사용자 테스트 분석
     const concurrentResults = this.results.filter(r => r.userCount);
     if (concurrentResults.length > 0) {
-      const avgSuccessRate = concurrentResults.reduce((sum, r) => sum + (r.successful / r.userCount), 0) / concurrentResults.length;
-      
+      const avgSuccessRate =
+        concurrentResults.reduce(
+          (sum, r) => sum + r.successful / r.userCount,
+          0
+        ) / concurrentResults.length;
+
       if (avgSuccessRate < 0.95) {
         recommendations.push({
           type: 'CONCURRENT_USERS',
           severity: 'HIGH',
           message: `동시 사용자 테스트 성공률이 ${(avgSuccessRate * 100).toFixed(1)}%로 낮습니다.`,
-          suggestion: '서버 리소스 확장, 데이터베이스 최적화, 캐싱을 검토하세요.',
+          suggestion:
+            '서버 리소스 확장, 데이터베이스 최적화, 캐싱을 검토하세요.',
         });
       }
     }
@@ -241,36 +264,35 @@ class PerformanceTest {
 // 테스트 실행 함수
 async function runPerformanceTests() {
   const test = new PerformanceTest();
-  
+
   try {
     await test.init();
-    
+
     const baseUrl = process.env.TEST_BASE_URL || 'http://localhost:5173';
-    
+
     console.log('🚀 성능 테스트 시작...');
-    
+
     // 1. 페이지 로드 성능 테스트
     await test.measurePageLoad(`${baseUrl}/login`, '로그인 페이지 로드');
     await test.measurePageLoad(`${baseUrl}/tasks`, 'Task 목록 페이지 로드');
     await test.measurePageLoad(`${baseUrl}/kanban`, '칸반 보드 페이지 로드');
     await test.measurePageLoad(`${baseUrl}/gantt`, '간트 차트 페이지 로드');
-    
+
     // 2. Task 작업 성능 테스트
     await test.measureTaskOperations(baseUrl, 'Task CRUD 작업');
-    
+
     // 3. 동시 사용자 테스트
     await test.measureConcurrentUsers(baseUrl, 10, '10명 동시 사용자');
     await test.measureConcurrentUsers(baseUrl, 25, '25명 동시 사용자');
     await test.measureConcurrentUsers(baseUrl, 50, '50명 동시 사용자');
-    
+
     // 4. 리포트 생성
     const report = await test.generateReport();
-    
+
     console.log('✅ 성능 테스트 완료!');
     console.log('📊 결과 요약:');
     console.log(`- 총 테스트: ${report.summary.totalTests}개`);
     console.log(`- 권장사항: ${report.recommendations.length}개`);
-    
   } catch (error) {
     console.error('❌ 성능 테스트 실패:', error);
   } finally {
@@ -283,4 +305,4 @@ if (require.main === module) {
   runPerformanceTests();
 }
 
-module.exports = { PerformanceTest, runPerformanceTests }; 
+module.exports = { PerformanceTest, runPerformanceTests };

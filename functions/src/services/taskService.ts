@@ -1,12 +1,20 @@
 import { firestore } from 'firebase-admin';
-import { CreateTaskRequest, UpdateTaskRequest, TaskQueryRequest, TaskAggregation } from '../types';
+import {
+  CreateTaskRequest,
+  UpdateTaskRequest,
+  TaskQueryRequest,
+  TaskAggregation,
+} from '../types';
 import { AuthUtils } from '../utils/auth';
 
 export class TaskService {
   /**
    * Task 생성
    */
-  static async createTask(userId: string, taskData: CreateTaskRequest): Promise<any> {
+  static async createTask(
+    userId: string,
+    taskData: CreateTaskRequest
+  ): Promise<any> {
     try {
       // 권한 검증
       const hasPermission = await AuthUtils.checkPermission({
@@ -26,7 +34,10 @@ export class TaskService {
       }
 
       // 담당자가 팀 멤버인지 확인
-      const isAssigneeMember = await AuthUtils.isTeamMember(taskData.assigneeId, taskData.teamId);
+      const isAssigneeMember = await AuthUtils.isTeamMember(
+        taskData.assigneeId,
+        taskData.teamId
+      );
       if (!isAssigneeMember) {
         throw new Error('담당자가 팀 멤버가 아닙니다.');
       }
@@ -47,20 +58,26 @@ export class TaskService {
       };
 
       const docRef = await firestore().collection('tasks').add(taskDoc);
-      
+
       return {
         id: docRef.id,
         ...taskDoc,
       };
     } catch (error) {
-      throw new Error(`Task 생성 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Task 생성 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
   /**
    * Task 수정
    */
-  static async updateTask(userId: string, taskId: string, updateData: UpdateTaskRequest): Promise<any> {
+  static async updateTask(
+    userId: string,
+    taskId: string,
+    updateData: UpdateTaskRequest
+  ): Promise<any> {
     try {
       // 기존 Task 조회
       const taskDoc = await firestore().collection('tasks').doc(taskId).get();
@@ -87,8 +104,14 @@ export class TaskService {
       }
 
       // 담당자 변경 시 팀 멤버 확인
-      if (updateData.assigneeId && updateData.assigneeId !== taskData.assigneeId) {
-        const isAssigneeMember = await AuthUtils.isTeamMember(updateData.assigneeId, taskData.teamId);
+      if (
+        updateData.assigneeId &&
+        updateData.assigneeId !== taskData.assigneeId
+      ) {
+        const isAssigneeMember = await AuthUtils.isTeamMember(
+          updateData.assigneeId,
+          taskData.teamId
+        );
         if (!isAssigneeMember) {
           throw new Error('새 담당자가 팀 멤버가 아닙니다.');
         }
@@ -111,13 +134,18 @@ export class TaskService {
       await firestore().collection('tasks').doc(taskId).update(updateDoc);
 
       // 업데이트된 Task 조회
-      const updatedDoc = await firestore().collection('tasks').doc(taskId).get();
+      const updatedDoc = await firestore()
+        .collection('tasks')
+        .doc(taskId)
+        .get();
       return {
         id: taskId,
         ...updatedDoc.data(),
       };
     } catch (error) {
-      throw new Error(`Task 수정 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Task 수정 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -152,7 +180,9 @@ export class TaskService {
 
       await firestore().collection('tasks').doc(taskId).delete();
     } catch (error) {
-      throw new Error(`Task 삭제 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Task 삭제 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -189,7 +219,9 @@ export class TaskService {
         ...taskData,
       };
     } catch (error) {
-      throw new Error(`Task 조회 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Task 조회 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -248,14 +280,19 @@ export class TaskService {
         offset: query.offset || 0,
       };
     } catch (error) {
-      throw new Error(`Task 목록 조회 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Task 목록 조회 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
   /**
    * Task 집계 정보 조회
    */
-  static async getTaskAggregation(userId: string, teamId: string): Promise<TaskAggregation> {
+  static async getTaskAggregation(
+    userId: string,
+    teamId: string
+  ): Promise<TaskAggregation> {
     try {
       // 팀 멤버 확인
       const isMember = await AuthUtils.isTeamMember(userId, teamId);
@@ -273,20 +310,24 @@ export class TaskService {
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
       const totalTasks = tasks.length;
-      const completedTasks = tasks.filter(task => task.status === 'DONE').length;
-      const overdueTasks = tasks.filter(task => 
-        task.dueDate && 
-        new Date(task.dueDate) < now && 
-        task.status !== 'DONE'
+      const completedTasks = tasks.filter(
+        task => task.status === 'DONE'
       ).length;
-      const dueTodayTasks = tasks.filter(task => 
-        task.dueDate && 
-        new Date(task.dueDate) >= today && 
-        new Date(task.dueDate) < new Date(today.getTime() + 24 * 60 * 60 * 1000) &&
-        task.status !== 'DONE'
+      const overdueTasks = tasks.filter(
+        task =>
+          task.dueDate && new Date(task.dueDate) < now && task.status !== 'DONE'
+      ).length;
+      const dueTodayTasks = tasks.filter(
+        task =>
+          task.dueDate &&
+          new Date(task.dueDate) >= today &&
+          new Date(task.dueDate) <
+            new Date(today.getTime() + 24 * 60 * 60 * 1000) &&
+          task.status !== 'DONE'
       ).length;
 
-      const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+      const completionRate =
+        totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
       return {
         teamId,
@@ -297,7 +338,9 @@ export class TaskService {
         completionRate: Math.round(completionRate * 100) / 100,
       };
     } catch (error) {
-      throw new Error(`Task 집계 조회 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Task 집계 조회 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
-} 
+}

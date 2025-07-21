@@ -82,11 +82,11 @@ firebase login:ci
    - `firebase login:ci`로 새 토큰 생성
 
 3. **환경 변수 오류**
-   - 모든 VITE_ 변수가 설정되었는지 확인
+   - 모든 VITE\_ 변수가 설정되었는지 확인
    - Firebase 프로젝트 설정에서 정확한 값 확인
 
 ### 로그 확인
 
 - GitHub Actions → 워크플로우 → 실행 → 로그 확인
 - Firebase Console → Functions → 로그 확인
-- Firebase Console → Hosting → 로그 확인 
+- Firebase Console → Hosting → 로그 확인

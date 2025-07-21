@@ -24,6 +24,7 @@ export interface Task {
     createdBy: string;
     createdByUser?: User;
     version: number;
+    teamId: string;
     createdAt: Date;
     updatedAt: Date;
     startDate?: Date;
@@ -199,7 +200,6 @@ export interface CreateTaskInput {
     projectId?: string;
 }
 export interface UpdateTaskInput {
-    id: string;
     title?: string;
     description?: string;
     assigneeId?: string;
@@ -210,7 +210,7 @@ export interface UpdateTaskInput {
     endDate?: Date;
     dependencies?: string[];
     progress?: number;
-    version: number;
+    version?: number;
 }
 export interface TaskFilterInput {
     status?: TaskStatus;

@@ -7,7 +7,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@almus/shared-types': path.resolve(__dirname, '../../libs/shared-types/src'),
+      '@almus/shared-types': path.resolve(
+        __dirname,
+        '../../libs/shared-types/src'
+      ),
     },
   },
   server: {
@@ -18,4 +21,4 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
-}); 
+});

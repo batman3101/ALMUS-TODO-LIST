@@ -1,5 +1,10 @@
 import * as admin from 'firebase-admin';
-import { FIRESTORE_COLLECTIONS, FirestoreUser, FirestoreTask, FirestoreNotification } from '../libs/shared-types/src/firestore-schema';
+import {
+  FIRESTORE_COLLECTIONS,
+  FirestoreUser,
+  FirestoreTask,
+  FirestoreNotification,
+} from '../libs/shared-types/src/firestore-schema';
 
 // Firebase Admin 초기화
 const serviceAccount = require('../config/firebase-service-account.json');
@@ -105,7 +110,10 @@ export async function createSampleProjects() {
   ];
 
   for (const project of projects) {
-    await db.collection(FIRESTORE_COLLECTIONS.PROJECTS).doc(project.id).set(project);
+    await db
+      .collection(FIRESTORE_COLLECTIONS.PROJECTS)
+      .doc(project.id)
+      .set(project);
     console.log(`Created project: ${project.name}`);
   }
 }
@@ -210,7 +218,10 @@ export async function createSampleNotifications() {
   ];
 
   for (const notification of notifications) {
-    await db.collection(FIRESTORE_COLLECTIONS.NOTIFICATIONS).doc(notification.id).set(notification);
+    await db
+      .collection(FIRESTORE_COLLECTIONS.NOTIFICATIONS)
+      .doc(notification.id)
+      .set(notification);
     console.log(`Created notification: ${notification.title}`);
   }
 }
@@ -219,14 +230,14 @@ export async function createSampleNotifications() {
 export async function runMigration() {
   try {
     console.log('Starting Firestore migration...');
-    
+
     // 순서대로 샘플 데이터 생성
     await createSampleTeams();
     await createSampleUsers();
     await createSampleProjects();
     await createSampleTasks();
     await createSampleNotifications();
-    
+
     console.log('Migration completed successfully!');
   } catch (error) {
     console.error('Migration failed:', error);
@@ -241,8 +252,8 @@ if (require.main === module) {
       console.log('Migration script completed');
       process.exit(0);
     })
-    .catch((error) => {
+    .catch(error => {
       console.error('Migration script failed:', error);
       process.exit(1);
     });
-} 
+}

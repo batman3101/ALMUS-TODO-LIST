@@ -5,16 +5,19 @@
 ## 🚀 기술 스택
 
 ### 프론트엔드
+
 - **웹앱**: React + TypeScript, Redux Toolkit, React Query
 - **모바일앱**: React Native (Expo)
 - **데스크톱앱**: Electron (PWA 기반)
 
 ### 백엔드
+
 - **API**: Node.js (NestJS), GraphQL Gateway + REST Fallback
 - **데이터베이스**: PostgreSQL (파티셔닝), Redis
 - **인증**: OAuth2, JWT
 
 ### 인프라
+
 - **컨테이너**: Docker, Kubernetes (EKS)
 - **클라우드**: AWS (EKS, RDS, S3, CloudFront, SNS)
 - **CI/CD**: GitHub Actions → Docker → ArgoCD
@@ -46,6 +49,7 @@
 ## 🛠️ 개발 환경 설정
 
 ### 필수 요구사항
+
 - Node.js 18.x 이상
 - Yarn 1.22.x 이상
 - Docker Desktop
@@ -54,28 +58,31 @@
 ### 설치 및 실행
 
 1. **의존성 설치**
+
    ```bash
    yarn install
    ```
 
 2. **개발 서버 실행**
+
    ```bash
    # 모든 앱/서비스 개발 서버 실행
    yarn dev
-   
+
    # 특정 앱만 실행
    yarn workspace @almus/web-app dev
    yarn workspace @almus/mobile-app start
    ```
 
 3. **코드 품질 검사**
+
    ```bash
    # 린트 검사
    yarn lint
-   
+
    # 코드 포맷팅
    yarn format
-   
+
    # 테스트 실행
    yarn test
    ```
@@ -83,11 +90,13 @@
 ## 🚀 배포
 
 ### CI/CD 파이프라인
+
 - GitHub Actions를 통한 자동 빌드 및 테스트
 - Docker 이미지 빌드 및 컨테이너 레지스트리 푸시
 - ArgoCD를 통한 Kubernetes 배포
 
 ### 인프라 프로비저닝
+
 ```bash
 cd infra/terraform
 terraform init
@@ -98,6 +107,7 @@ terraform apply
 ## 📋 주요 기능
 
 ### 핵심 기능
+
 - ✅ Task/TODO CRUD
 - ✅ 그리드 뷰 (엑셀 유사)
 - ✅ 칸반 뷰 (Drag & Drop)
@@ -109,6 +119,7 @@ terraform apply
 - ✅ 대시보드
 
 ### 지원 기능
+
 - OAuth(Google, Microsoft) 로그인
 - 다크 모드·접근성
 - 오프라인 캐싱(PWA)
@@ -119,12 +130,14 @@ terraform apply
 ## 🔧 개발 가이드
 
 ### 코드 컨벤션
+
 - **ESLint**: TypeScript 린팅
 - **Prettier**: 코드 포맷팅
 - **Husky**: Git 훅
 - **Commitlint**: 커밋 메시지 검증
 
 ### 커밋 메시지 규칙
+
 ```
 <type>(<scope>): <description>
 
@@ -136,23 +149,27 @@ terraform apply
 **Types**: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
 
 ### 테스트 전략
+
 - **Unit Tests**: 70% (빠르고 격리된 테스트)
 - **Integration Tests**: 20% (모듈 경계 테스트)
 - **Acceptance Tests**: 10% (사용자 시나리오 테스트)
 
 ## 📊 성능 목표
+
 - 평균 페이지 응답 ≤1초
 - 가용성 99.9%
 - 10k Task 데이터셋 로드 2초 이내
 - 동시 편집 충돌 방지 (OT 기반)
 
 ## 🔒 보안
+
 - OAuth2, JWT 인증
 - AES-256 at-rest 암호화
 - GDPR & ISO 27001 준수
 - HTTPS 강제, CSP, Input Validation
 
 ## 📈 모니터링
+
 - ELK Stack 로그 저장
 - Prometheus 메트릭 수집
 - Grafana 대시보드
@@ -174,4 +191,4 @@ terraform apply
 
 - 이슈: [GitHub Issues](https://github.com/almus/todo-list/issues)
 - 문서: [Wiki](https://github.com/almus/todo-list/wiki)
-- 이메일: support@almus-todo.com 
+- 이메일: support@almus-todo.com

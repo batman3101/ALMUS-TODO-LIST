@@ -23,4 +23,4 @@ module.exports = {
     'subject-full-stop': [2, 'never', '.'],
     'header-max-length': [2, 'always', 72],
   },
-}; 
+};

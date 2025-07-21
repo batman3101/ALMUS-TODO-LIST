@@ -35,4 +35,4 @@ export class NotificationTemplate {
 
   @UpdateDateColumn()
   updatedAt: Date;
-} 
+}

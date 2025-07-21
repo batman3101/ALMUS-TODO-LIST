@@ -6,7 +6,9 @@ export class AuthUtils {
   /**
    * HTTP 요청에서 토큰을 검증하고 사용자 정보를 반환
    */
-  static async verifyToken(req: any): Promise<{ uid: string; email: string; role: string; teamId: string }> {
+  static async verifyToken(
+    req: any
+  ): Promise<{ uid: string; email: string; role: string; teamId: string }> {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -15,13 +17,16 @@ export class AuthUtils {
 
       const token = authHeader.split('Bearer ')[1];
       const decodedToken = await auth().verifyIdToken(token);
-      
+
       if (!decodedToken.uid) {
         throw new Error('유효하지 않은 토큰입니다.');
       }
 
       // 사용자 정보를 Firestore에서 조회
-      const userDoc = await firestore().collection('users').doc(decodedToken.uid).get();
+      const userDoc = await firestore()
+        .collection('users')
+        .doc(decodedToken.uid)
+        .get();
       if (!userDoc.exists) {
         throw new Error('사용자 정보를 찾을 수 없습니다.');
       }
@@ -38,14 +43,18 @@ export class AuthUtils {
         teamId: userData.teamId || '',
       };
     } catch (error) {
-      throw new Error(`인증 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `인증 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
   /**
    * 요청에서 사용자 정보를 추출하고 검증
    */
-  static async verifyUser(req: ApiRequest): Promise<{ uid: string; email: string; role: string; teamId: string }> {
+  static async verifyUser(
+    req: ApiRequest
+  ): Promise<{ uid: string; email: string; role: string; teamId: string }> {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -54,13 +63,16 @@ export class AuthUtils {
 
       const token = authHeader.split('Bearer ')[1];
       const decodedToken = await auth().verifyIdToken(token);
-      
+
       if (!decodedToken.uid) {
         throw new Error('유효하지 않은 토큰입니다.');
       }
 
       // 사용자 정보를 Firestore에서 조회
-      const userDoc = await firestore().collection('users').doc(decodedToken.uid).get();
+      const userDoc = await firestore()
+        .collection('users')
+        .doc(decodedToken.uid)
+        .get();
       if (!userDoc.exists) {
         throw new Error('사용자 정보를 찾을 수 없습니다.');
       }
@@ -77,7 +89,9 @@ export class AuthUtils {
         teamId: userData.teamId || '',
       };
     } catch (error) {
-      throw new Error(`인증 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `인증 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -122,7 +136,10 @@ export class AuthUtils {
           if (resourceType === 'TASK') {
             // Task 작성자, 담당자, 또는 편집자/관리자
             if (resourceId) {
-              const taskDoc = await firestore().collection('tasks').doc(resourceId).get();
+              const taskDoc = await firestore()
+                .collection('tasks')
+                .doc(resourceId)
+                .get();
               if (taskDoc.exists) {
                 const taskData = taskDoc.data();
                 if (taskData) {
@@ -142,7 +159,10 @@ export class AuthUtils {
           if (resourceType === 'TASK') {
             // Task 작성자 또는 관리자
             if (resourceId) {
-              const taskDoc = await firestore().collection('tasks').doc(resourceId).get();
+              const taskDoc = await firestore()
+                .collection('tasks')
+                .doc(resourceId)
+                .get();
               if (taskDoc.exists) {
                 const taskData = taskDoc.data();
                 if (taskData) {
@@ -229,4 +249,4 @@ export class AuthUtils {
       return false;
     }
   }
-} 
+}

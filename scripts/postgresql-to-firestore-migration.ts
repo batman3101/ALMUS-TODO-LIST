@@ -39,7 +39,10 @@ class MigrationManager {
   private checkpoints: Map<string, Checkpoint>;
 
   constructor() {
-    this.checkpointPath = path.join(__dirname, '../data/migration-checkpoints.json');
+    this.checkpointPath = path.join(
+      __dirname,
+      '../data/migration-checkpoints.json'
+    );
     this.checkpoints = new Map();
     this.loadCheckpoints();
   }
@@ -77,7 +80,7 @@ class MigrationManager {
 
   async migrateUsers() {
     console.log('👥 사용자 데이터 마이그레이션 시작...');
-    
+
     const checkpoint = this.getCheckpoint('users');
     const batchSize = 500;
     let processedCount = checkpoint?.processedCount || 0;
@@ -111,7 +114,7 @@ class MigrationManager {
 
         // Firestore 배치 쓰기
         const batch = db.batch();
-        
+
         for (const user of users) {
           const firestoreUser = {
             id: user.id,
@@ -120,8 +123,12 @@ class MigrationManager {
             role: user.role,
             teamId: user.team_id,
             projectIds: user.project_ids || [],
-            createdAt: admin.firestore.Timestamp.fromDate(new Date(user.created_at)),
-            updatedAt: admin.firestore.Timestamp.fromDate(new Date(user.updated_at)),
+            createdAt: admin.firestore.Timestamp.fromDate(
+              new Date(user.created_at)
+            ),
+            updatedAt: admin.firestore.Timestamp.fromDate(
+              new Date(user.updated_at)
+            ),
           };
 
           const docRef = db.collection('users').doc(user.id);
@@ -129,7 +136,7 @@ class MigrationManager {
         }
 
         await batch.commit();
-        
+
         processedCount += users.length;
         lastProcessedId = users[users.length - 1].id;
 
@@ -154,7 +161,7 @@ class MigrationManager {
 
   async migrateTeams() {
     console.log('🏢 팀 데이터 마이그레이션 시작...');
-    
+
     const checkpoint = this.getCheckpoint('teams');
     const batchSize = 100;
     let processedCount = checkpoint?.processedCount || 0;
@@ -187,7 +194,7 @@ class MigrationManager {
 
         // Firestore 배치 쓰기
         const batch = db.batch();
-        
+
         for (const team of teams) {
           const firestoreTeam = {
             id: team.id,
@@ -195,8 +202,12 @@ class MigrationManager {
             description: team.description,
             createdBy: team.created_by,
             isActive: team.is_active,
-            createdAt: admin.firestore.Timestamp.fromDate(new Date(team.created_at)),
-            updatedAt: admin.firestore.Timestamp.fromDate(new Date(team.updated_at)),
+            createdAt: admin.firestore.Timestamp.fromDate(
+              new Date(team.created_at)
+            ),
+            updatedAt: admin.firestore.Timestamp.fromDate(
+              new Date(team.updated_at)
+            ),
           };
 
           const docRef = db.collection('teams').doc(team.id);
@@ -204,7 +215,7 @@ class MigrationManager {
         }
 
         await batch.commit();
-        
+
         processedCount += teams.length;
         lastProcessedId = teams[teams.length - 1].id;
 
@@ -229,7 +240,7 @@ class MigrationManager {
 
   async migrateProjects() {
     console.log('📋 프로젝트 데이터 마이그레이션 시작...');
-    
+
     const checkpoint = this.getCheckpoint('projects');
     const batchSize = 100;
     let processedCount = checkpoint?.processedCount || 0;
@@ -262,7 +273,7 @@ class MigrationManager {
 
         // Firestore 배치 쓰기
         const batch = db.batch();
-        
+
         for (const project of projects) {
           const firestoreProject = {
             id: project.id,
@@ -271,8 +282,12 @@ class MigrationManager {
             teamId: project.team_id,
             createdBy: project.created_by,
             isActive: project.is_active,
-            createdAt: admin.firestore.Timestamp.fromDate(new Date(project.created_at)),
-            updatedAt: admin.firestore.Timestamp.fromDate(new Date(project.updated_at)),
+            createdAt: admin.firestore.Timestamp.fromDate(
+              new Date(project.created_at)
+            ),
+            updatedAt: admin.firestore.Timestamp.fromDate(
+              new Date(project.updated_at)
+            ),
           };
 
           const docRef = db.collection('projects').doc(project.id);
@@ -280,7 +295,7 @@ class MigrationManager {
         }
 
         await batch.commit();
-        
+
         processedCount += projects.length;
         lastProcessedId = projects[projects.length - 1].id;
 
@@ -305,7 +320,7 @@ class MigrationManager {
 
   async migrateTasks() {
     console.log('📝 Task 데이터 마이그레이션 시작...');
-    
+
     const checkpoint = this.getCheckpoint('tasks');
     const batchSize = 500;
     let processedCount = checkpoint?.processedCount || 0;
@@ -341,7 +356,7 @@ class MigrationManager {
 
         // Firestore 배치 쓰기
         const batch = db.batch();
-        
+
         for (const task of tasks) {
           const firestoreTask = {
             id: task.id,
@@ -350,17 +365,27 @@ class MigrationManager {
             assigneeId: task.assignee_id,
             status: task.status,
             priority: task.priority,
-            dueDate: task.due_date ? admin.firestore.Timestamp.fromDate(new Date(task.due_date)) : null,
+            dueDate: task.due_date
+              ? admin.firestore.Timestamp.fromDate(new Date(task.due_date))
+              : null,
             createdBy: task.created_by,
             projectId: task.project_id,
             teamId: task.team_id,
             version: task.version,
-            startDate: task.start_date ? admin.firestore.Timestamp.fromDate(new Date(task.start_date)) : null,
-            endDate: task.end_date ? admin.firestore.Timestamp.fromDate(new Date(task.end_date)) : null,
+            startDate: task.start_date
+              ? admin.firestore.Timestamp.fromDate(new Date(task.start_date))
+              : null,
+            endDate: task.end_date
+              ? admin.firestore.Timestamp.fromDate(new Date(task.end_date))
+              : null,
             dependencies: task.dependencies || [],
             progress: task.progress || 0,
-            createdAt: admin.firestore.Timestamp.fromDate(new Date(task.created_at)),
-            updatedAt: admin.firestore.Timestamp.fromDate(new Date(task.updated_at)),
+            createdAt: admin.firestore.Timestamp.fromDate(
+              new Date(task.created_at)
+            ),
+            updatedAt: admin.firestore.Timestamp.fromDate(
+              new Date(task.updated_at)
+            ),
           };
 
           const docRef = db.collection('tasks').doc(task.id);
@@ -368,7 +393,7 @@ class MigrationManager {
         }
 
         await batch.commit();
-        
+
         processedCount += tasks.length;
         lastProcessedId = tasks[tasks.length - 1].id;
 
@@ -393,7 +418,7 @@ class MigrationManager {
 
   async migrateNotifications() {
     console.log('🔔 알림 데이터 마이그레이션 시작...');
-    
+
     const checkpoint = this.getCheckpoint('notifications');
     const batchSize = 1000;
     let processedCount = checkpoint?.processedCount || 0;
@@ -427,7 +452,7 @@ class MigrationManager {
 
         // Firestore 배치 쓰기
         const batch = db.batch();
-        
+
         for (const notification of notifications) {
           const firestoreNotification = {
             id: notification.id,
@@ -439,9 +464,17 @@ class MigrationManager {
             channels: notification.channels || [],
             isRead: notification.is_read,
             isSent: notification.is_sent,
-            sentAt: notification.sent_at ? admin.firestore.Timestamp.fromDate(new Date(notification.sent_at)) : null,
-            createdAt: admin.firestore.Timestamp.fromDate(new Date(notification.created_at)),
-            updatedAt: admin.firestore.Timestamp.fromDate(new Date(notification.updated_at)),
+            sentAt: notification.sent_at
+              ? admin.firestore.Timestamp.fromDate(
+                  new Date(notification.sent_at)
+                )
+              : null,
+            createdAt: admin.firestore.Timestamp.fromDate(
+              new Date(notification.created_at)
+            ),
+            updatedAt: admin.firestore.Timestamp.fromDate(
+              new Date(notification.updated_at)
+            ),
           };
 
           const docRef = db.collection('notifications').doc(notification.id);
@@ -449,7 +482,7 @@ class MigrationManager {
         }
 
         await batch.commit();
-        
+
         processedCount += notifications.length;
         lastProcessedId = notifications[notifications.length - 1].id;
 
@@ -474,31 +507,33 @@ class MigrationManager {
 
   async validateMigration() {
     console.log('🔍 마이그레이션 데이터 검증 시작...');
-    
+
     try {
       // PostgreSQL 데이터 수 조회
       const pgCounts = await this.getPostgreSQLCounts();
-      
+
       // Firestore 데이터 수 조회
       const fsCounts = await this.getFirestoreCounts();
-      
+
       console.log('📊 데이터 정합성 검증 결과:');
       console.log('PostgreSQL | Firestore | 차이');
       console.log('-----------|-----------|------');
-      
+
       let hasDiscrepancy = false;
-      
+
       for (const [collection, pgCount] of Object.entries(pgCounts)) {
         const fsCount = fsCounts[collection] || 0;
         const diff = pgCount - fsCount;
-        
-        console.log(`${pgCount.toString().padStart(10)} | ${fsCount.toString().padStart(9)} | ${diff > 0 ? '+' : ''}${diff}`);
-        
+
+        console.log(
+          `${pgCount.toString().padStart(10)} | ${fsCount.toString().padStart(9)} | ${diff > 0 ? '+' : ''}${diff}`
+        );
+
         if (diff !== 0) {
           hasDiscrepancy = true;
         }
       }
-      
+
       if (hasDiscrepancy) {
         console.log('⚠️ 데이터 불일치가 발견되었습니다.');
         return false;
@@ -506,7 +541,6 @@ class MigrationManager {
         console.log('✅ 모든 데이터가 정확히 마이그레이션되었습니다.');
         return true;
       }
-      
     } catch (error) {
       console.error('❌ 데이터 검증 실패:', error);
       return false;
@@ -515,60 +549,71 @@ class MigrationManager {
 
   private async getPostgreSQLCounts() {
     const counts: Record<string, number> = {};
-    
-    const collections = ['users', 'teams', 'projects', 'tasks', 'notifications'];
-    
+
+    const collections = [
+      'users',
+      'teams',
+      'projects',
+      'tasks',
+      'notifications',
+    ];
+
     for (const collection of collections) {
       const result = await pgPool.query(
         `SELECT COUNT(*) as count FROM ${collection} WHERE deleted_at IS NULL`
       );
       counts[collection] = parseInt(result.rows[0].count);
     }
-    
+
     return counts;
   }
 
   private async getFirestoreCounts() {
     const counts: Record<string, number> = {};
-    
-    const collections = ['users', 'teams', 'projects', 'tasks', 'notifications'];
-    
+
+    const collections = [
+      'users',
+      'teams',
+      'projects',
+      'tasks',
+      'notifications',
+    ];
+
     for (const collection of collections) {
       const snapshot = await db.collection(collection).count().get();
       counts[collection] = snapshot.data().count;
     }
-    
+
     return counts;
   }
 
   async runMigration() {
     console.log('🚀 PostgreSQL → Firestore 마이그레이션 시작...');
-    
+
     try {
       // 1. 사용자 마이그레이션
       await this.migrateUsers();
-      
+
       // 2. 팀 마이그레이션
       await this.migrateTeams();
-      
+
       // 3. 프로젝트 마이그레이션
       await this.migrateProjects();
-      
+
       // 4. Task 마이그레이션
       await this.migrateTasks();
-      
+
       // 5. 알림 마이그레이션
       await this.migrateNotifications();
-      
+
       // 6. 데이터 검증
       const isValid = await this.validateMigration();
-      
+
       if (isValid) {
         console.log('🎉 마이그레이션이 성공적으로 완료되었습니다!');
       } else {
         console.log('⚠️ 마이그레이션에 문제가 있습니다. 검토가 필요합니다.');
       }
-      
     } catch (error) {
       console.error('❌ 마이그레이션 실패:', error);
       throw error;
@@ -584,4 +629,4 @@ if (require.main === module) {
   migrationManager.runMigration().catch(console.error);
 }
 
-export { MigrationManager }; 
+export { MigrationManager };

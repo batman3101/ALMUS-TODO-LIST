@@ -84,9 +84,9 @@ describe('TaskService', () => {
 
       (AuthUtils.checkPermission as jest.Mock).mockResolvedValue(false);
 
-      await expect(TaskService.createTask(mockUserId, taskData)).rejects.toThrow(
-        'Task를 생성할 권한이 없습니다.'
-      );
+      await expect(
+        TaskService.createTask(mockUserId, taskData)
+      ).rejects.toThrow('Task를 생성할 권한이 없습니다.');
     });
 
     it('should throw error when required fields are missing', async () => {
@@ -98,9 +98,9 @@ describe('TaskService', () => {
         teamId: '',
       };
 
-      await expect(TaskService.createTask(mockUserId, taskData)).rejects.toThrow(
-        '필수 필드가 누락되었습니다.'
-      );
+      await expect(
+        TaskService.createTask(mockUserId, taskData)
+      ).rejects.toThrow('필수 필드가 누락되었습니다.');
     });
   });
 
@@ -124,7 +124,11 @@ describe('TaskService', () => {
 
       (AuthUtils.checkPermission as jest.Mock).mockResolvedValue(true);
 
-      const result = await TaskService.updateTask(mockUserId, mockTaskId, updateData);
+      const result = await TaskService.updateTask(
+        mockUserId,
+        mockTaskId,
+        updateData
+      );
 
       expect(result).toBeDefined();
       expect(AuthUtils.checkPermission).toHaveBeenCalledWith({
@@ -148,9 +152,9 @@ describe('TaskService', () => {
       const mockFirestore = require('firebase-admin').firestore();
       mockFirestore.collection().doc().get.mockResolvedValue(mockTaskDoc);
 
-      await expect(TaskService.updateTask(mockUserId, mockTaskId, updateData)).rejects.toThrow(
-        'Task를 찾을 수 없습니다.'
-      );
+      await expect(
+        TaskService.updateTask(mockUserId, mockTaskId, updateData)
+      ).rejects.toThrow('Task를 찾을 수 없습니다.');
     });
   });
 
@@ -169,7 +173,9 @@ describe('TaskService', () => {
 
       (AuthUtils.checkPermission as jest.Mock).mockResolvedValue(true);
 
-      await expect(TaskService.deleteTask(mockUserId, mockTaskId)).resolves.not.toThrow();
+      await expect(
+        TaskService.deleteTask(mockUserId, mockTaskId)
+      ).resolves.not.toThrow();
 
       expect(AuthUtils.checkPermission).toHaveBeenCalledWith({
         userId: mockUserId,
@@ -227,7 +233,14 @@ describe('TaskService', () => {
       };
 
       const mockFirestore = require('firebase-admin').firestore();
-      mockFirestore.collection().where().where().orderBy().offset().limit().get.mockResolvedValue(mockSnapshot);
+      mockFirestore
+        .collection()
+        .where()
+        .where()
+        .orderBy()
+        .offset()
+        .limit()
+        .get.mockResolvedValue(mockSnapshot);
 
       (AuthUtils.isTeamMember as jest.Mock).mockResolvedValue(true);
 
@@ -245,7 +258,9 @@ describe('TaskService', () => {
 
       (AuthUtils.isTeamMember as jest.Mock).mockResolvedValue(false);
 
-      await expect(TaskService.getTasks(mockUserId, query)).rejects.toThrow('팀 멤버가 아닙니다.');
+      await expect(TaskService.getTasks(mockUserId, query)).rejects.toThrow(
+        '팀 멤버가 아닙니다.'
+      );
     });
   });
 
@@ -268,7 +283,10 @@ describe('TaskService', () => {
 
       (AuthUtils.isTeamMember as jest.Mock).mockResolvedValue(true);
 
-      const result = await TaskService.getTaskAggregation(mockUserId, mockTeamId);
+      const result = await TaskService.getTaskAggregation(
+        mockUserId,
+        mockTeamId
+      );
 
       expect(result).toBeDefined();
       expect(result.teamId).toBe(mockTeamId);
@@ -276,4 +294,4 @@ describe('TaskService', () => {
       expect(result.completedTasks).toBe(1);
     });
   });
-}); 
+});

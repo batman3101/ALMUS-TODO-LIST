@@ -20,10 +20,12 @@ export class NotificationService {
     @InjectRepository(NotificationSettings)
     private notificationSettingsRepository: Repository<NotificationSettings>,
     @InjectRepository(NotificationTemplate)
-    private notificationTemplateRepository: Repository<NotificationTemplate>,
+    private notificationTemplateRepository: Repository<NotificationTemplate>
   ) {}
 
-  async createNotification(input: CreateNotificationInput): Promise<NotificationType> {
+  async createNotification(
+    input: CreateNotificationInput
+  ): Promise<NotificationType> {
     const notification = this.notificationRepository.create({
       userId: input.userId,
       type: input.type,
@@ -43,7 +45,9 @@ export class NotificationService {
     });
   }
 
-  async findUnreadNotificationsByUserId(userId: string): Promise<NotificationType[]> {
+  async findUnreadNotificationsByUserId(
+    userId: string
+  ): Promise<NotificationType[]> {
     return this.notificationRepository.find({
       where: { userId, isRead: false },
       order: { createdAt: 'DESC' },
@@ -66,7 +70,7 @@ export class NotificationService {
   async markAllAsRead(userId: string): Promise<void> {
     await this.notificationRepository.update(
       { userId, isRead: false },
-      { isRead: true },
+      { isRead: true }
     );
   }
 
@@ -77,7 +81,9 @@ export class NotificationService {
     }
   }
 
-  async getNotificationCount(userId: string): Promise<{ total: number; unread: number }> {
+  async getNotificationCount(
+    userId: string
+  ): Promise<{ total: number; unread: number }> {
     const [total, unread] = await Promise.all([
       this.notificationRepository.count({ where: { userId } }),
       this.notificationRepository.count({ where: { userId, isRead: false } }),
@@ -90,7 +96,7 @@ export class NotificationService {
     userId: string,
     taskId: string,
     taskTitle: string,
-    dueDate: Date,
+    dueDate: Date
   ): Promise<NotificationType> {
     const settings = await this.notificationSettingsRepository.findOne({
       where: { userId },
@@ -105,7 +111,9 @@ export class NotificationService {
     });
 
     const title = template?.title || '태스크 마감일 알림';
-    const message = template?.message || `"${taskTitle}" 태스크의 마감일이 ${dueDate.toLocaleDateString()}입니다.`;
+    const message =
+      template?.message ||
+      `"${taskTitle}" 태스크의 마감일이 ${dueDate.toLocaleDateString()}입니다.`;
 
     const channels: NotificationChannel[] = [];
     if (settings.emailEnabled) channels.push(NotificationChannel.EMAIL);
@@ -127,7 +135,7 @@ export class NotificationService {
     taskId: string,
     taskTitle: string,
     oldStatus: string,
-    newStatus: string,
+    newStatus: string
   ): Promise<NotificationType> {
     const settings = await this.notificationSettingsRepository.findOne({
       where: { userId },
@@ -142,7 +150,9 @@ export class NotificationService {
     });
 
     const title = template?.title || '태스크 상태 변경 알림';
-    const message = template?.message || `"${taskTitle}" 태스크의 상태가 ${oldStatus}에서 ${newStatus}로 변경되었습니다.`;
+    const message =
+      template?.message ||
+      `"${taskTitle}" 태스크의 상태가 ${oldStatus}에서 ${newStatus}로 변경되었습니다.`;
 
     const channels: NotificationChannel[] = [];
     if (settings.emailEnabled) channels.push(NotificationChannel.EMAIL);
@@ -158,4 +168,4 @@ export class NotificationService {
       channels,
     });
   }
-} 
+}

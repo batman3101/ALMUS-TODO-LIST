@@ -1,4 +1,8 @@
-import { onDocumentCreated, onDocumentUpdated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
+import {
+  onDocumentCreated,
+  onDocumentUpdated,
+  onDocumentDeleted,
+} from 'firebase-functions/v2/firestore';
 import { firestore } from 'firebase-admin';
 import { FCMService } from '../services/fcmService';
 
@@ -8,7 +12,7 @@ export const onTaskCreated = onDocumentCreated(
     document: 'tasks/{taskId}',
     region: 'asia-northeast3',
   },
-  async (event) => {
+  async event => {
     try {
       const taskData = event.data?.data();
       if (!taskData) {
@@ -60,7 +64,7 @@ export const onTaskUpdated = onDocumentUpdated(
     document: 'tasks/{taskId}',
     region: 'asia-northeast3',
   },
-  async (event) => {
+  async event => {
     try {
       const beforeData = event.data?.before.data();
       const afterData = event.data?.after.data();
@@ -116,7 +120,7 @@ export const onTaskDeleted = onDocumentDeleted(
     document: 'tasks/{taskId}',
     region: 'asia-northeast3',
   },
-  async (event) => {
+  async event => {
     try {
       const taskData = event.data?.data();
       if (!taskData) {
@@ -152,7 +156,7 @@ export const checkDueTasks = onDocumentCreated(
     document: 'scheduled_tasks/due_check',
     region: 'asia-northeast3',
   },
-  async (event) => {
+  async event => {
     try {
       const now = new Date();
       const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -194,7 +198,7 @@ export const checkOverdueTasks = onDocumentCreated(
     document: 'scheduled_tasks/overdue_check',
     region: 'asia-northeast3',
   },
-  async (event) => {
+  async event => {
     try {
       const now = new Date();
 
@@ -218,7 +222,10 @@ export const checkOverdueTasks = onDocumentCreated(
           });
 
           await FCMService.sendPushNotification(assigneeId, template, {
-            overdueDays: Math.floor((now.getTime() - new Date(dueDate).getTime()) / (1000 * 60 * 60 * 24)).toString(),
+            overdueDays: Math.floor(
+              (now.getTime() - new Date(dueDate).getTime()) /
+                (1000 * 60 * 60 * 24)
+            ).toString(),
           });
         }
       }
@@ -231,7 +238,9 @@ export const checkOverdueTasks = onDocumentCreated(
 );
 
 // 팀 멤버 조회 헬퍼 함수
-async function getTeamMembers(teamId: string): Promise<Array<{ id: string; role: string }>> {
+async function getTeamMembers(
+  teamId: string
+): Promise<Array<{ id: string; role: string }>> {
   try {
     const membersSnapshot = await firestore()
       .collection('teams')
@@ -247,4 +256,4 @@ async function getTeamMembers(teamId: string): Promise<Array<{ id: string; role:
     console.error('팀 멤버 조회 오류:', error);
     return [];
   }
-} 
+}

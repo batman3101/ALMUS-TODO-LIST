@@ -142,7 +142,30 @@ export const useUpdateTask = () => {
         updatedAt: serverTimestamp(),
       });
     },
-    onSuccess: () => {
+    onMutate: async ({ id, updates }) => {
+      // 낙관적 업데이트 - 즉시 UI 반영
+      await queryClient.cancelQueries({ queryKey: ['tasks'] });
+
+      const previousTasks = queryClient.getQueryData(['tasks']);
+
+      queryClient.setQueryData(['tasks'], (old: any) => {
+        if (!old) return old;
+
+        return old.map((task: Task) =>
+          task.id === id ? { ...task, ...updates, updatedAt: new Date() } : task
+        );
+      });
+
+      return { previousTasks };
+    },
+    onError: (err, variables, context) => {
+      // 오류 발생 시 이전 상태로 복원
+      if (context?.previousTasks) {
+        queryClient.setQueryData(['tasks'], context.previousTasks);
+      }
+    },
+    onSettled: () => {
+      // 성공/실패 관계없이 서버 데이터로 동기화
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
   });

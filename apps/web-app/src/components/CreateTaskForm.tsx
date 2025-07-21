@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useCreateTask } from '../hooks/useTasks';
+import { useCreateTask, useUpdateTask } from '../hooks/useTasks';
 import {
   CreateTaskInput,
+  UpdateTaskInput,
+  Task,
   TaskStatus,
   TaskPriority,
   FileMetadata,
@@ -14,11 +16,13 @@ import { useNotification } from '../contexts/NotificationContext';
 interface CreateTaskFormProps {
   onTaskCreated?: () => void;
   isModal?: boolean;
+  editingTask?: Task | null;
 }
 
 const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
   onTaskCreated,
   isModal = false,
+  editingTask = null,
 }) => {
   const { user } = useAuth();
   const { success, error: showError, warning } = useNotification();
@@ -36,18 +40,33 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
   const [uploadedFiles, setUploadedFiles] = useState<FileMetadata[]>([]);
 
   const createTaskMutation = useCreateTask();
+  const updateTaskMutation = useUpdateTask();
   const { t } = useTranslation();
 
-  // user가 변경되면 formData의 teamId 업데이트
+  const isEditing = !!editingTask;
+
+  // 편집 모드일 때 formData 초기화
   useEffect(() => {
-    if (user?.teamId) {
+    if (editingTask) {
+      setFormData({
+        title: editingTask.title,
+        description: editingTask.description || '',
+        assigneeId: editingTask.assigneeId,
+        status: editingTask.status,
+        priority: editingTask.priority,
+        startDate: editingTask.startDate,
+        dueDate: editingTask.dueDate,
+        teamId: editingTask.teamId,
+      });
+    } else if (user?.teamId) {
+      // 새 태스크 생성 모드
       setFormData(prev => ({
         ...prev,
         teamId: user.teamId,
         assigneeId: user.uid, // 기본적으로 자신을 할당자로 설정
       }));
     }
-  }, [user]);
+  }, [user, editingTask]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,22 +103,43 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
     }
 
     try {
-      await createTaskMutation.mutateAsync(formData);
-      setFormData({
-        title: '',
-        description: '',
-        assigneeId: '',
-        status: TaskStatus.TODO,
-        priority: TaskPriority.MEDIUM,
-        startDate: undefined,
-        dueDate: undefined,
-        teamId: user?.teamId || '',
-      });
-      success(t('task.taskCreated'));
+      if (isEditing && editingTask) {
+        // 편집 모드
+        const updateData: UpdateTaskInput = {
+          title: formData.title,
+          description: formData.description,
+          assigneeId: formData.assigneeId,
+          status: formData.status,
+          priority: formData.priority,
+          startDate: formData.startDate,
+          dueDate: formData.dueDate,
+        };
+        await updateTaskMutation.mutateAsync({
+          id: editingTask.id,
+          updates: updateData,
+        });
+        success('태스크가 성공적으로 수정되었습니다.');
+      } else {
+        // 생성 모드
+        await createTaskMutation.mutateAsync(formData);
+        setFormData({
+          title: '',
+          description: '',
+          assigneeId: '',
+          status: TaskStatus.TODO,
+          priority: TaskPriority.MEDIUM,
+          startDate: undefined,
+          dueDate: undefined,
+          teamId: user?.teamId || '',
+        });
+        success(t('task.taskCreated'));
+      }
       onTaskCreated?.();
     } catch (error) {
-      console.error('태스크 생성 실패:', error);
-      showError(t('task.taskCreateFailed'));
+      console.error('태스크 처리 실패:', error);
+      showError(
+        isEditing ? '태스크 수정에 실패했습니다.' : t('task.taskCreateFailed')
+      );
     }
   };
 
@@ -191,7 +231,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
     >
       {!isModal && (
         <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-900 mb-4">
-          {t('task.createTask')}
+          {isEditing ? '태스크 편집' : t('task.createTask')}
         </h2>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -366,7 +406,9 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={createTaskMutation.isPending}
+            disabled={
+              createTaskMutation.isPending || updateTaskMutation.isPending
+            }
             className="
               px-4 py-2 
               bg-primary-600 hover:bg-primary-700 
@@ -377,9 +419,11 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
               transition-colors duration-200
             "
           >
-            {createTaskMutation.isPending
+            {createTaskMutation.isPending || updateTaskMutation.isPending
               ? t('common.loading')
-              : t('task.createTask')}
+              : isEditing
+                ? '수정'
+                : t('task.createTask')}
           </button>
         </div>
       </form>

@@ -11,7 +11,8 @@ afterAll(() => {
 // 커스텀 매처
 expect.extend({
   toBeValidTask(received: any) {
-    const pass = received && 
+    const pass =
+      received &&
       typeof received.title === 'string' &&
       typeof received.status === 'string' &&
       typeof received.priority === 'string' &&
@@ -30,4 +31,4 @@ expect.extend({
       message: () => `expected ${received} to be true (have permission)`,
     };
   },
-}); 
+});

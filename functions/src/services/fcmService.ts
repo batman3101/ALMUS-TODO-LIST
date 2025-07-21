@@ -1,12 +1,21 @@
 import { messaging } from 'firebase-admin';
 import { firestore } from 'firebase-admin';
-import { FCMToken, FCMMessage, NotificationSettings, NotificationTemplate } from '../types/fcm';
+import {
+  FCMToken,
+  FCMMessage,
+  NotificationSettings,
+  NotificationTemplate,
+} from '../types/fcm';
 
 export class FCMService {
   /**
    * FCM 토큰 저장
    */
-  static async saveToken(userId: string, token: string, platform: 'web' | 'ios' | 'android'): Promise<void> {
+  static async saveToken(
+    userId: string,
+    token: string,
+    platform: 'web' | 'ios' | 'android'
+  ): Promise<void> {
     try {
       const tokenDoc: FCMToken = {
         userId,
@@ -17,10 +26,7 @@ export class FCMService {
         isActive: true,
       };
 
-      await firestore()
-        .collection('fcm_tokens')
-        .doc(token)
-        .set(tokenDoc);
+      await firestore().collection('fcm_tokens').doc(token).set(tokenDoc);
 
       console.log(`FCM 토큰 저장 완료: ${userId} - ${platform}`);
     } catch (error) {
@@ -34,10 +40,7 @@ export class FCMService {
    */
   static async deleteToken(token: string): Promise<void> {
     try {
-      await firestore()
-        .collection('fcm_tokens')
-        .doc(token)
-        .delete();
+      await firestore().collection('fcm_tokens').doc(token).delete();
 
       console.log(`FCM 토큰 삭제 완료: ${token}`);
     } catch (error) {
@@ -71,7 +74,9 @@ export class FCMService {
   /**
    * 사용자 알림 설정 조회
    */
-  static async getNotificationSettings(userId: string): Promise<NotificationSettings | null> {
+  static async getNotificationSettings(
+    userId: string
+  ): Promise<NotificationSettings | null> {
     try {
       const doc = await firestore()
         .collection('notification_settings')
@@ -97,7 +102,9 @@ export class FCMService {
   /**
    * 사용자 알림 설정 저장
    */
-  static async saveNotificationSettings(settings: NotificationSettings): Promise<void> {
+  static async saveNotificationSettings(
+    settings: NotificationSettings
+  ): Promise<void> {
     try {
       await firestore()
         .collection('notification_settings')
@@ -114,7 +121,10 @@ export class FCMService {
   /**
    * 알림 템플릿 조회
    */
-  static getNotificationTemplate(type: string, data: any): NotificationTemplate {
+  static getNotificationTemplate(
+    type: string,
+    data: any
+  ): NotificationTemplate {
     const templates: Record<string, NotificationTemplate> = {
       TASK_CREATED: {
         type: 'TASK_CREATED',
@@ -166,12 +176,14 @@ export class FCMService {
       },
     };
 
-    return templates[type] || {
-      type: 'TASK_UPDATED',
-      title: '알림',
-      body: '새로운 알림이 있습니다.',
-      priority: 'normal',
-    };
+    return (
+      templates[type] || {
+        type: 'TASK_UPDATED',
+        title: '알림',
+        body: '새로운 알림이 있습니다.',
+        priority: 'normal',
+      }
+    );
   }
 
   /**
@@ -191,9 +203,12 @@ export class FCMService {
       }
 
       // 알림 타입별 설정 확인
-      const typeEnabled = settings[template.type.toLowerCase() as keyof NotificationSettings];
+      const typeEnabled =
+        settings[template.type.toLowerCase() as keyof NotificationSettings];
       if (!typeEnabled) {
-        console.log(`사용자 ${userId}의 ${template.type} 알림이 비활성화되어 있습니다.`);
+        console.log(
+          `사용자 ${userId}의 ${template.type} 알림이 비활성화되어 있습니다.`
+        );
         return false;
       }
 
@@ -222,8 +237,12 @@ export class FCMService {
         tokens.map(token => this.sendToToken(token, template, customData))
       );
 
-      const successCount = results.filter(result => result.status === 'fulfilled').length;
-      console.log(`사용자 ${userId}에게 ${successCount}/${tokens.length}개 토큰으로 알림 발송 완료`);
+      const successCount = results.filter(
+        result => result.status === 'fulfilled'
+      ).length;
+      console.log(
+        `사용자 ${userId}에게 ${successCount}/${tokens.length}개 토큰으로 알림 발송 완료`
+      );
 
       return successCount > 0;
     } catch (error) {
@@ -306,7 +325,11 @@ export class FCMService {
   /**
    * 조용한 시간 확인
    */
-  private static isInQuietHours(currentTime: number, startTime: number, endTime: number): boolean {
+  private static isInQuietHours(
+    currentTime: number,
+    startTime: number,
+    endTime: number
+  ): boolean {
     if (startTime <= endTime) {
       // 같은 날 내의 시간 범위
       return currentTime >= startTime && currentTime <= endTime;
@@ -330,13 +353,11 @@ export class FCMService {
         timestamp: new Date(),
       };
 
-      await firestore()
-        .collection('notification_stats')
-        .add(statsDoc);
+      await firestore().collection('notification_stats').add(statsDoc);
 
       console.log('알림 통계 저장 완료');
     } catch (error) {
       console.error('알림 통계 저장 오류:', error);
     }
   }
-} 
+}

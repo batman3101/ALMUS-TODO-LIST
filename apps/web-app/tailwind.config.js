@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class', // Enable class-based dark mode
   theme: {
     extend: {
@@ -40,7 +37,7 @@ export default {
           700: '#e4e4e7',
           800: '#f4f4f5',
           900: '#fafafa',
-        }
+        },
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -59,4 +56,4 @@ export default {
     },
   },
   plugins: [],
-} 
+};

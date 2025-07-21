@@ -116,4 +116,4 @@ export interface FunctionConfig {
   memory: '256MiB' | '512MiB' | '1GiB' | '2GiB';
   region: string;
   retryConfig: RetryConfig;
-} 
+}

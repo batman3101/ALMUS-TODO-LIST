@@ -158,6 +158,7 @@ firebase deploy --only hosting
 ### 일반적인 오류
 
 #### 1. 인증 오류
+
 ```bash
 # Firebase 재로그인
 firebase logout
@@ -165,6 +166,7 @@ firebase login
 ```
 
 #### 2. 배포 실패
+
 ```bash
 # 캐시 클리어
 firebase use --clear
@@ -173,6 +175,7 @@ firebase use your-project-id
 ```
 
 #### 3. Functions 오류
+
 ```bash
 # Functions 로그 확인
 firebase functions:log
@@ -209,4 +212,4 @@ firebase storage:list
 
 ---
 
-**참고**: 이 가이드는 기본적인 Firebase 설정을 위한 것입니다. 프로덕션 환경에서는 추가적인 보안 설정과 모니터링이 필요합니다. 
+**참고**: 이 가이드는 기본적인 Firebase 설정을 위한 것입니다. 프로덕션 환경에서는 추가적인 보안 설정과 모니터링이 필요합니다.

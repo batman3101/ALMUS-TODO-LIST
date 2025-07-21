@@ -88,7 +88,12 @@ export interface NotificationSettings {
 }
 
 export interface NotificationTemplate {
-  type: 'TASK_CREATED' | 'TASK_UPDATED' | 'TASK_DUE_SOON' | 'TASK_OVERDUE' | 'TEAM_UPDATE';
+  type:
+    | 'TASK_CREATED'
+    | 'TASK_UPDATED'
+    | 'TASK_DUE_SOON'
+    | 'TASK_OVERDUE'
+    | 'TEAM_UPDATE';
   title: string;
   body: string;
   data?: Record<string, string>;
@@ -101,4 +106,4 @@ export interface NotificationStats {
   delivered: number;
   failed: number;
   timestamp: Date;
-} 
+}

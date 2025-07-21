@@ -10,7 +10,7 @@ class FirestorePerformanceTest {
 
   async generateTestData(teamId, taskCount = 10000) {
     console.log(`📝 테스트 데이터 생성 중... (${taskCount}개 Task)`);
-    
+
     const batch = this.db.batch();
     const tasks = [];
 
@@ -37,19 +37,19 @@ class FirestorePerformanceTest {
 
     await batch.commit();
     console.log(`✅ ${taskCount}개 Task 생성 완료`);
-    
+
     return tasks;
   }
 
   async measureQueryPerformance(teamId, testName, queryFn) {
     const startTime = Date.now();
     const startMemory = process.memoryUsage();
-    
+
     try {
       const result = await queryFn();
       const endTime = Date.now();
       const endMemory = process.memoryUsage();
-      
+
       const performance = {
         testName,
         executionTime: endTime - startTime,
@@ -59,8 +59,10 @@ class FirestorePerformanceTest {
       };
 
       this.results.push(performance);
-      console.log(`✅ ${testName}: ${performance.executionTime}ms (${performance.resultCount}개 결과)`);
-      
+      console.log(
+        `✅ ${testName}: ${performance.executionTime}ms (${performance.resultCount}개 결과)`
+      );
+
       return { result, performance };
     } catch (error) {
       console.error(`❌ ${testName} 실패:`, error.message);
@@ -78,34 +80,42 @@ class FirestorePerformanceTest {
         .where('teamId', '==', teamId)
         .orderBy('createdAt', 'desc')
         .get();
-      
+
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     });
 
     // 2. 페이징 조회 (20개씩)
-    await this.measureQueryPerformance(teamId, '페이징 조회 (20개)', async () => {
-      const snapshot = await this.db
-        .collection('tasks')
-        .where('teamId', '==', teamId)
-        .orderBy('createdAt', 'desc')
-        .limit(20)
-        .get();
-      
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    });
+    await this.measureQueryPerformance(
+      teamId,
+      '페이징 조회 (20개)',
+      async () => {
+        const snapshot = await this.db
+          .collection('tasks')
+          .where('teamId', '==', teamId)
+          .orderBy('createdAt', 'desc')
+          .limit(20)
+          .get();
+
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      }
+    );
 
     // 3. 상태별 필터링
-    await this.measureQueryPerformance(teamId, '상태별 필터링 (TODO)', async () => {
-      const snapshot = await this.db
-        .collection('tasks')
-        .where('teamId', '==', teamId)
-        .where('status', '==', 'TODO')
-        .orderBy('createdAt', 'desc')
-        .limit(100)
-        .get();
-      
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    });
+    await this.measureQueryPerformance(
+      teamId,
+      '상태별 필터링 (TODO)',
+      async () => {
+        const snapshot = await this.db
+          .collection('tasks')
+          .where('teamId', '==', teamId)
+          .where('status', '==', 'TODO')
+          .orderBy('createdAt', 'desc')
+          .limit(100)
+          .get();
+
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      }
+    );
 
     // 4. 담당자별 필터링
     await this.measureQueryPerformance(teamId, '담당자별 필터링', async () => {
@@ -116,29 +126,33 @@ class FirestorePerformanceTest {
         .orderBy('createdAt', 'desc')
         .limit(100)
         .get();
-      
+
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     });
 
     // 5. 복합 필터링
-    await this.measureQueryPerformance(teamId, '복합 필터링 (HIGH + IN_PROGRESS)', async () => {
-      const snapshot = await this.db
-        .collection('tasks')
-        .where('teamId', '==', teamId)
-        .where('priority', '==', 'HIGH')
-        .where('status', '==', 'IN_PROGRESS')
-        .orderBy('createdAt', 'desc')
-        .limit(50)
-        .get();
-      
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    });
+    await this.measureQueryPerformance(
+      teamId,
+      '복합 필터링 (HIGH + IN_PROGRESS)',
+      async () => {
+        const snapshot = await this.db
+          .collection('tasks')
+          .where('teamId', '==', teamId)
+          .where('priority', '==', 'HIGH')
+          .where('status', '==', 'IN_PROGRESS')
+          .orderBy('createdAt', 'desc')
+          .limit(50)
+          .get();
+
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      }
+    );
 
     // 6. 마감일 범위 조회
     await this.measureQueryPerformance(teamId, '마감일 범위 조회', async () => {
       const now = new Date();
       const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-      
+
       const snapshot = await this.db
         .collection('tasks')
         .where('teamId', '==', teamId)
@@ -147,60 +161,71 @@ class FirestorePerformanceTest {
         .orderBy('dueDate', 'asc')
         .limit(100)
         .get();
-      
+
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     });
 
     // 7. 집계 쿼리
-    await this.measureQueryPerformance(teamId, '집계 쿼리 (상태별 개수)', async () => {
-      const statuses = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
-      const results = {};
-      
-      for (const status of statuses) {
-        const snapshot = await this.db
-          .collection('tasks')
-          .where('teamId', '==', teamId)
-          .where('status', '==', status)
-          .get();
-        
-        results[status] = snapshot.size;
+    await this.measureQueryPerformance(
+      teamId,
+      '집계 쿼리 (상태별 개수)',
+      async () => {
+        const statuses = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
+        const results = {};
+
+        for (const status of statuses) {
+          const snapshot = await this.db
+            .collection('tasks')
+            .where('teamId', '==', teamId)
+            .where('status', '==', status)
+            .get();
+
+          results[status] = snapshot.size;
+        }
+
+        return results;
       }
-      
-      return results;
-    });
+    );
 
     // 8. 실시간 리스너 성능 (시뮬레이션)
-    await this.measureQueryPerformance(teamId, '실시간 리스너 시뮬레이션', async () => {
-      return new Promise((resolve) => {
-        const unsubscribe = this.db
-          .collection('tasks')
-          .where('teamId', '==', teamId)
-          .orderBy('createdAt', 'desc')
-          .limit(20)
-          .onSnapshot((snapshot) => {
-            const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    await this.measureQueryPerformance(
+      teamId,
+      '실시간 리스너 시뮬레이션',
+      async () => {
+        return new Promise(resolve => {
+          const unsubscribe = this.db
+            .collection('tasks')
+            .where('teamId', '==', teamId)
+            .orderBy('createdAt', 'desc')
+            .limit(20)
+            .onSnapshot(snapshot => {
+              const tasks = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+              }));
+              unsubscribe();
+              resolve(tasks);
+            });
+
+          // 1초 후 타임아웃
+          setTimeout(() => {
             unsubscribe();
-            resolve(tasks);
-          });
-        
-        // 1초 후 타임아웃
-        setTimeout(() => {
-          unsubscribe();
-          resolve([]);
-        }, 1000);
-      });
-    });
+            resolve([]);
+          }, 1000);
+        });
+      }
+    );
   }
 
   async measureWritePerformance(teamId, testName, writeFn) {
     const startTime = Date.now();
     const startMemory = process.memoryUsage();
-    
+
     try {
       const result = await writeFn();
       const endTime = Date.now();
       const endMemory = process.memoryUsage();
-      
+
       const performance = {
         testName,
         executionTime: endTime - startTime,
@@ -210,7 +235,7 @@ class FirestorePerformanceTest {
 
       this.results.push(performance);
       console.log(`✅ ${testName}: ${performance.executionTime}ms`);
-      
+
       return { result, performance };
     } catch (error) {
       console.error(`❌ ${testName} 실패:`, error.message);
@@ -243,34 +268,38 @@ class FirestorePerformanceTest {
     });
 
     // 2. 배치 Task 생성 (100개)
-    await this.measureWritePerformance(teamId, '배치 Task 생성 (100개)', async () => {
-      const batch = this.db.batch();
-      const tasks = [];
+    await this.measureWritePerformance(
+      teamId,
+      '배치 Task 생성 (100개)',
+      async () => {
+        const batch = this.db.batch();
+        const tasks = [];
 
-      for (let i = 0; i < 100; i++) {
-        const task = {
-          title: `Batch Task ${i + 1}`,
-          description: `This is batch task ${i + 1}`,
-          assigneeId: `user${(i % 10) + 1}`,
-          status: ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'][i % 4],
-          priority: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'][i % 4],
-          dueDate: new Date(Date.now() + (i % 30) * 24 * 60 * 60 * 1000),
-          teamId,
-          projectId: `project${(i % 5) + 1}`,
-          createdBy: 'admin',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          version: 1,
-        };
+        for (let i = 0; i < 100; i++) {
+          const task = {
+            title: `Batch Task ${i + 1}`,
+            description: `This is batch task ${i + 1}`,
+            assigneeId: `user${(i % 10) + 1}`,
+            status: ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'][i % 4],
+            priority: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'][i % 4],
+            dueDate: new Date(Date.now() + (i % 30) * 24 * 60 * 60 * 1000),
+            teamId,
+            projectId: `project${(i % 5) + 1}`,
+            createdBy: 'admin',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            version: 1,
+          };
 
-        const docRef = this.db.collection('tasks').doc();
-        batch.set(docRef, task);
-        tasks.push({ id: docRef.id, ...task });
+          const docRef = this.db.collection('tasks').doc();
+          batch.set(docRef, task);
+          tasks.push({ id: docRef.id, ...task });
+        }
+
+        await batch.commit();
+        return tasks;
       }
-
-      await batch.commit();
-      return tasks;
-    });
+    );
 
     // 3. Task 업데이트
     await this.measureWritePerformance(teamId, 'Task 업데이트', async () => {
@@ -313,14 +342,19 @@ class FirestorePerformanceTest {
     const report = {
       summary: {
         totalTests: this.results.length,
-        averageQueryTime: this.results.reduce((sum, r) => sum + r.executionTime, 0) / this.results.length,
+        averageQueryTime:
+          this.results.reduce((sum, r) => sum + r.executionTime, 0) /
+          this.results.length,
         timestamp: new Date().toISOString(),
       },
       results: this.results,
       recommendations: this.generateRecommendations(),
     };
 
-    const reportPath = path.join(__dirname, '../reports/firestore-performance-report.json');
+    const reportPath = path.join(
+      __dirname,
+      '../reports/firestore-performance-report.json'
+    );
     fs.mkdirSync(path.dirname(reportPath), { recursive: true });
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
 
@@ -332,10 +366,14 @@ class FirestorePerformanceTest {
     const recommendations = [];
 
     // 쿼리 성능 분석
-    const queryResults = this.results.filter(r => r.testName.includes('조회') || r.testName.includes('필터링'));
+    const queryResults = this.results.filter(
+      r => r.testName.includes('조회') || r.testName.includes('필터링')
+    );
     if (queryResults.length > 0) {
-      const avgQueryTime = queryResults.reduce((sum, r) => sum + r.executionTime, 0) / queryResults.length;
-      
+      const avgQueryTime =
+        queryResults.reduce((sum, r) => sum + r.executionTime, 0) /
+        queryResults.length;
+
       if (avgQueryTime > 1000) {
         recommendations.push({
           type: 'QUERY_PERFORMANCE',
@@ -347,10 +385,17 @@ class FirestorePerformanceTest {
     }
 
     // 쓰기 성능 분석
-    const writeResults = this.results.filter(r => r.testName.includes('생성') || r.testName.includes('업데이트') || r.testName.includes('삭제'));
+    const writeResults = this.results.filter(
+      r =>
+        r.testName.includes('생성') ||
+        r.testName.includes('업데이트') ||
+        r.testName.includes('삭제')
+    );
     if (writeResults.length > 0) {
-      const avgWriteTime = writeResults.reduce((sum, r) => sum + r.executionTime, 0) / writeResults.length;
-      
+      const avgWriteTime =
+        writeResults.reduce((sum, r) => sum + r.executionTime, 0) /
+        writeResults.length;
+
       if (avgWriteTime > 500) {
         recommendations.push({
           type: 'WRITE_PERFORMANCE',
@@ -366,7 +411,7 @@ class FirestorePerformanceTest {
 
   async cleanup(teamId) {
     console.log('🧹 테스트 데이터 정리 중...');
-    
+
     try {
       const snapshot = await this.db
         .collection('tasks')
@@ -390,31 +435,32 @@ class FirestorePerformanceTest {
 async function runFirestorePerformanceTests() {
   const test = new FirestorePerformanceTest();
   const teamId = 'test-team-performance';
-  
+
   try {
     console.log('🚀 Firestore 성능 테스트 시작...');
-    
+
     // 1. 테스트 데이터 생성
     await test.generateTestData(teamId, 10000);
-    
+
     // 2. 쿼리 성능 테스트
     await test.runQueryTests(teamId);
-    
+
     // 3. 쓰기 성능 테스트
     await test.runWriteTests(teamId);
-    
+
     // 4. 리포트 생성
     const report = await test.generateReport();
-    
+
     console.log('✅ Firestore 성능 테스트 완료!');
     console.log('📊 결과 요약:');
     console.log(`- 총 테스트: ${report.summary.totalTests}개`);
-    console.log(`- 평균 쿼리 시간: ${report.summary.averageQueryTime.toFixed(2)}ms`);
+    console.log(
+      `- 평균 쿼리 시간: ${report.summary.averageQueryTime.toFixed(2)}ms`
+    );
     console.log(`- 권장사항: ${report.recommendations.length}개`);
-    
+
     // 5. 테스트 데이터 정리
     await test.cleanup(teamId);
-    
   } catch (error) {
     console.error('❌ Firestore 성능 테스트 실패:', error);
   }
@@ -425,4 +471,4 @@ if (require.main === module) {
   runFirestorePerformanceTests();
 }
 
-module.exports = { FirestorePerformanceTest, runFirestorePerformanceTests }; 
+module.exports = { FirestorePerformanceTest, runFirestorePerformanceTests };

@@ -1,4 +1,8 @@
-const { initializeTestEnvironment, assertFails, assertSucceeds } = require('@firebase/rules-unit-testing');
+const {
+  initializeTestEnvironment,
+  assertFails,
+  assertSucceeds,
+} = require('@firebase/rules-unit-testing');
 const { getStorage } = require('firebase/storage');
 const { getFirestore } = require('firebase/firestore');
 const fs = require('fs');
@@ -51,27 +55,39 @@ describe('Storage Security Rules', () => {
   describe('Team Files', () => {
     beforeEach(async () => {
       // 팀 멤버 설정
-      await testEnv.withSecurityRulesDisabled(async (context) => {
+      await testEnv.withSecurityRulesDisabled(async context => {
         const db = getFirestore(context);
         await db.collection('teams').doc('team1').set({
           name: 'Test Team',
           createdBy: 'user1',
           isActive: true,
         });
-        
-        await db.collection('teams').doc('team1').collection('members').doc('user1').set({
-          role: 'ADMIN',
-        });
-        
-        await db.collection('teams').doc('team1').collection('members').doc('user2').set({
-          role: 'EDITOR',
-        });
+
+        await db
+          .collection('teams')
+          .doc('team1')
+          .collection('members')
+          .doc('user1')
+          .set({
+            role: 'ADMIN',
+          });
+
+        await db
+          .collection('teams')
+          .doc('team1')
+          .collection('members')
+          .doc('user2')
+          .set({
+            role: 'EDITOR',
+          });
       });
     });
 
     it('should allow team members to upload team files', async () => {
       const fileRef = storage.ref('teams/team1/document.pdf');
-      const file = new File(['test'], 'document.pdf', { type: 'application/pdf' });
+      const file = new File(['test'], 'document.pdf', {
+        type: 'application/pdf',
+      });
       await assertSucceeds(fileRef.put(file));
     });
 
@@ -83,7 +99,9 @@ describe('Storage Security Rules', () => {
     it('should not allow non-team members to upload team files', async () => {
       const storage2 = getStorage(testEnv.authenticatedContext('user3').app());
       const fileRef = storage2.ref('teams/team1/document.pdf');
-      const file = new File(['test'], 'document.pdf', { type: 'application/pdf' });
+      const file = new File(['test'], 'document.pdf', {
+        type: 'application/pdf',
+      });
       await assertFails(fileRef.put(file));
     });
 
@@ -97,7 +115,7 @@ describe('Storage Security Rules', () => {
   describe('Project Files', () => {
     beforeEach(async () => {
       // 프로젝트 멤버 설정
-      await testEnv.withSecurityRulesDisabled(async (context) => {
+      await testEnv.withSecurityRulesDisabled(async context => {
         const db = getFirestore(context);
         await db.collection('projects').doc('project1').set({
           name: 'Test Project',
@@ -105,20 +123,32 @@ describe('Storage Security Rules', () => {
           createdBy: 'user1',
           isActive: true,
         });
-        
-        await db.collection('projects').doc('project1').collection('members').doc('user1').set({
-          role: 'ADMIN',
-        });
-        
-        await db.collection('projects').doc('project1').collection('members').doc('user2').set({
-          role: 'EDITOR',
-        });
+
+        await db
+          .collection('projects')
+          .doc('project1')
+          .collection('members')
+          .doc('user1')
+          .set({
+            role: 'ADMIN',
+          });
+
+        await db
+          .collection('projects')
+          .doc('project1')
+          .collection('members')
+          .doc('user2')
+          .set({
+            role: 'EDITOR',
+          });
       });
     });
 
     it('should allow project members to upload project files', async () => {
       const fileRef = storage.ref('projects/project1/specification.pdf');
-      const file = new File(['test'], 'specification.pdf', { type: 'application/pdf' });
+      const file = new File(['test'], 'specification.pdf', {
+        type: 'application/pdf',
+      });
       await assertSucceeds(fileRef.put(file));
     });
 
@@ -130,7 +160,9 @@ describe('Storage Security Rules', () => {
     it('should not allow non-project members to upload project files', async () => {
       const storage2 = getStorage(testEnv.authenticatedContext('user3').app());
       const fileRef = storage2.ref('projects/project1/specification.pdf');
-      const file = new File(['test'], 'specification.pdf', { type: 'application/pdf' });
+      const file = new File(['test'], 'specification.pdf', {
+        type: 'application/pdf',
+      });
       await assertFails(fileRef.put(file));
     });
   });
@@ -138,27 +170,39 @@ describe('Storage Security Rules', () => {
   describe('Task Files', () => {
     beforeEach(async () => {
       // 팀 멤버 설정
-      await testEnv.withSecurityRulesDisabled(async (context) => {
+      await testEnv.withSecurityRulesDisabled(async context => {
         const db = getFirestore(context);
         await db.collection('teams').doc('team1').set({
           name: 'Test Team',
           createdBy: 'user1',
           isActive: true,
         });
-        
-        await db.collection('teams').doc('team1').collection('members').doc('user1').set({
-          role: 'ADMIN',
-        });
-        
-        await db.collection('teams').doc('team1').collection('members').doc('user2').set({
-          role: 'EDITOR',
-        });
+
+        await db
+          .collection('teams')
+          .doc('team1')
+          .collection('members')
+          .doc('user1')
+          .set({
+            role: 'ADMIN',
+          });
+
+        await db
+          .collection('teams')
+          .doc('team1')
+          .collection('members')
+          .doc('user2')
+          .set({
+            role: 'EDITOR',
+          });
       });
     });
 
     it('should allow team editors to upload task files', async () => {
       const fileRef = storage.ref('tasks/task1/attachment.pdf');
-      const file = new File(['test'], 'attachment.pdf', { type: 'application/pdf' });
+      const file = new File(['test'], 'attachment.pdf', {
+        type: 'application/pdf',
+      });
       await assertSucceeds(fileRef.put(file));
     });
 
@@ -169,16 +213,23 @@ describe('Storage Security Rules', () => {
 
     it('should not allow team viewers to upload task files', async () => {
       // 뷰어 역할 설정
-      await testEnv.withSecurityRulesDisabled(async (context) => {
+      await testEnv.withSecurityRulesDisabled(async context => {
         const db = getFirestore(context);
-        await db.collection('teams').doc('team1').collection('members').doc('user3').set({
-          role: 'VIEWER',
-        });
+        await db
+          .collection('teams')
+          .doc('team1')
+          .collection('members')
+          .doc('user3')
+          .set({
+            role: 'VIEWER',
+          });
       });
-      
+
       const storage3 = getStorage(testEnv.authenticatedContext('user3').app());
       const fileRef = storage3.ref('tasks/task1/attachment.pdf');
-      const file = new File(['test'], 'attachment.pdf', { type: 'application/pdf' });
+      const file = new File(['test'], 'attachment.pdf', {
+        type: 'application/pdf',
+      });
       await assertFails(fileRef.put(file));
     });
   });
@@ -199,13 +250,19 @@ describe('Storage Security Rules', () => {
   describe('File Size Limits', () => {
     it('should allow files under 100MB', async () => {
       const fileRef = storage.ref('teams/team1/large-file.pdf');
-      const file = new File(['x'.repeat(50 * 1024 * 1024)], 'large-file.pdf', { type: 'application/pdf' });
+      const file = new File(['x'.repeat(50 * 1024 * 1024)], 'large-file.pdf', {
+        type: 'application/pdf',
+      });
       await assertSucceeds(fileRef.put(file));
     });
 
     it('should reject files over 100MB', async () => {
       const fileRef = storage.ref('teams/team1/too-large-file.pdf');
-      const file = new File(['x'.repeat(150 * 1024 * 1024)], 'too-large-file.pdf', { type: 'application/pdf' });
+      const file = new File(
+        ['x'.repeat(150 * 1024 * 1024)],
+        'too-large-file.pdf',
+        { type: 'application/pdf' }
+      );
       await assertFails(fileRef.put(file));
     });
   });
@@ -215,7 +272,10 @@ describe('Storage Security Rules', () => {
       const allowedTypes = [
         { name: 'document.pdf', type: 'application/pdf' },
         { name: 'image.jpg', type: 'image/jpeg' },
-        { name: 'spreadsheet.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
+        {
+          name: 'spreadsheet.xlsx',
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        },
         { name: 'text.txt', type: 'text/plain' },
       ];
 
@@ -228,8 +288,10 @@ describe('Storage Security Rules', () => {
 
     it('should reject executable files', async () => {
       const fileRef = storage.ref('teams/team1/script.exe');
-      const file = new File(['test'], 'script.exe', { type: 'application/x-msdownload' });
+      const file = new File(['test'], 'script.exe', {
+        type: 'application/x-msdownload',
+      });
       await assertFails(fileRef.put(file));
     });
   });
-}); 
+});

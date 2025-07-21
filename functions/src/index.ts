@@ -39,10 +39,10 @@ export const helloWorld = onCall(
     memory: '256MiB',
     region: 'asia-northeast3',
   },
-  (request) => {
+  request => {
     return {
       message: 'Hello from Firebase Functions!',
       timestamp: new Date().toISOString(),
     };
   }
-); 
+);

@@ -28,6 +28,7 @@ export interface Task {
   createdBy: string;
   createdByUser?: User;
   version: number;
+  teamId: string; // 팀 ID 추가
   createdAt: Date;
   updatedAt: Date;
   // 간트 차트 관련 필드 추가
@@ -232,7 +233,6 @@ export interface CreateTaskInput {
 }
 
 export interface UpdateTaskInput {
-  id: string;
   title?: string;
   description?: string;
   assigneeId?: string;
@@ -243,7 +243,7 @@ export interface UpdateTaskInput {
   endDate?: Date;
   dependencies?: string[];
   progress?: number;
-  version: number;
+  version?: number;
 }
 
 export interface TaskFilterInput {

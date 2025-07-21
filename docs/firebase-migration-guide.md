@@ -1,6 +1,7 @@
 # Firebase 마이그레이션 가이드
 
 ## 목차
+
 1. [개요](#개요)
 2. [Firebase 프로젝트 설정](#firebase-프로젝트-설정)
 3. [Firestore 데이터 구조](#firestore-데이터-구조)
@@ -17,6 +18,7 @@
 ALMUS ToDo List 프로젝트는 Firebase 기반 아키텍처를 사용하여 확장 가능하고 안전한 멀티플랫폼 업무 관리 시스템을 구축합니다.
 
 ### 주요 Firebase 서비스
+
 - **Firestore**: NoSQL 문서 데이터베이스
 - **Firebase Functions**: 서버리스 백엔드 로직
 - **Firebase Storage**: 파일 저장소
@@ -67,6 +69,7 @@ firebase init
 ### 컬렉션 구조
 
 #### 1. Users 컬렉션
+
 ```typescript
 interface User {
   id: string;
@@ -86,6 +89,7 @@ interface User {
 ```
 
 #### 2. Teams 컬렉션
+
 ```typescript
 interface Team {
   id: string;
@@ -103,6 +107,7 @@ interface Team {
 ```
 
 #### 3. Projects 컬렉션
+
 ```typescript
 interface Project {
   id: string;
@@ -122,6 +127,7 @@ interface Project {
 ```
 
 #### 4. Tasks 컬렉션
+
 ```typescript
 interface Task {
   id: string;
@@ -149,6 +155,7 @@ interface Task {
 ```
 
 #### 5. Notifications 컬렉션
+
 ```typescript
 interface Notification {
   id: string;
@@ -209,13 +216,13 @@ function isOwner(userId) {
 
 // 팀 멤버 확인
 function isTeamMember(teamId) {
-  return isAuthenticated() && 
+  return isAuthenticated() &&
     exists(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid));
 }
 
 // 팀 관리자 확인
 function isTeamAdmin(teamId) {
-  return isAuthenticated() && 
+  return isAuthenticated() &&
     get(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid)).data.role == 'ADMIN';
 }
 ```
@@ -227,6 +234,7 @@ function isTeamAdmin(teamId) {
 #### Tasks 컬렉션 인덱스
 
 1. **팀별 상태별 정렬**
+
    ```javascript
    {
      "collectionGroup": "tasks",
@@ -239,6 +247,7 @@ function isTeamAdmin(teamId) {
    ```
 
 2. **담당자별 필터링**
+
    ```javascript
    {
      "collectionGroup": "tasks",
@@ -307,7 +316,10 @@ import { taskService } from '../services/taskService';
 export const createTask = functions.https.onCall(async (data, context) => {
   // 인증 확인
   if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', '인증이 필요합니다.');
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      '인증이 필요합니다.'
+    );
   }
 
   try {
@@ -317,7 +329,10 @@ export const createTask = functions.https.onCall(async (data, context) => {
     });
     return task;
   } catch (error) {
-    throw new functions.https.HttpsError('internal', 'Task 생성에 실패했습니다.');
+    throw new functions.https.HttpsError(
+      'internal',
+      'Task 생성에 실패했습니다.'
+    );
   }
 });
 ```
@@ -333,14 +348,14 @@ export const onTaskCreated = functions.firestore
   .document('tasks/{taskId}')
   .onCreate(async (snap, context) => {
     const task = snap.data();
-    
+
     // 담당자에게 알림 전송
     if (task.assigneeId) {
       await fcmService.sendNotification({
         userId: task.assigneeId,
         title: '새로운 Task가 할당되었습니다',
         message: task.title,
-        data: { taskId: context.params.taskId }
+        data: { taskId: context.params.taskId },
       });
     }
   });
@@ -369,12 +384,12 @@ service firebase.storage {
   match /b/{bucket}/o {
     // 팀별 파일 접근 규칙
     match /teams/{teamId}/{allPaths=**} {
-      allow read: if request.auth != null && 
+      allow read: if request.auth != null &&
         exists(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid));
-      allow write: if request.auth != null && 
+      allow write: if request.auth != null &&
         exists(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid));
     }
-    
+
     // 임시 파일 규칙
     match /temp/{allPaths=**} {
       allow read, write: if request.auth != null;
@@ -421,21 +436,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Build web app
         run: npm run build --prefix apps/web-app
-        
+
       - name: Build functions
         run: npm run build --prefix functions
-        
+
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -507,41 +522,49 @@ jobs:
 ### 일반적인 문제
 
 #### 1. 인덱스 오류
+
 ```
 Error: The query requires an index that is not defined.
 ```
 
 **해결 방법:**
+
 1. Firebase Console에서 인덱스 생성 링크 클릭
 2. 자동 생성된 인덱스 배포
 3. 인덱스 생성 완료까지 대기 (최대 10분)
 
 #### 2. 보안 규칙 오류
+
 ```
 Error: Missing or insufficient permissions.
 ```
 
 **해결 방법:**
+
 1. 보안 규칙 문법 확인
 2. 사용자 권한 확인
 3. 테스트 모드에서 디버깅
 
 #### 3. Functions 배포 오류
+
 ```
 Error: Function failed to deploy.
 ```
 
 **해결 방법:**
+
 1. TypeScript 컴파일 오류 확인
 2. 의존성 설치 확인
 3. 환경 변수 설정 확인
 
 #### 4. Storage 업로드 오류
+
 ```
 Error: Storage permission denied.
 ```
 
 **해결 방법:**
+
 1. Storage 보안 규칙 확인
 2. 파일 경로 권한 확인
 3. 사용자 인증 상태 확인
@@ -549,16 +572,19 @@ Error: Storage permission denied.
 ### 성능 최적화
 
 #### 1. 쿼리 최적화
+
 - 복합 인덱스 활용
 - 페이지네이션 구현
 - 불필요한 필드 제외
 
 #### 2. Functions 최적화
+
 - 콜드 스타트 최소화
 - 메모리 할당 최적화
 - 타임아웃 설정
 
 #### 3. Storage 최적화
+
 - 이미지 압축
 - CDN 활용
 - 캐싱 전략
@@ -566,12 +592,14 @@ Error: Storage permission denied.
 ### 모니터링 및 로깅
 
 #### 1. Firebase Console 모니터링
+
 - Functions 실행 통계
 - Firestore 사용량
 - Storage 사용량
 - 인증 통계
 
 #### 2. 로깅 설정
+
 ```typescript
 // Functions 로깅
 functions.logger.info('Function executed', { userId, taskId });
@@ -593,4 +621,4 @@ console.log('Firestore operation', { collection, document });
 
 이 가이드는 ALMUS ToDo List 프로젝트의 Firebase 마이그레이션을 위한 포괄적인 참조 문서입니다. 각 단계를 신중하게 따라가며, 문제가 발생하면 문제 해결 섹션을 참조하세요.
 
-팀원들과 함께 이 가이드를 검토하고, 실제 마이그레이션 전에 테스트 환경에서 전체 프로세스를 연습하는 것을 권장합니다. 
+팀원들과 함께 이 가이드를 검토하고, 실제 마이그레이션 전에 테스트 환경에서 전체 프로세스를 연습하는 것을 권장합니다.

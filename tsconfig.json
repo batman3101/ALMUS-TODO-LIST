@@ -18,9 +18,7 @@
       "@almus/*": ["libs/*/src"]
     }
   },
-  "include": [
-    "libs/*/src/**/*"
-  ],
+  "include": ["libs/*/src/**/*"],
   "exclude": [
     "node_modules",
     "dist",
@@ -29,4 +27,4 @@
     "services/*",
     "functions/*"
   ]
-} 
+}

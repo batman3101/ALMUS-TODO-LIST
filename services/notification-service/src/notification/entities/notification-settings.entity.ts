@@ -99,4 +99,4 @@ export class NotificationSettings {
   @ManyToOne(() => NotificationSettings, { nullable: true })
   @JoinColumn({ name: 'userId' })
   user?: any;
-} 
+}

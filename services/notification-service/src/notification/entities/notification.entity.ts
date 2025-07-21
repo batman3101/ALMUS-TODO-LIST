@@ -54,4 +54,4 @@ export class Notification {
   @ManyToOne(() => Notification, { nullable: true })
   @JoinColumn({ name: 'userId' })
   user?: any;
-} 
+}
