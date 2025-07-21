@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { useTasks } from '../hooks/useTasks';
@@ -13,6 +13,8 @@ import { useAuth } from '../hooks/useAuth';
 const GanttView: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
 
   const [config, setConfig] = useState<GanttViewConfig>({
     zoomLevel: ZoomLevel.WEEK,
@@ -33,6 +35,35 @@ const GanttView: React.FC = () => {
     teamId: user?.teamId || '',
   });
 
+  // 진행률 계산 함수
+  const calculateTaskProgress = (task: Task, startDate: Date, endDate: Date) => {
+    // 완료된 태스크는 무조건 100%
+    if (task.status === 'DONE') {
+      return 100;
+    }
+
+    const now = new Date();
+    const totalDuration = endDate.getTime() - startDate.getTime();
+    
+    // 아직 시작하지 않은 태스크
+    if (now < startDate) {
+      return 0;
+    }
+    
+    // 기한이 지난 태스크
+    if (now > endDate) {
+      // 기존 progress가 있으면 그것을 사용, 없으면 100%
+      return task.progress || 100;
+    }
+    
+    // 현재 진행 중인 태스크의 시간 기반 진행률 계산
+    const elapsedDuration = now.getTime() - startDate.getTime();
+    const timeBasedProgress = Math.round((elapsedDuration / totalDuration) * 100);
+    
+    // 기존 progress와 시간 기반 progress 중 더 높은 값 사용
+    return Math.max(task.progress || 0, timeBasedProgress);
+  };
+
   // Task를 GanttTask로 변환
   const ganttTasks = useMemo(() => {
     if (!tasks) return [];
@@ -48,12 +79,27 @@ const GanttView: React.FC = () => {
         : false;
       const isOverdue = task.dueDate ? new Date() > task.dueDate : false;
 
+      // 계산된 진행률 적용
+      const calculatedProgress = calculateTaskProgress(task, startDate, endDate);
+
+      // 디버깅 정보 (개발 시에만)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Progress calculation for: ${task.title}`, {
+          originalProgress: task.progress,
+          calculatedProgress,
+          status: task.status,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          now: new Date().toISOString()
+        });
+      }
+
       return {
         id: task.id,
         title: task.title,
         startDate,
         endDate,
-        progress: task.progress || 0,
+        progress: calculatedProgress,
         status: task.status,
         priority: task.priority,
         assigneeId: task.assigneeId,
@@ -63,6 +109,36 @@ const GanttView: React.FC = () => {
       };
     });
   }, [tasks]);
+
+  // 차트 최소 너비 계산
+  const chartMinWidth = useMemo(() => {
+    const { start, end } = config.dateRange;
+    const totalMs = end.getTime() - start.getTime();
+    
+    // 줌 레벨에 따른 시간 단위 수 추정
+    let estimatedUnits = 0;
+    switch (config.zoomLevel) {
+      case ZoomLevel.DAY:
+        estimatedUnits = Math.ceil(totalMs / (24 * 60 * 60 * 1000));
+        break;
+      case ZoomLevel.WEEK:
+        estimatedUnits = Math.ceil(totalMs / (7 * 24 * 60 * 60 * 1000));
+        break;
+      case ZoomLevel.MONTH:
+        estimatedUnits = Math.ceil(totalMs / (30 * 24 * 60 * 60 * 1000));
+        break;
+      case ZoomLevel.QUARTER:
+        estimatedUnits = Math.ceil(totalMs / (90 * 24 * 60 * 60 * 1000));
+        break;
+      case ZoomLevel.YEAR:
+        estimatedUnits = Math.ceil(totalMs / (365 * 24 * 60 * 60 * 1000));
+        break;
+      default:
+        estimatedUnits = Math.ceil(totalMs / (7 * 24 * 60 * 60 * 1000));
+    }
+    
+    return Math.max(800, estimatedUnits * 60); // 각 시간 단위당 최소 60px
+  }, [config.dateRange, config.zoomLevel]);
 
   const handleZoomChange = (zoomLevel: ZoomLevel) => {
     const now = new Date();
@@ -104,6 +180,41 @@ const GanttView: React.FC = () => {
     }));
   };
 
+  // 스크롤 동기화 - 차트 영역에서 타임라인으로
+  const handleChartScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const scrollLeft = e.currentTarget.scrollLeft;
+    if (timelineRef.current && timelineRef.current.scrollLeft !== scrollLeft) {
+      timelineRef.current.scrollLeft = scrollLeft;
+    }
+  }, []);
+
+  // 스크롤 동기화 - 타임라인에서 차트 영역으로  
+  const handleTimelineScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const scrollLeft = e.currentTarget.scrollLeft;
+    if (scrollContainerRef.current && scrollContainerRef.current.scrollLeft !== scrollLeft) {
+      scrollContainerRef.current.scrollLeft = scrollLeft;
+    }
+  }, []);
+
+  // 오늘 날짜로 이동
+  const scrollToToday = useCallback(() => {
+    const today = new Date();
+    const { start, end } = config.dateRange;
+    const totalMs = end.getTime() - start.getTime();
+    const todayMs = today.getTime() - start.getTime();
+    const scrollPercentage = Math.max(0, Math.min(1, todayMs / totalMs));
+    
+    if (scrollContainerRef.current) {
+      const scrollWidth = scrollContainerRef.current.scrollWidth - scrollContainerRef.current.clientWidth;
+      const targetScrollLeft = scrollWidth * scrollPercentage - (scrollContainerRef.current.clientWidth / 2);
+      
+      scrollContainerRef.current.scrollTo({
+        left: Math.max(0, targetScrollLeft),
+        behavior: 'smooth'
+      });
+    }
+  }, [config.dateRange]);
+
   const renderTimeline = () => {
     const { start, end } = config.dateRange;
     const getDateFormat = () => {
@@ -124,44 +235,91 @@ const GanttView: React.FC = () => {
     };
 
     const getTimeUnits = () => {
-      const totalMs = end.getTime() - start.getTime();
-      let units = [];
+      const units = [];
       
       switch (config.zoomLevel) {
         case ZoomLevel.DAY:
-          const days = Math.ceil(totalMs / (24 * 60 * 60 * 1000));
-          for (let i = 0; i < days; i++) {
-            const date = new Date(start.getTime() + i * 24 * 60 * 60 * 1000);
-            units.push({ date, label: format(date, 'MM/dd'), type: 'day' });
+          // 일 단위: 정확한 날짜별로 표시
+          const dayStart = new Date(start);
+          const dayEnd = new Date(end);
+          let dayIterator = new Date(dayStart);
+          
+          while (dayIterator <= dayEnd) {
+            units.push({ 
+              date: new Date(dayIterator), 
+              label: format(dayIterator, 'MM/dd'), 
+              type: 'day' 
+            });
+            dayIterator = new Date(dayIterator);
+            dayIterator.setDate(dayIterator.getDate() + 1);
           }
           break;
+          
         case ZoomLevel.WEEK:
-          const weeks = Math.ceil(totalMs / (7 * 24 * 60 * 60 * 1000));
-          for (let i = 0; i < weeks; i++) {
-            const date = new Date(start.getTime() + i * 7 * 24 * 60 * 60 * 1000);
-            units.push({ date, label: `${format(date, 'MM/dd')}주`, type: 'week' });
+          // 주 단위: 주의 시작일(월요일) 기준으로 표시
+          const weekStart = new Date(start);
+          const weekStartMonday = new Date(weekStart);
+          weekStartMonday.setDate(weekStart.getDate() - weekStart.getDay() + 1);
+          let weekIterator = new Date(weekStartMonday);
+          
+          while (weekIterator <= end) {
+            units.push({ 
+              date: new Date(weekIterator), 
+              label: `${format(weekIterator, 'MM/dd')}주`, 
+              type: 'week' 
+            });
+            weekIterator = new Date(weekIterator);
+            weekIterator.setDate(weekIterator.getDate() + 7);
           }
           break;
+          
         case ZoomLevel.MONTH:
-          const months = Math.ceil(totalMs / (30 * 24 * 60 * 60 * 1000));
-          for (let i = 0; i < months; i++) {
-            const date = new Date(start.getTime() + i * 30 * 24 * 60 * 60 * 1000);
-            units.push({ date, label: format(date, 'yyyy/MM'), type: 'month' });
+          // 월 단위: 정확한 월의 1일 기준으로 표시
+          const monthStart = new Date(start.getFullYear(), start.getMonth(), 1);
+          let monthIterator = new Date(monthStart);
+          
+          while (monthIterator <= end) {
+            units.push({ 
+              date: new Date(monthIterator), 
+              label: format(monthIterator, 'yyyy/MM'), 
+              type: 'month' 
+            });
+            monthIterator = new Date(monthIterator);
+            monthIterator.setMonth(monthIterator.getMonth() + 1);
           }
           break;
+          
         case ZoomLevel.QUARTER:
-          const quarters = Math.ceil(totalMs / (90 * 24 * 60 * 60 * 1000));
-          for (let i = 0; i < quarters; i++) {
-            const date = new Date(start.getTime() + i * 90 * 24 * 60 * 60 * 1000);
-            const quarter = Math.floor(date.getMonth() / 3) + 1;
-            units.push({ date, label: `${date.getFullYear()} Q${quarter}`, type: 'quarter' });
+          // 분기 단위: 분기의 첫 달 1일 기준으로 표시
+          const quarterStartMonth = Math.floor(start.getMonth() / 3) * 3;
+          const quarterStart = new Date(start.getFullYear(), quarterStartMonth, 1);
+          let quarterIterator = new Date(quarterStart);
+          
+          while (quarterIterator <= end) {
+            const quarter = Math.floor(quarterIterator.getMonth() / 3) + 1;
+            units.push({ 
+              date: new Date(quarterIterator), 
+              label: `${quarterIterator.getFullYear()} Q${quarter}`, 
+              type: 'quarter' 
+            });
+            quarterIterator = new Date(quarterIterator);
+            quarterIterator.setMonth(quarterIterator.getMonth() + 3);
           }
           break;
+          
         case ZoomLevel.YEAR:
-          const years = Math.ceil(totalMs / (365 * 24 * 60 * 60 * 1000));
-          for (let i = 0; i < years; i++) {
-            const date = new Date(start.getTime() + i * 365 * 24 * 60 * 60 * 1000);
-            units.push({ date, label: format(date, 'yyyy'), type: 'year' });
+          // 년 단위: 해당 년도 1월 1일 기준으로 표시
+          const yearStart = new Date(start.getFullYear(), 0, 1);
+          let yearIterator = new Date(yearStart);
+          
+          while (yearIterator <= end) {
+            units.push({ 
+              date: new Date(yearIterator), 
+              label: format(yearIterator, 'yyyy'), 
+              type: 'year' 
+            });
+            yearIterator = new Date(yearIterator);
+            yearIterator.setFullYear(yearIterator.getFullYear() + 1);
           }
           break;
       }
@@ -170,30 +328,51 @@ const GanttView: React.FC = () => {
 
     const timeUnits = getTimeUnits();
 
+    const totalMs = end.getTime() - start.getTime();
+    
+    // 디버깅 정보 (개발 시에만)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Timeline render:', {
+        rangeStart: start.toISOString(),
+        rangeEnd: end.toISOString(),
+        totalMs,
+        timeUnitsCount: timeUnits.length,
+        chartMinWidth,
+        zoomLevel: config.zoomLevel
+      });
+    }
+    
     return (
       <div className="border-b-2 border-gray-300 dark:border-dark-400 bg-gray-100 dark:bg-dark-200">
-        <div className="flex">
-          {timeUnits.map((unit, i) => (
-            <div
-              key={i}
-              className={`flex-1 text-sm font-semibold text-gray-700 dark:text-dark-700 border-r-2 border-gray-300 dark:border-dark-400 p-2 text-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-dark-100 dark:to-dark-200 ${
-                unit.type === 'day' ? 'min-w-[70px]' :
-                unit.type === 'week' ? 'min-w-[100px]' :
-                unit.type === 'month' ? 'min-w-[120px]' :
-                unit.type === 'quarter' ? 'min-w-[150px]' :
-                'min-w-[80px]'
-              }`}
-            >
-              <div className="font-bold text-primary-600 dark:text-primary-400 text-xs">
-                {unit.label}
-              </div>
-              {unit.type === 'day' && (
-                <div className="text-xs text-gray-500 dark:text-dark-500 mt-1">
-                  {format(unit.date, 'E')}
+        <div className="flex" style={{ minWidth: `${chartMinWidth}px` }}>
+          {timeUnits.map((unit, i) => {
+            // 다음 시간 단위까지의 실제 기간 계산
+            const nextUnit = timeUnits[i + 1];
+            const unitEndDate = nextUnit ? nextUnit.date : end;
+            const unitDurationMs = unitEndDate.getTime() - unit.date.getTime();
+            const widthPercentage = (unitDurationMs / totalMs) * 100;
+            
+            return (
+              <div
+                key={i}
+                className="text-sm font-semibold text-gray-700 dark:text-dark-700 border-r-2 border-gray-300 dark:border-dark-400 p-2 text-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-dark-100 dark:to-dark-200"
+                style={{ 
+                  width: `${widthPercentage}%`,
+                  minWidth: `${widthPercentage}%`,
+                  flexShrink: 0
+                }}
+              >
+                <div className="font-bold text-primary-600 dark:text-primary-400 text-xs">
+                  {unit.label}
                 </div>
-              )}
-            </div>
-          ))}
+                {unit.type === 'day' && (
+                  <div className="text-xs text-gray-500 dark:text-dark-500 mt-1">
+                    {format(unit.date, 'E')}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -207,16 +386,37 @@ const GanttView: React.FC = () => {
     
     // 태스크 시작점과 지속 시간을 밀리초로 계산
     const taskStartMs = task.startDate.getTime() - start.getTime();
+    const taskEndMs = task.endDate.getTime() - start.getTime();
     const taskDurationMs = task.endDate.getTime() - task.startDate.getTime();
 
     // 백분율로 변환 (정확한 위치 계산)
     const left = Math.max(0, (taskStartMs / totalMs) * 100);
-    const width = Math.max(2, (taskDurationMs / totalMs) * 100); // 최소 2% 너비 보장
+    const width = Math.max(1, (taskDurationMs / totalMs) * 100); // 최소 1% 너비 보장
 
-    // 태스크가 범위를 벗어나는 경우 처리
-    if (taskStartMs > totalMs || task.endDate.getTime() < start.getTime()) {
+    // 디버깅 정보 (개발 시에만)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Task: ${task.title}`, {
+        startDate: task.startDate.toISOString(),
+        endDate: task.endDate.toISOString(),
+        rangeStart: start.toISOString(),
+        rangeEnd: end.toISOString(),
+        taskStartMs,
+        taskEndMs,
+        totalMs,
+        left: left.toFixed(2),
+        width: width.toFixed(2)
+      });
+    }
+
+    // 태스크가 범위를 완전히 벗어나는 경우 처리
+    if (taskStartMs > totalMs || taskEndMs < 0) {
       return null; // 범위 밖의 태스크는 표시하지 않음
     }
+
+    // 부분적으로 보이는 태스크의 경우 보정
+    const visibleLeft = Math.max(0, left);
+    const visibleRight = Math.min(100, left + width);
+    const visibleWidth = Math.max(0.5, visibleRight - visibleLeft);
 
     const getStatusColor = (status: string) => {
       switch (status) {
@@ -249,15 +449,16 @@ const GanttView: React.FC = () => {
     };
 
     return (
-      <div className="relative">
+      <div className="absolute inset-0">
         <div
           className={`absolute h-8 rounded shadow-sm ${getStatusColor(task.status)} ${getPriorityBorder(task.priority)} ${
             task.isDelayed ? 'ring-2 ring-red-500 ring-opacity-50' : ''
           } transition-all duration-200 hover:shadow-md cursor-pointer group`}
           style={{
-            left: `${left}%`,
-            width: `${width}%`,
-            top: '36px', // 중앙 정렬을 위해 조정
+            left: `${visibleLeft}%`,
+            width: `${visibleWidth}%`,
+            top: '50%',
+            transform: 'translateY(-50%)', // 수직 중앙 정렬
           }}
           title={`${task.title} (${format(task.startDate, 'yyyy/MM/dd')} - ${format(task.endDate, 'yyyy/MM/dd')})`}
         >
@@ -295,19 +496,19 @@ const GanttView: React.FC = () => {
 
         {/* 의존성 표시 */}
         {config.showDependencies && task.dependencies && task.dependencies.length > 0 && (
-          <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+          <div className="absolute inset-0 pointer-events-none">
             {task.dependencies.map(depId => {
               const depTask = ganttTasks.find(t => t.id === depId);
               if (!depTask) return null;
               
               // 의존 태스크의 종료 지점 계산
               const depEndMs = depTask.endDate.getTime() - start.getTime();
-              const depEndLeft = (depEndMs / totalMs) * 100;
+              const depEndLeft = Math.max(0, (depEndMs / totalMs) * 100);
               
               return (
                 <svg
                   key={depId}
-                  className="absolute top-0 left-0 w-full h-full"
+                  className="absolute inset-0 w-full h-full"
                   style={{ pointerEvents: 'none' }}
                 >
                   <defs>
@@ -328,9 +529,9 @@ const GanttView: React.FC = () => {
                   </defs>
                   <line
                     x1={`${depEndLeft}%`}
-                    y1="28"
-                    x2={`${left}%`}
-                    y2="28"
+                    y1="50%"
+                    x2={`${visibleLeft}%`}
+                    y2="50%"
                     stroke="#ef4444"
                     strokeWidth="2"
                     strokeDasharray="4,2"
@@ -368,6 +569,14 @@ const GanttView: React.FC = () => {
         </h2>
 
         <div className="flex space-x-2">
+          <button
+            onClick={scrollToToday}
+            className="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded text-sm transition-colors duration-200 font-medium"
+            title="오늘 날짜로 이동"
+          >
+            오늘
+          </button>
+          
           <select
             value={config.zoomLevel}
             onChange={e => handleZoomChange(e.target.value as ZoomLevel)}
@@ -424,7 +633,7 @@ const GanttView: React.FC = () => {
             </div>
           </div>
           {/* 날짜 헤더 */}
-          <div className="flex-1 overflow-x-auto">
+          <div className="flex-1 overflow-x-auto" ref={timelineRef} onScroll={handleTimelineScroll}>
             {renderTimeline()}
           </div>
         </div>
@@ -442,9 +651,10 @@ const GanttView: React.FC = () => {
                 {ganttTasks.map((task, index) => (
                   <div
                     key={task.id}
-                    className={`min-h-20 border-b border-gray-200 dark:border-dark-300 p-4 ${
+                    className={`border-b border-gray-200 dark:border-dark-300 p-4 flex items-center ${
                       index % 2 === 0 ? 'bg-white dark:bg-dark-50' : 'bg-gray-100 dark:bg-dark-100'
                     } hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
+                    style={{ height: '140px' }}
                   >
                     <div className="flex items-start justify-between h-full">
                       <div className="flex-1 min-w-0">
@@ -504,9 +714,9 @@ const GanttView: React.FC = () => {
           </div>
 
           {/* 오른쪽: 간트 차트 */}
-          <div className="flex-1 overflow-x-auto">
+          <div className="flex-1 overflow-x-auto" ref={scrollContainerRef} onScroll={handleChartScroll}>
             {/* 태스크 바들 */}
-            <div className="relative bg-white dark:bg-dark-50">
+            <div className="relative bg-white dark:bg-dark-50" style={{ minWidth: `${chartMinWidth}px` }}>
               {ganttTasks.length === 0 ? (
                 <div className="p-8 text-center text-gray-400 dark:text-dark-400">
                   태스크를 추가해주세요
@@ -515,9 +725,10 @@ const GanttView: React.FC = () => {
                 ganttTasks.map((task, index) => (
                   <div
                     key={task.id}
-                    className={`relative min-h-20 border-b border-gray-200 dark:border-dark-300 ${
+                    className={`relative border-b border-gray-200 dark:border-dark-300 ${
                       index % 2 === 0 ? 'bg-white dark:bg-dark-50' : 'bg-gray-50 dark:bg-dark-100'
                     } hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
+                    style={{ height: '140px' }}
                   >
                     {renderTaskBar(task)}
                   </div>
