@@ -72,8 +72,9 @@ const GanttView: React.FC = () => {
     // 줌 레벨에 따라 적절한 날짜 범위 설정
     switch (zoomLevel) {
       case ZoomLevel.DAY:
-        start.setDate(now.getDate() - 15); // 15일 전부터
-        end.setDate(now.getDate() + 45); // 45일 후까지 (총 60일)
+        // 현재 월의 1일부터 말일까지
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0); // 다음 달 0일 = 현재 달 마지막 날
         break;
       case ZoomLevel.WEEK:
         start.setDate(now.getDate() - 21); // 3주 전부터
@@ -196,30 +197,21 @@ const GanttView: React.FC = () => {
   const renderTaskBar = (task: GanttTask) => {
     const { start, end } = config.dateRange;
     
-    const getTimeUnit = () => {
-      switch (config.zoomLevel) {
-        case ZoomLevel.DAY:
-          return 24 * 60 * 60 * 1000; // 1일
-        case ZoomLevel.WEEK:
-          return 7 * 24 * 60 * 60 * 1000; // 1주
-        case ZoomLevel.MONTH:
-          return 30 * 24 * 60 * 60 * 1000; // 1개월
-        case ZoomLevel.QUARTER:
-          return 90 * 24 * 60 * 60 * 1000; // 1분기
-        case ZoomLevel.YEAR:
-          return 365 * 24 * 60 * 60 * 1000; // 1년
-        default:
-          return 24 * 60 * 60 * 1000;
-      }
-    };
+    // 전체 기간을 밀리초로 계산
+    const totalMs = end.getTime() - start.getTime();
+    
+    // 태스크 시작점과 지속 시간을 밀리초로 계산
+    const taskStartMs = task.startDate.getTime() - start.getTime();
+    const taskDurationMs = task.endDate.getTime() - task.startDate.getTime();
 
-    const timeUnit = getTimeUnit();
-    const totalUnits = Math.ceil((end.getTime() - start.getTime()) / timeUnit);
-    const taskStartUnit = Math.max(0, (task.startDate.getTime() - start.getTime()) / timeUnit);
-    const taskDurationUnits = Math.ceil((task.endDate.getTime() - task.startDate.getTime()) / timeUnit);
+    // 백분율로 변환 (정확한 위치 계산)
+    const left = Math.max(0, (taskStartMs / totalMs) * 100);
+    const width = Math.max(2, (taskDurationMs / totalMs) * 100); // 최소 2% 너비 보장
 
-    const left = (taskStartUnit / totalUnits) * 100;
-    const width = Math.max(2, (taskDurationUnits / totalUnits) * 100); // 최소 2% 너비 보장
+    // 태스크가 범위를 벗어나는 경우 처리
+    if (taskStartMs > totalMs || task.endDate.getTime() < start.getTime()) {
+      return null; // 범위 밖의 태스크는 표시하지 않음
+    }
 
     const getStatusColor = (status: string) => {
       switch (status) {
@@ -298,8 +290,9 @@ const GanttView: React.FC = () => {
               const depTask = ganttTasks.find(t => t.id === depId);
               if (!depTask) return null;
               
-              const depEndUnit = (depTask.endDate.getTime() - start.getTime()) / timeUnit;
-              const depEndLeft = (depEndUnit / totalUnits) * 100;
+              // 의존 태스크의 종료 지점 계산
+              const depEndMs = depTask.endDate.getTime() - start.getTime();
+              const depEndLeft = (depEndMs / totalMs) * 100;
               
               return (
                 <svg
@@ -309,7 +302,7 @@ const GanttView: React.FC = () => {
                 >
                   <defs>
                     <marker
-                      id="arrowhead"
+                      id={`arrowhead-${depId}`}
                       markerWidth="10"
                       markerHeight="7"
                       refX="9"
@@ -325,13 +318,13 @@ const GanttView: React.FC = () => {
                   </defs>
                   <line
                     x1={`${depEndLeft}%`}
-                    y1="20"
+                    y1="28"
                     x2={`${left}%`}
-                    y2="20"
+                    y2="28"
                     stroke="#ef4444"
                     strokeWidth="2"
                     strokeDasharray="4,2"
-                    markerEnd="url(#arrowhead)"
+                    markerEnd={`url(#arrowhead-${depId})`}
                     className="opacity-70"
                   />
                 </svg>
@@ -406,21 +399,21 @@ const GanttView: React.FC = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto border-2 border-gray-300 dark:border-dark-400 rounded-lg">
-        <div className="min-w-full">
-          {/* 헤더 영역 */}
-          <div className="flex bg-gray-200 dark:bg-dark-300 border-b-2 border-gray-300 dark:border-dark-400">
-            <div className="w-80 p-4 border-r-2 border-gray-300 dark:border-dark-400 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-dark-200 dark:to-dark-300">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-dark-800">
-                  📋 태스크 목록
-                </h3>
-                <div className="text-sm text-gray-600 dark:text-dark-600">
-                  총 {ganttTasks.length}개
-                </div>
+      <div className="border-2 border-gray-300 dark:border-dark-400 rounded-lg">
+        {/* 헤더 영역 */}
+        <div className="flex bg-gray-200 dark:bg-dark-300 border-b-2 border-gray-300 dark:border-dark-400">
+          <div className="w-80 flex-shrink-0 p-4 border-r-2 border-gray-300 dark:border-dark-400 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-dark-200 dark:to-dark-300">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-dark-800">
+                📋 태스크 목록
+              </h3>
+              <div className="text-sm text-gray-600 dark:text-dark-600">
+                총 {ganttTasks.length}개
               </div>
             </div>
-            <div className="flex-1 p-4 bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <div className="p-4 bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-gray-800 dark:text-dark-800">
                   📅 간트 차트
@@ -435,36 +428,25 @@ const GanttView: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* 타임라인 헤더 */}
-          <div className="flex">
-            <div className="w-80 border-r-2 border-gray-300 dark:border-dark-400 bg-gray-100 dark:bg-dark-200"></div>
-            <div className="flex-1">
-              {renderTimeline()}
-            </div>
-          </div>
-
-          {/* Task 목록 및 바 */}
-          <div className="relative">
+        {/* 컨텐츠 영역 */}
+        <div className="flex">
+          {/* 왼쪽: 태스크 목록 */}
+          <div className="w-80 flex-shrink-0 border-r-2 border-gray-300 dark:border-dark-400 bg-gray-50 dark:bg-dark-100">
             {ganttTasks.length === 0 ? (
-              <div className="flex">
-                <div className="w-80 p-8 text-center text-gray-500 dark:text-dark-500 border-r-2 border-gray-300 dark:border-dark-400 bg-gray-50 dark:bg-dark-100">
-                  태스크가 없습니다
-                </div>
-                <div className="flex-1 p-8 text-center text-gray-400 dark:text-dark-400 bg-white dark:bg-dark-50">
-                  태스크를 추가해주세요
-                </div>
+              <div className="p-8 text-center text-gray-500 dark:text-dark-500">
+                태스크가 없습니다
               </div>
             ) : (
-              ganttTasks.map((task, index) => (
-                <div
-                  key={task.id}
-                  className={`relative h-16 border-b border-gray-200 dark:border-dark-300 ${
-                    index % 2 === 0 ? 'bg-white dark:bg-dark-50' : 'bg-gray-50 dark:bg-dark-100'
-                  } hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
-                >
-                  {/* 태스크 정보 영역 */}
-                  <div className="absolute left-0 top-0 w-80 h-full border-r-2 border-gray-300 dark:border-dark-400 p-3 bg-gradient-to-r from-gray-50 to-white dark:from-dark-100 dark:to-dark-50">
+              <div>
+                {ganttTasks.map((task, index) => (
+                  <div
+                    key={task.id}
+                    className={`h-16 border-b border-gray-200 dark:border-dark-300 p-3 ${
+                      index % 2 === 0 ? 'bg-white dark:bg-dark-50' : 'bg-gray-100 dark:bg-dark-100'
+                    } hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
+                  >
                     <div className="flex items-center justify-between h-full">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -479,7 +461,7 @@ const GanttView: React.FC = () => {
                           </span>
                         </div>
                         <div className="text-xs text-gray-600 dark:text-dark-600 mb-1">
-                          📅 {format(task.startDate, 'yyyy/MM/dd')} ~ {format(task.endDate, 'yyyy/MM/dd')}
+                          📅 {format(task.startDate, 'MM/dd')} ~ {format(task.endDate, 'MM/dd')}
                         </div>
                         <div className="flex items-center gap-2 text-xs">
                           <span className={`px-2 py-1 rounded text-white ${
@@ -502,19 +484,40 @@ const GanttView: React.FC = () => {
                           {task.progress}%
                         </div>
                         <div className="text-xs text-gray-500 dark:text-dark-500">
-                          완료율
+                          진행률
                         </div>
                       </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-                  {/* 간트 차트 영역 */}
-                  <div className="ml-80 relative h-full bg-white dark:bg-dark-50">
+          {/* 오른쪽: 간트 차트 */}
+          <div className="flex-1 overflow-x-auto">
+            {/* 타임라인 헤더 */}
+            {renderTimeline()}
+            
+            {/* 태스크 바들 */}
+            <div className="relative bg-white dark:bg-dark-50">
+              {ganttTasks.length === 0 ? (
+                <div className="p-8 text-center text-gray-400 dark:text-dark-400">
+                  태스크를 추가해주세요
+                </div>
+              ) : (
+                ganttTasks.map((task, index) => (
+                  <div
+                    key={task.id}
+                    className={`relative h-16 border-b border-gray-200 dark:border-dark-300 ${
+                      index % 2 === 0 ? 'bg-white dark:bg-dark-50' : 'bg-gray-50 dark:bg-dark-100'
+                    } hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
+                  >
                     {renderTaskBar(task)}
                   </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
