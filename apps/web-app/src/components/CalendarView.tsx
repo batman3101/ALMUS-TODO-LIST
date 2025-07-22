@@ -53,71 +53,67 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
     return { weeks, firstDay, lastDay };
   }, [currentDate]);
 
-  // 각 날짜별로 표시될 태스크들을 계산
-  const dateTasksMap = useMemo(() => {
-    if (!tasks || tasks.length === 0) return new Map();
+  // 주별로 연속된 태스크 막대를 계산
+  const weeklyTaskBars = useMemo(() => {
+    if (!tasks || tasks.length === 0) return [];
 
-    const dateMap = new Map<
-      string,
-      Array<{
+    const weekBars: Array<{
+      weekIndex: number;
+      taskBars: Array<{
         task: Task;
-        isStart: boolean;
-        isEnd: boolean;
-        isContinuation: boolean;
-        totalDuration: number;
-        dayIndex: number;
-      }>
-    >();
+        startDay: number; // 주 내에서 시작하는 요일 (0-6)
+        endDay: number;   // 주 내에서 끝나는 요일 (0-6)
+        row: number;      // 표시될 행 번호
+      }>;
+    }> = [];
 
-    // 달력의 모든 날짜에 대해 초기화
-    calendarData.weeks.forEach(week => {
-      week.forEach(date => {
-        dateMap.set(date.toDateString(), []);
+    calendarData.weeks.forEach((week, weekIndex) => {
+      const weekStartDate = week[0];
+      const weekEndDate = week[6];
+      const taskBars: any[] = [];
+      let currentRow = 0;
+
+      // 각 태스크에 대해 이번 주와 겹치는 부분 확인
+      tasks.forEach((task: Task) => {
+        if (task.startDate && task.dueDate) {
+          const taskStart = new Date(task.startDate);
+          const taskEnd = new Date(task.dueDate);
+
+          // 태스크가 이번 주와 겹치는지 확인
+          if (taskStart <= weekEndDate && taskEnd >= weekStartDate) {
+            // 주 내에서의 시작/끝 요일 계산
+            let startDay = 0;
+            let endDay = 6;
+
+            // 태스크 시작일이 이번 주 내에 있으면 정확한 요일 계산
+            if (taskStart >= weekStartDate) {
+              startDay = Math.floor((taskStart.getTime() - weekStartDate.getTime()) / (1000 * 60 * 60 * 24));
+            }
+
+            // 태스크 끝일이 이번 주 내에 있으면 정확한 요일 계산
+            if (taskEnd <= weekEndDate) {
+              endDay = Math.floor((taskEnd.getTime() - weekStartDate.getTime()) / (1000 * 60 * 60 * 24));
+            }
+
+            taskBars.push({
+              task,
+              startDay: Math.max(0, startDay),
+              endDay: Math.min(6, endDay),
+              row: currentRow++,
+            });
+          }
+        }
+      });
+
+      weekBars.push({
+        weekIndex,
+        taskBars,
       });
     });
 
-    tasks.forEach((task: Task) => {
-      if (task.startDate && task.dueDate) {
-        const startDate = new Date(task.startDate);
-        const endDate = new Date(task.dueDate);
-
-        // 시작일부터 마감일까지의 모든 날짜에 태스크 정보 추가
-        const currentDate = new Date(startDate);
-        let dayIndex = 0;
-        const totalDuration =
-          Math.ceil(
-            (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-          ) + 1;
-
-        while (currentDate <= endDate) {
-          const dateStr = currentDate.toDateString();
-          const tasksForDate = dateMap.get(dateStr);
-
-          if (tasksForDate) {
-            tasksForDate.push({
-              task,
-              isStart: currentDate.toDateString() === startDate.toDateString(),
-              isEnd: currentDate.toDateString() === endDate.toDateString(),
-              isContinuation:
-                currentDate.toDateString() !== startDate.toDateString(),
-              totalDuration,
-              dayIndex,
-            });
-          }
-
-          currentDate.setDate(currentDate.getDate() + 1);
-          dayIndex++;
-        }
-      }
-    });
-
-    return dateMap;
+    return weekBars;
   }, [tasks, calendarData]);
 
-  // 특정 날짜의 태스크들 반환
-  const getTasksForDate = (date: Date) => {
-    return dateTasksMap.get(date.toDateString()) || [];
-  };
 
   // 우선순위에 따른 색상 반환
   const getPriorityColor = (priority: TaskPriority) => {
@@ -226,75 +222,78 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
       </div>
 
       {/* 달력 본문 */}
-      <div className="grid grid-cols-7">
-        {calendarData.weeks.map((week, weekIndex) =>
-          week.map((date, dayIndex) => {
-            const isCurrentMonth = date.getMonth() === currentDate.getMonth();
-            const isToday = date.toDateString() === new Date().toDateString();
-            const tasksForDate = getTasksForDate(date);
+      <div className="relative">
+        {/* 주별로 그리기 */}
+        {calendarData.weeks.map((week, weekIndex) => {
+          const weekTaskBars = weeklyTaskBars.find(wb => wb.weekIndex === weekIndex)?.taskBars || [];
+          const maxRows = Math.max(3, weekTaskBars.length); // 최소 3행 보장
+          const weekHeight = 120 + maxRows * 28; // 날짜 표시 공간 + 태스크 행들
 
-            // 태스크 개수에 따라 동적 높이 설정
-            const minHeight = Math.max(120, 40 + tasksForDate.length * 28);
+          return (
+            <div key={weekIndex} className="relative" style={{ height: `${weekHeight}px` }}>
+              {/* 각 날짜 셀들 */}
+              <div className="grid grid-cols-7 h-full">
+                {week.map((date, dayIndex) => {
+                  const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+                  const isToday = date.toDateString() === new Date().toDateString();
 
-            return (
-              <div
-                key={`${weekIndex}-${dayIndex}`}
-                className={`p-2 border-r border-b border-gray-200 dark:border-dark-300 last:border-r-0 ${
-                  !isCurrentMonth ? 'bg-gray-50 dark:bg-dark-200' : ''
-                }`}
-                style={{ minHeight: `${minHeight}px` }}
-              >
-                {/* 날짜 */}
-                <div
-                  className={`text-sm mb-2 ${
-                    isToday
-                      ? 'w-6 h-6 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold'
-                      : !isCurrentMonth
-                        ? 'text-gray-400 dark:text-dark-400'
-                        : dayIndex === 0
-                          ? 'text-red-500'
-                          : dayIndex === 6
-                            ? 'text-blue-500'
-                            : 'text-gray-900 dark:text-dark-900'
-                  }`}
-                >
-                  {date.getDate()}
-                </div>
-
-                {/* 태스크 막대들 */}
-                <div className="space-y-1">
-                  {tasksForDate.map((taskInfo: any, index: number) => {
-                    const { task, isStart, isEnd, isContinuation } = taskInfo;
-
-                    return (
+                  return (
+                    <div
+                      key={`${weekIndex}-${dayIndex}`}
+                      className={`p-2 border-r border-b border-gray-200 dark:border-dark-300 ${dayIndex === 6 ? 'border-r-0' : ''} ${
+                        !isCurrentMonth ? 'bg-gray-50 dark:bg-dark-200' : ''
+                      }`}
+                    >
+                      {/* 날짜 */}
                       <div
-                        key={`${task.id}-${index}`}
-                        className={`text-xs px-2 py-1 flex items-center ${getPriorityColor(task.priority)} ${
-                          isStart ? 'rounded-l' : ''
-                        } ${isEnd ? 'rounded-r' : ''} ${
-                          !isStart && !isEnd ? 'rounded-none' : ''
+                        className={`text-sm mb-2 ${
+                          isToday
+                            ? 'w-6 h-6 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold'
+                            : !isCurrentMonth
+                              ? 'text-gray-400 dark:text-dark-400'
+                              : dayIndex === 0
+                                ? 'text-red-500'
+                                : dayIndex === 6
+                                  ? 'text-blue-500'
+                                  : 'text-gray-900 dark:text-dark-900'
                         }`}
-                        title={`${task.title} (${new Date(task.startDate!).toLocaleDateString()} - ${new Date(task.dueDate!).toLocaleDateString()})`}
                       >
-                        {/* 시작일에만 제목 표시, 연속일에는 빈 막대 */}
-                        <span
-                          className={`truncate ${isContinuation ? 'opacity-0' : ''}`}
-                        >
-                          {task.title}
-                        </span>
-
-                        {/* 연속 표시용 점선 */}
-                        {isContinuation && !isEnd && (
-                          <div className="flex-1 border-b-2 border-dashed border-current opacity-50"></div>
-                        )}
+                        {date.getDate()}
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })
-        )}
+
+              {/* 연속된 태스크 막대들 */}
+              <div className="absolute inset-0 pointer-events-none">
+                {weekTaskBars.map((taskBar, barIndex) => {
+                  const { task, startDay, endDay, row } = taskBar;
+                  const barTop = 40 + row * 28; // 날짜 영역 아래부터 시작
+                  const barLeft = (startDay / 7) * 100;
+                  const barWidth = ((endDay - startDay + 1) / 7) * 100;
+
+                  return (
+                    <div
+                      key={`${task.id}-${barIndex}`}
+                      className={`absolute text-xs px-2 py-1 rounded ${getPriorityColor(task.priority)} pointer-events-auto`}
+                      style={{
+                        top: `${barTop}px`,
+                        left: `${barLeft}%`,
+                        width: `${barWidth}%`,
+                        height: '24px',
+                        zIndex: 10,
+                      }}
+                      title={`${task.title} (${new Date(task.startDate!).toLocaleDateString()} - ${new Date(task.dueDate!).toLocaleDateString()})`}
+                    >
+                      <span className="truncate block">{task.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* 범례 */}
