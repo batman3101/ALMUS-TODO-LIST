@@ -150,10 +150,7 @@
         "services/task-service/src/task/task.service.ts"
       ],
       "priority": "high",
-      "errors": [
-        "notification.controller 모듈 누락",
-        "teamId 속성 누락"
-      ]
+      "errors": ["notification.controller 모듈 누락", "teamId 속성 누락"]
     }
   ],
   "developmentGuidelines": {

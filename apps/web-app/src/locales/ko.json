@@ -46,7 +46,7 @@
     "noTasks": "등록된 태스크가 없습니다."
   },
   "status": {
-    "todo": "할 일",
+    "todo": "시작 전",
     "inProgress": "진행 중",
     "review": "검토",
     "done": "완료",

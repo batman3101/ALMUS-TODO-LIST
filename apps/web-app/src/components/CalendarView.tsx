@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTasks } from '../hooks/useTasks';
+import { useTasks, useUpdateTask } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
-import { Task, TaskPriority } from '@almus/shared-types';
+import { Task, TaskPriority, UpdateTaskInput } from '@almus/shared-types';
+import EditTaskModal from './EditTaskModal';
 
 interface CalendarViewProps {
   className?: string;
@@ -18,8 +19,202 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
     teamId: user?.teamId || '',
   });
   const { t } = useTranslation();
+  const updateTask = useUpdateTask();
 
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // 모달 상태 관리
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  // 드래그 및 리사이즈 상태 관리
+  const [dragState, setDragState] = useState<{
+    isDragging: boolean;
+    isResizing: boolean;
+    dragType: 'move' | 'resize-left' | 'resize-right' | null;
+    taskId: string | null;
+    startX: number;
+    originalStartDate: Date | null;
+    originalEndDate: Date | null;
+  }>({
+    isDragging: false,
+    isResizing: false,
+    dragType: null,
+    taskId: null,
+    startX: 0,
+    originalStartDate: null,
+    originalEndDate: null,
+  });
+
+  // 태스크 클릭 핸들러
+  const handleTaskClick = (task: Task) => {
+    setEditingTask(task);
+    setShowEditModal(true);
+  };
+
+  // 모달 닫기 핸들러
+  const handleEditModalClose = () => {
+    setEditingTask(null);
+    setShowEditModal(false);
+  };
+
+  // 태스크 업데이트 핸들러
+  const handleTaskSave = async (taskId: string, updateData: UpdateTaskInput) => {
+    try {
+      await updateTask.mutateAsync({ id: taskId, updates: updateData });
+    } catch (error) {
+      console.error('태스크 업데이트 실패:', error);
+      throw error; // EditTaskModal에서 에러 처리하도록 throw
+    }
+  };
+
+  // 드래그 시작 핸들러
+  const handleDragStart = (e: React.MouseEvent, task: Task, dragType: 'move' | 'resize-left' | 'resize-right') => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setDragState({
+      isDragging: dragType === 'move',
+      isResizing: dragType.startsWith('resize'),
+      dragType,
+      taskId: task.id,
+      startX: e.clientX,
+      originalStartDate: task.startDate ? new Date(task.startDate) : null,
+      originalEndDate: task.dueDate ? new Date(task.dueDate) : null,
+    });
+
+    // 전역 마우스 이벤트 리스너 추가
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // 마우스 이동 핸들러
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!dragState.isDragging && !dragState.isResizing || !dragState.taskId) return;
+
+    // 마우스 이동 거리 계산
+    const deltaX = e.clientX - dragState.startX;
+    
+    // 캘린더 컨테이너의 너비를 기준으로 일(day) 단위 계산
+    // 일반적으로 캘린더는 주 단위(7일)로 표시되므로, 전체 너비를 7로 나누면 하루의 너비
+    const calendarContainer = document.querySelector('[data-calendar-content]');
+    if (!calendarContainer) return;
+    
+    const containerWidth = calendarContainer.clientWidth;
+    const dayWidth = containerWidth / 7; // 한 주가 7일이므로
+    const daysDelta = Math.round(deltaX / dayWidth);
+    
+    if (daysDelta === 0) return; // 변화가 없으면 리턴
+
+    // 현재 편집 중인 태스크 찾기
+    const task = tasks?.find(t => t.id === dragState.taskId);
+    if (!task || !task.startDate || !task.dueDate) return;
+
+    let newStartDate = new Date(dragState.originalStartDate!);
+    let newEndDate = new Date(dragState.originalEndDate!);
+
+    // 드래그 타입에 따른 날짜 조정
+    switch (dragState.dragType) {
+      case 'move':
+        // 태스크 전체 이동
+        newStartDate.setDate(newStartDate.getDate() + daysDelta);
+        newEndDate.setDate(newEndDate.getDate() + daysDelta);
+        break;
+      
+      case 'resize-left':
+        // 시작일 조정 (종료일은 고정)
+        newStartDate.setDate(newStartDate.getDate() + daysDelta);
+        // 시작일이 종료일 이후가 되지 않도록 제한
+        if (newStartDate >= newEndDate) {
+          newStartDate = new Date(newEndDate);
+          newStartDate.setDate(newStartDate.getDate() - 1);
+        }
+        break;
+      
+      case 'resize-right':
+        // 종료일 조정 (시작일은 고정)
+        newEndDate.setDate(newEndDate.getDate() + daysDelta);
+        // 종료일이 시작일 이전이 되지 않도록 제한
+        if (newEndDate <= newStartDate) {
+          newEndDate = new Date(newStartDate);
+          newEndDate.setDate(newEndDate.getDate() + 1);
+        }
+        break;
+    }
+
+    // 실시간 업데이트 (낙관적 업데이트)
+    // 실제로는 마우스업에서 최종 저장하고, 여기서는 UI만 업데이트
+    // React Query의 optimistic update 사용 가능
+  };
+
+  // 마우스 업 핸들러
+  const handleMouseUp = async () => {
+    if (dragState.taskId && (dragState.isDragging || dragState.isResizing)) {
+      // 마우스 이동 거리 계산
+      const calendarContainer = document.querySelector('[data-calendar-content]');
+      if (calendarContainer) {
+        const containerWidth = calendarContainer.clientWidth;
+        const dayWidth = containerWidth / 7;
+        const currentMouseX = event ? (event as MouseEvent).clientX : dragState.startX;
+        const deltaX = currentMouseX - dragState.startX;
+        const daysDelta = Math.round(deltaX / dayWidth);
+        
+        if (daysDelta !== 0) {
+          // 최종 날짜 계산
+          let newStartDate = new Date(dragState.originalStartDate!);
+          let newEndDate = new Date(dragState.originalEndDate!);
+          
+          switch (dragState.dragType) {
+            case 'move':
+              newStartDate.setDate(newStartDate.getDate() + daysDelta);
+              newEndDate.setDate(newEndDate.getDate() + daysDelta);
+              break;
+            
+            case 'resize-left':
+              newStartDate.setDate(newStartDate.getDate() + daysDelta);
+              if (newStartDate >= newEndDate) {
+                newStartDate = new Date(newEndDate);
+                newStartDate.setDate(newStartDate.getDate() - 1);
+              }
+              break;
+            
+            case 'resize-right':
+              newEndDate.setDate(newEndDate.getDate() + daysDelta);
+              if (newEndDate <= newStartDate) {
+                newEndDate = new Date(newStartDate);
+                newEndDate.setDate(newEndDate.getDate() + 1);
+              }
+              break;
+          }
+          
+          // API 호출하여 태스크 업데이트
+          try {
+            await handleTaskSave(dragState.taskId, {
+              startDate: newStartDate,
+              dueDate: newEndDate,
+            });
+          } catch (error) {
+            console.error('태스크 날짜 업데이트 실패:', error);
+          }
+        }
+      }
+    }
+    
+    // 드래그 상태 리셋
+    setDragState({
+      isDragging: false,
+      isResizing: false,
+      dragType: null,
+      taskId: null,
+      startX: 0,
+      originalStartDate: null,
+      originalEndDate: null,
+    });
+
+    // 전역 이벤트 리스너 제거
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  };
 
   // 현재 월의 달력 데이터 생성
   const calendarData = useMemo(() => {
@@ -222,7 +417,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
       </div>
 
       {/* 달력 본문 */}
-      <div className="relative">
+      <div className="relative" data-calendar-content>
         {/* 주별로 그리기 */}
         {calendarData.weeks.map((week, weekIndex) => {
           const weekTaskBars = weeklyTaskBars.find(wb => wb.weekIndex === weekIndex)?.taskBars || [];
@@ -276,7 +471,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
                   return (
                     <div
                       key={`${task.id}-${barIndex}`}
-                      className={`absolute text-xs px-2 py-1 rounded ${getPriorityColor(task.priority)} pointer-events-auto`}
+                      className={`absolute text-xs rounded ${getPriorityColor(task.priority)} pointer-events-auto group hover:shadow-md transition-shadow duration-200`}
                       style={{
                         top: `${barTop}px`,
                         left: `${barLeft}%`,
@@ -286,7 +481,33 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
                       }}
                       title={`${task.title} (${new Date(task.startDate!).toLocaleDateString()} - ${new Date(task.dueDate!).toLocaleDateString()})`}
                     >
-                      <span className="truncate block">{task.title}</span>
+                      {/* 왼쪽 리사이즈 핸들 */}
+                      <div
+                        className="absolute left-0 top-0 w-2 h-full bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 cursor-w-resize transition-opacity duration-200 rounded-l"
+                        onMouseDown={(e) => handleDragStart(e, task, 'resize-left')}
+                        onClick={(e) => e.stopPropagation()}
+                        title="시작일 조정"
+                      />
+                      
+                      {/* 태스크 내용 (중앙 클릭 영역) */}
+                      <div
+                        className="absolute inset-x-2 inset-y-0 flex items-center cursor-grab hover:cursor-grab active:cursor-grabbing"
+                        onMouseDown={(e) => handleDragStart(e, task, 'move')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTaskClick(task);
+                        }}
+                      >
+                        <span className="truncate block">{task.title}</span>
+                      </div>
+                      
+                      {/* 오른쪽 리사이즈 핸들 */}
+                      <div
+                        className="absolute right-0 top-0 w-2 h-full bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 cursor-e-resize transition-opacity duration-200 rounded-r"
+                        onMouseDown={(e) => handleDragStart(e, task, 'resize-right')}
+                        onClick={(e) => e.stopPropagation()}
+                        title="종료일 조정"
+                      />
                     </div>
                   );
                 })}
@@ -318,6 +539,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
           </div>
         </div>
       </div>
+
+      {/* 태스크 편집 모달 */}
+      <EditTaskModal
+        isOpen={showEditModal}
+        task={editingTask}
+        onClose={handleEditModalClose}
+        onSave={handleTaskSave}
+      />
     </div>
   );
 };

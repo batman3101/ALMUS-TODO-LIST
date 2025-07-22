@@ -53,8 +53,8 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     () => [
       {
         id: TaskStatus.TODO,
-        title: '할 일',
-        color: 'bg-gray-100 dark:bg-dark-200',
+        title: '시작 전',
+        color: 'bg-pink-100 dark:bg-pink-900/30',
         wipLimit: wipLimits[TaskStatus.TODO],
       },
       {

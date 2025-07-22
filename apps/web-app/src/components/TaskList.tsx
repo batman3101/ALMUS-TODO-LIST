@@ -156,7 +156,7 @@ const TaskList: React.FC = function TaskList() {
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
       case TaskStatus.TODO:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200';
+        return 'bg-pink-100 dark:bg-pink-800 text-pink-800 dark:text-pink-200';
       case TaskStatus.IN_PROGRESS:
         return 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200';
       case TaskStatus.REVIEW:
@@ -281,7 +281,7 @@ const TaskList: React.FC = function TaskList() {
                 className="px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-100 text-gray-900 dark:text-dark-900 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="all">모든 상태</option>
-                <option value={TaskStatus.TODO}>할 일</option>
+                <option value={TaskStatus.TODO}>시작 전</option>
                 <option value={TaskStatus.IN_PROGRESS}>진행중</option>
                 <option value={TaskStatus.REVIEW}>검토중</option>
                 <option value={TaskStatus.DONE}>완료</option>

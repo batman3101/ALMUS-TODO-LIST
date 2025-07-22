@@ -1,14 +1,16 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { useTasks } from '../hooks/useTasks';
+import { useTasks, useUpdateTask } from '../hooks/useTasks';
 import {
   Task,
   GanttTask,
   ZoomLevel,
   GanttViewConfig,
+  UpdateTaskInput,
 } from '@almus/shared-types';
 import { useAuth } from '../hooks/useAuth';
+import EditTaskModal from './EditTaskModal';
 
 const GanttView: React.FC = () => {
   const { user } = useAuth();
@@ -40,6 +42,38 @@ const GanttView: React.FC = () => {
   } = useTasks({
     teamId: user?.teamId || '',
   });
+
+  const updateTask = useUpdateTask();
+
+  // 모달 상태 관리
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  // 태스크 클릭 핸들러
+  const handleTaskClick = (task: GanttTask) => {
+    // GanttTask에서 원본 Task 찾기
+    const originalTask = tasks?.find(t => t.id === task.id);
+    if (originalTask) {
+      setEditingTask(originalTask);
+      setShowEditModal(true);
+    }
+  };
+
+  // 모달 닫기 핸들러
+  const handleEditModalClose = () => {
+    setEditingTask(null);
+    setShowEditModal(false);
+  };
+
+  // 태스크 업데이트 핸들러
+  const handleTaskSave = async (taskId: string, updateData: UpdateTaskInput) => {
+    try {
+      await updateTask.mutateAsync({ id: taskId, updates: updateData });
+    } catch (error) {
+      console.error('태스크 업데이트 실패:', error);
+      throw error; // EditTaskModal에서 에러 처리하도록 throw
+    }
+  };
 
   // 진행률 계산 함수
   const calculateTaskProgress = (
@@ -642,7 +676,7 @@ const GanttView: React.FC = () => {
     const getStatusColor = (status: string) => {
       switch (status) {
         case 'TODO':
-          return 'bg-gray-400 dark:bg-gray-500';
+          return 'bg-pink-400 dark:bg-pink-500';
         case 'IN_PROGRESS':
           return 'bg-blue-500 dark:bg-blue-600';
         case 'REVIEW':
@@ -682,6 +716,7 @@ const GanttView: React.FC = () => {
             transform: 'translateY(-50%)', // 수직 중앙 정렬
           }}
           title={`${task.title} (${format(task.startDate, 'yyyy/MM/dd')} - ${format(task.endDate, 'yyyy/MM/dd')})`}
+          onClick={() => handleTaskClick(task)}
         >
           {/* 진행률 표시 */}
           {config.showProgress && task.progress > 0 && (
@@ -895,7 +930,7 @@ const GanttView: React.FC = () => {
                           <div
                             className={`w-4 h-4 rounded-full flex-shrink-0 ${
                               task.status === 'TODO'
-                                ? 'bg-gray-400'
+                                ? 'bg-pink-400'
                                 : task.status === 'IN_PROGRESS'
                                   ? 'bg-blue-500'
                                   : task.status === 'REVIEW'
@@ -933,7 +968,7 @@ const GanttView: React.FC = () => {
                           <span
                             className={`px-2 py-1 rounded text-white font-medium ${
                               task.status === 'TODO'
-                                ? 'bg-gray-500'
+                                ? 'bg-pink-500'
                                 : task.status === 'IN_PROGRESS'
                                   ? 'bg-blue-600'
                                   : task.status === 'REVIEW'
@@ -999,6 +1034,14 @@ const GanttView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 태스크 편집 모달 */}
+      <EditTaskModal
+        isOpen={showEditModal}
+        task={editingTask}
+        onClose={handleEditModalClose}
+        onSave={handleTaskSave}
+      />
     </div>
   );
 };
