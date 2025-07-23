@@ -1,18 +1,228 @@
-rules_version='2'
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // 유틸리티 함수들
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserId() {
+      return request.auth.uid;
+    }
+    
+    function getUserEmail() {
+      return request.auth.token.email;
+    }
+    
+    // 팀 멤버십 확인
+    function isTeamMember(teamId) {
+      return exists(/databases/$(database)/documents/team_members/$(getUserId() + '_' + teamId)) &&
+             get(/databases/$(database)/documents/team_members/$(getUserId() + '_' + teamId)).data.isActive == true;
+    }
+    
+    // 팀 역할 확인
+    function getTeamRole(teamId) {
+      let memberPath = /databases/$(database)/documents/team_members/$(getUserId() + '_' + teamId);
+      return exists(memberPath) ? get(memberPath).data.role : null;
+    }
+    
+    function isTeamOwner(teamId) {
+      return getTeamRole(teamId) == 'OWNER';
+    }
+    
+    function isTeamAdmin(teamId) {
+      let role = getTeamRole(teamId);
+      return role == 'OWNER' || role == 'ADMIN';
+    }
+    
+    function isTeamEditor(teamId) {
+      let role = getTeamRole(teamId);
+      return role == 'OWNER' || role == 'ADMIN' || role == 'EDITOR';
+    }
+    
+    function isTeamViewer(teamId) {
+      let role = getTeamRole(teamId);
+      return role == 'OWNER' || role == 'ADMIN' || role == 'EDITOR' || role == 'VIEWER';
+    }
+
+    // 사용자 문서 - 자신의 문서만 읽기/쓰기 가능
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && getUserId() == userId;
+    }
+
+    // 팀 문서 - 팀 멤버만 읽기 가능, 소유자/관리자만 쓰기 가능
+    match /teams/{teamId} {
+      allow read: if isAuthenticated() && isTeamMember(teamId);
+      allow create: if isAuthenticated() && getUserId() == resource.data.ownerId;
+      allow update: if isAuthenticated() && isTeamAdmin(teamId);
+      allow delete: if isAuthenticated() && isTeamOwner(teamId);
+    }
+
+    // 팀 멤버 문서 - 팀 멤버는 읽기 가능, 관리자는 쓰기 가능
+    match /team_members/{memberId} {
+      allow read: if isAuthenticated() && (
+        // 자신의 멤버십 정보는 읽을 수 있음
+        resource.data.userId == getUserId() ||
+        // 같은 팀의 다른 멤버 정보는 팀 멤버만 읽을 수 있음
+        isTeamMember(resource.data.teamId)
+      );
+      
+      allow create: if isAuthenticated() && (
+        // 초대 수락 시 자신의 멤버십 생성
+        resource.data.userId == getUserId() ||
+        // 관리자가 직접 멤버 추가
+        isTeamAdmin(resource.data.teamId)
+      );
+      
+      allow update: if isAuthenticated() && (
+        // 관리자가 멤버 역할 변경
+        isTeamAdmin(resource.data.teamId) ||
+        // 자신의 활성 상태 변경 (팀 탈퇴)
+        (resource.data.userId == getUserId() && request.resource.data.isActive == false)
+      );
+      
+      allow delete: if isAuthenticated() && (
+        isTeamAdmin(resource.data.teamId) ||
+        // 자신의 멤버십 삭제 (팀 탈퇴)
+        resource.data.userId == getUserId()
+      );
+    }
+
+    // 팀 초대 문서 - 초대자와 피초대자만 접근 가능
+    match /team_invitations/{invitationId} {
+      allow read: if isAuthenticated() && (
+        // 초대자는 읽을 수 있음
+        resource.data.invitedBy == getUserId() ||
+        // 피초대자는 읽을 수 있음 (이메일 매칭)
+        resource.data.email == getUserEmail() ||
+        // 팀 관리자는 읽을 수 있음
+        isTeamAdmin(resource.data.teamId)
+      );
+      
+      allow create: if isAuthenticated() && 
+        resource.data.invitedBy == getUserId() &&
+        isTeamAdmin(resource.data.teamId);
+      
+      allow update: if isAuthenticated() && (
+        // 초대자 또는 팀 관리자가 초대 취소
+        (resource.data.invitedBy == getUserId() || isTeamAdmin(resource.data.teamId)) ||
+        // 피초대자가 수락/거절 (이메일 매칭 필요)
+        (resource.data.email == getUserEmail() && 
+         request.resource.data.status in ['ACCEPTED', 'REJECTED'])
+      );
+      
+      allow delete: if isAuthenticated() && (
+        resource.data.invitedBy == getUserId() ||
+        isTeamAdmin(resource.data.teamId)
+      );
+    }
+
+    // 작업 문서 - 팀 멤버만 접근, 역할별 권한 제한
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated() && isTeamViewer(resource.data.teamId);
+      
+      allow create: if isAuthenticated() && 
+        isTeamEditor(resource.data.teamId) &&
+        resource.data.createdBy == getUserId();
+      
+      allow update: if isAuthenticated() && (
+        // 작업 생성자는 수정 가능
+        resource.data.createdBy == getUserId() ||
+        // 작업 담당자는 수정 가능
+        resource.data.assigneeId == getUserId() ||
+        // 편집자 이상은 수정 가능
+        isTeamEditor(resource.data.teamId)
+      );
+      
+      allow delete: if isAuthenticated() && (
+        // 작업 생성자는 삭제 가능
+        resource.data.createdBy == getUserId() ||
+        // 관리자는 삭제 가능
+        isTeamAdmin(resource.data.teamId)
+      );
+    }
+
+    // 프로젝트 문서 - 팀 멤버만 접근
+    match /projects/{projectId} {
+      allow read: if isAuthenticated() && isTeamViewer(resource.data.teamId);
+      allow create: if isAuthenticated() && isTeamEditor(resource.data.teamId);
+      allow update: if isAuthenticated() && (
+        resource.data.createdBy == getUserId() ||
+        isTeamEditor(resource.data.teamId)
+      );
+      allow delete: if isAuthenticated() && (
+        resource.data.createdBy == getUserId() ||
+        isTeamAdmin(resource.data.teamId)
+      );
+    }
+
+    // 알림 문서 - 자신의 알림만 접근 가능
+    match /notifications/{notificationId} {
+      allow read, write: if isAuthenticated() && resource.data.userId == getUserId();
+    }
+
+    // 알림 설정 문서 - 자신의 설정만 접근 가능
+    match /notification_settings/{settingsId} {
+      allow read, write: if isAuthenticated() && resource.data.userId == getUserId();
+    }
+
+    // 알림 템플릿 - 시스템 관리자만 접근 (추후 구현)
+    match /notification_templates/{templateId} {
+      allow read: if isAuthenticated();
+      // 쓰기는 시스템 관리자만 (Cloud Functions에서 처리)
+    }
+
+    // 작업 의존성 - 팀 멤버만 접근
+    match /task_dependencies/{dependencyId} {
+      allow read: if isAuthenticated() && 
+        (isTeamViewer(get(/databases/$(database)/documents/tasks/$(resource.data.sourceTaskId)).data.teamId) ||
+         isTeamViewer(get(/databases/$(database)/documents/tasks/$(resource.data.targetTaskId)).data.teamId));
+      
+      allow create, update, delete: if isAuthenticated() && 
+        (isTeamEditor(get(/databases/$(database)/documents/tasks/$(resource.data.sourceTaskId)).data.teamId) ||
+         isTeamEditor(get(/databases/$(database)/documents/tasks/$(resource.data.targetTaskId)).data.teamId));
+    }
+
+    // 파일 메타데이터 - 팀 멤버만 접근
+    match /file_metadata/{fileId} {
+      allow read: if isAuthenticated() && isTeamViewer(resource.data.teamId);
+      allow create: if isAuthenticated() && 
+        resource.data.uploaderId == getUserId() &&
+        isTeamEditor(resource.data.teamId);
+      allow update, delete: if isAuthenticated() && (
+        resource.data.uploaderId == getUserId() ||
+        isTeamAdmin(resource.data.teamId)
+      );
+    }
+
+    // 기본적으로 모든 다른 문서는 거부
     match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2025, 8, 19);
+      allow read, write: if false;
     }
   }
 }
+
+// Firebase Storage 보안 규칙 (참고용 - 별도 파일에서 관리)
+/*
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 팀별 파일 업로드 제한
+    match /teams/{teamId}/{allPaths=**} {
+      allow read: if request.auth != null && 
+        firestore.exists(/databases/(default)/documents/team_members/$(request.auth.uid + '_' + teamId));
+      
+      allow write: if request.auth != null && 
+        firestore.exists(/databases/(default)/documents/team_members/$(request.auth.uid + '_' + teamId)) &&
+        firestore.get(/databases/(default)/documents/team_members/$(request.auth.uid + '_' + teamId)).data.role in ['OWNER', 'ADMIN', 'EDITOR'];
+    }
+    
+    // 사용자 아바타 업로드
+    match /users/{userId}/avatar/{filename} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+*/

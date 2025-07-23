@@ -1,5 +1,7 @@
 import { Timestamp } from 'firebase/firestore';
 export type UserRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
+export type TeamRole = 'OWNER' | 'ADMIN' | 'EDITOR' | 'VIEWER';
+export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'CANCELLED';
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type NotificationType = 'TASK_ASSIGNED' | 'TASK_DUE' | 'TASK_COMPLETED' | 'TASK_COMMENT' | 'TASK_OVERDUE' | 'MENTION' | 'SYSTEM_ANNOUNCEMENT';
@@ -14,6 +16,8 @@ export declare const FIRESTORE_COLLECTIONS: {
     readonly TASK_DEPENDENCIES: "task_dependencies";
     readonly PROJECTS: "projects";
     readonly TEAMS: "teams";
+    readonly TEAM_MEMBERS: "team_members";
+    readonly TEAM_INVITATIONS: "team_invitations";
 };
 export interface FirestoreUser {
     id: string;
@@ -21,8 +25,9 @@ export interface FirestoreUser {
     name: string;
     role: UserRole;
     avatar?: string;
-    teamId?: string;
-    projectIds: string[];
+    currentTeamId?: string;
+    isActive: boolean;
+    lastLoginAt?: Timestamp;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
@@ -114,8 +119,50 @@ export interface FirestoreTeam {
     id: string;
     name: string;
     description?: string;
-    createdBy: string;
+    ownerId: string;
+    memberCount: number;
+    settings: FirestoreTeamSettings;
     isActive: boolean;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export interface FirestoreTeamSettings {
+    isPublic: boolean;
+    allowInvitations: boolean;
+    defaultMemberRole: TeamRole;
+    maxMembers: number;
+    timeZone: string;
+    language: string;
+    features: FirestoreTeamFeatures;
+}
+export interface FirestoreTeamFeatures {
+    ganttView: boolean;
+    timeTracking: boolean;
+    advancedReporting: boolean;
+    customFields: boolean;
+    integrations: boolean;
+}
+export interface FirestoreTeamMember {
+    id: string;
+    teamId: string;
+    userId: string;
+    role: TeamRole;
+    joinedAt: Timestamp;
+    invitedBy?: string;
+    isActive: boolean;
+}
+export interface FirestoreTeamInvitation {
+    id: string;
+    teamId: string;
+    email: string;
+    role: TeamRole;
+    token: string;
+    invitedBy: string;
+    message?: string;
+    expiresAt: Timestamp;
+    acceptedAt?: Timestamp;
+    rejectedAt?: Timestamp;
+    status: InvitationStatus;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }

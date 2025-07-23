@@ -4,6 +4,21 @@ export var UserRole;
     UserRole["EDITOR"] = "EDITOR";
     UserRole["VIEWER"] = "VIEWER";
 })(UserRole || (UserRole = {}));
+export var TeamRole;
+(function (TeamRole) {
+    TeamRole["OWNER"] = "OWNER";
+    TeamRole["ADMIN"] = "ADMIN";
+    TeamRole["EDITOR"] = "EDITOR";
+    TeamRole["VIEWER"] = "VIEWER";
+})(TeamRole || (TeamRole = {}));
+export var InvitationStatus;
+(function (InvitationStatus) {
+    InvitationStatus["PENDING"] = "PENDING";
+    InvitationStatus["ACCEPTED"] = "ACCEPTED";
+    InvitationStatus["REJECTED"] = "REJECTED";
+    InvitationStatus["EXPIRED"] = "EXPIRED";
+    InvitationStatus["CANCELLED"] = "CANCELLED";
+})(InvitationStatus || (InvitationStatus = {}));
 export var TaskStatus;
 (function (TaskStatus) {
     TaskStatus["TODO"] = "TODO";

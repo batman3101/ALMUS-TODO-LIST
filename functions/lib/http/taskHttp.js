@@ -193,7 +193,9 @@ exports.getTasks = (0, https_1.onRequest)({
         console.error('Task 목록 조회 오류:', error);
         res.status(500).json({
             success: false,
-            error: error instanceof Error ? error.message : 'Task 목록 조회에 실패했습니다.',
+            error: error instanceof Error
+                ? error.message
+                : 'Task 목록 조회에 실패했습니다.',
         });
     }
 });
@@ -228,7 +230,9 @@ exports.getTaskAggregation = (0, https_1.onRequest)({
         console.error('Task 집계 조회 오류:', error);
         res.status(500).json({
             success: false,
-            error: error instanceof Error ? error.message : 'Task 집계 조회에 실패했습니다.',
+            error: error instanceof Error
+                ? error.message
+                : 'Task 집계 조회에 실패했습니다.',
         });
     }
 });

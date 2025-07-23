@@ -23,6 +23,13 @@ export {
   sendTestNotification,
 } from './http/fcmHttp';
 
+// Team HTTP 함수들
+export {
+  inviteTeamMember,
+  acceptTeamInvitation,
+  rejectTeamInvitation,
+} from './http/teamHttp';
+
 // Firestore 트리거 함수들
 export {
   onTaskCreated,

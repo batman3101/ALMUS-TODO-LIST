@@ -75,7 +75,8 @@ class TaskService {
                 throw new Error('Task를 수정할 권한이 없습니다.');
             }
             // 담당자 변경 시 팀 멤버 확인
-            if (updateData.assigneeId && updateData.assigneeId !== taskData.assigneeId) {
+            if (updateData.assigneeId &&
+                updateData.assigneeId !== taskData.assigneeId) {
                 const isAssigneeMember = await auth_1.AuthUtils.isTeamMember(updateData.assigneeId, taskData.teamId);
                 if (!isAssigneeMember) {
                     throw new Error('새 담당자가 팀 멤버가 아닙니다.');
@@ -91,7 +92,10 @@ class TaskService {
             });
             await (0, firebase_admin_1.firestore)().collection('tasks').doc(taskId).update(updateDoc);
             // 업데이트된 Task 조회
-            const updatedDoc = await (0, firebase_admin_1.firestore)().collection('tasks').doc(taskId).get();
+            const updatedDoc = await (0, firebase_admin_1.firestore)()
+                .collection('tasks')
+                .doc(taskId)
+                .get();
             return Object.assign({ id: taskId }, updatedDoc.data());
         }
         catch (error) {
@@ -225,12 +229,11 @@ class TaskService {
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const totalTasks = tasks.length;
             const completedTasks = tasks.filter(task => task.status === 'DONE').length;
-            const overdueTasks = tasks.filter(task => task.dueDate &&
-                new Date(task.dueDate) < now &&
-                task.status !== 'DONE').length;
+            const overdueTasks = tasks.filter(task => task.dueDate && new Date(task.dueDate) < now && task.status !== 'DONE').length;
             const dueTodayTasks = tasks.filter(task => task.dueDate &&
                 new Date(task.dueDate) >= today &&
-                new Date(task.dueDate) < new Date(today.getTime() + 24 * 60 * 60 * 1000) &&
+                new Date(task.dueDate) <
+                    new Date(today.getTime() + 24 * 60 * 60 * 1000) &&
                 task.status !== 'DONE').length;
             const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
             return {

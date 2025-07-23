@@ -17,10 +17,7 @@ class FCMService {
                 updatedAt: new Date(),
                 isActive: true,
             };
-            await (0, firebase_admin_2.firestore)()
-                .collection('fcm_tokens')
-                .doc(token)
-                .set(tokenDoc);
+            await (0, firebase_admin_2.firestore)().collection('fcm_tokens').doc(token).set(tokenDoc);
             console.log(`FCM 토큰 저장 완료: ${userId} - ${platform}`);
         }
         catch (error) {
@@ -33,10 +30,7 @@ class FCMService {
      */
     static async deleteToken(token) {
         try {
-            await (0, firebase_admin_2.firestore)()
-                .collection('fcm_tokens')
-                .doc(token)
-                .delete();
+            await (0, firebase_admin_2.firestore)().collection('fcm_tokens').doc(token).delete();
             console.log(`FCM 토큰 삭제 완료: ${token}`);
         }
         catch (error) {
@@ -155,12 +149,12 @@ class FCMService {
                 androidChannelId: 'urgent_notifications',
             },
         };
-        return templates[type] || {
+        return (templates[type] || {
             type: 'TASK_UPDATED',
             title: '알림',
             body: '새로운 알림이 있습니다.',
             priority: 'normal',
-        };
+        });
     }
     /**
      * 단일 사용자에게 Push 알림 발송
@@ -288,9 +282,7 @@ class FCMService {
     static async saveNotificationStats(stats) {
         try {
             const statsDoc = Object.assign(Object.assign({}, stats), { timestamp: new Date() });
-            await (0, firebase_admin_2.firestore)()
-                .collection('notification_stats')
-                .add(statsDoc);
+            await (0, firebase_admin_2.firestore)().collection('notification_stats').add(statsDoc);
             console.log('알림 통계 저장 완료');
         }
         catch (error) {

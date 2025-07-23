@@ -1,9 +1,17 @@
-import toast from 'react-hot-toast';
+import toastLib from 'react-hot-toast';
+
+// Export the main toast object for direct usage
+export const toast = {
+  success: (message: string) => toastLib.success(message),
+  error: (message: string) => toastLib.error(message),
+  loading: (message: string) => toastLib.loading(message),
+  dismiss: (toastId?: string) => toastLib.dismiss(toastId),
+};
 
 // Toast 유틸리티 함수들
 export const showToast = {
   success: (message: string) => {
-    toast.success(message, {
+    toastLib.success(message, {
       style: {
         background: '#10b981',
         color: 'white',
@@ -20,7 +28,7 @@ export const showToast = {
   },
 
   error: (message: string) => {
-    toast.error(message, {
+    toastLib.error(message, {
       style: {
         background: '#ef4444',
         color: 'white',
@@ -37,7 +45,7 @@ export const showToast = {
   },
 
   warning: (message: string) => {
-    toast(message, {
+    toastLib(message, {
       icon: '⚠️',
       style: {
         background: '#f59e0b',
@@ -51,7 +59,7 @@ export const showToast = {
   },
 
   info: (message: string) => {
-    toast(message, {
+    toastLib(message, {
       icon: 'ℹ️',
       style: {
         background: '#3b82f6',
@@ -67,7 +75,7 @@ export const showToast = {
   // 다크모드 지원 토스트
   dark: {
     success: (message: string) => {
-      toast.success(message, {
+      toastLib.success(message, {
         style: {
           background: '#1f2937',
           color: '#10b981',
@@ -85,7 +93,7 @@ export const showToast = {
     },
 
     error: (message: string) => {
-      toast.error(message, {
+      toastLib.error(message, {
         style: {
           background: '#1f2937',
           color: '#ef4444',
@@ -103,7 +111,7 @@ export const showToast = {
     },
 
     warning: (message: string) => {
-      toast(message, {
+      toastLib(message, {
         icon: '⚠️',
         style: {
           background: '#1f2937',
@@ -118,7 +126,7 @@ export const showToast = {
     },
 
     info: (message: string) => {
-      toast(message, {
+      toastLib(message, {
         icon: 'ℹ️',
         style: {
           background: '#1f2937',

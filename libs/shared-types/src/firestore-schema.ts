@@ -6,6 +6,10 @@ import { Timestamp } from 'firebase/firestore';
 // 타입 정의
 export type UserRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
 
+export type TeamRole = 'OWNER' | 'ADMIN' | 'EDITOR' | 'VIEWER';
+
+export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'CANCELLED';
+
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
 
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
@@ -44,6 +48,8 @@ export const FIRESTORE_COLLECTIONS = {
   TASK_DEPENDENCIES: 'task_dependencies',
   PROJECTS: 'projects',
   TEAMS: 'teams',
+  TEAM_MEMBERS: 'team_members',
+  TEAM_INVITATIONS: 'team_invitations',
 } as const;
 
 // Firestore 문서 인터페이스
@@ -53,8 +59,9 @@ export interface FirestoreUser {
   name: string;
   role: UserRole;
   avatar?: string;
-  teamId?: string;
-  projectIds: string[];
+  currentTeamId?: string;
+  isActive: boolean;
+  lastLoginAt?: Timestamp;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -158,8 +165,54 @@ export interface FirestoreTeam {
   id: string;
   name: string;
   description?: string;
-  createdBy: string;
+  ownerId: string;
+  memberCount: number;
+  settings: FirestoreTeamSettings;
   isActive: boolean;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface FirestoreTeamSettings {
+  isPublic: boolean;
+  allowInvitations: boolean;
+  defaultMemberRole: TeamRole;
+  maxMembers: number;
+  timeZone: string;
+  language: string;
+  features: FirestoreTeamFeatures;
+}
+
+export interface FirestoreTeamFeatures {
+  ganttView: boolean;
+  timeTracking: boolean;
+  advancedReporting: boolean;
+  customFields: boolean;
+  integrations: boolean;
+}
+
+export interface FirestoreTeamMember {
+  id: string;
+  teamId: string;
+  userId: string;
+  role: TeamRole;
+  joinedAt: Timestamp;
+  invitedBy?: string;
+  isActive: boolean;
+}
+
+export interface FirestoreTeamInvitation {
+  id: string;
+  teamId: string;
+  email: string;
+  role: TeamRole;
+  token: string;
+  invitedBy: string;
+  message?: string;
+  expiresAt: Timestamp;
+  acceptedAt?: Timestamp;
+  rejectedAt?: Timestamp;
+  status: InvitationStatus;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -224,6 +277,45 @@ export const REQUIRED_INDEXES: FirestoreIndex[] = [
   {
     collection: FIRESTORE_COLLECTIONS.PROJECTS,
     fields: ['teamId', 'isActive'],
+  },
+  // Teams 컬렉션 인덱스
+  {
+    collection: FIRESTORE_COLLECTIONS.TEAMS,
+    fields: ['ownerId', 'isActive'],
+  },
+  {
+    collection: FIRESTORE_COLLECTIONS.TEAMS,
+    fields: ['isActive', 'createdAt'],
+  },
+  // Team Members 컬렉션 인덱스
+  {
+    collection: FIRESTORE_COLLECTIONS.TEAM_MEMBERS,
+    fields: ['teamId', 'isActive'],
+  },
+  {
+    collection: FIRESTORE_COLLECTIONS.TEAM_MEMBERS,
+    fields: ['userId', 'isActive'],
+  },
+  {
+    collection: FIRESTORE_COLLECTIONS.TEAM_MEMBERS,
+    fields: ['teamId', 'role', 'joinedAt'],
+  },
+  // Team Invitations 컬렉션 인덱스
+  {
+    collection: FIRESTORE_COLLECTIONS.TEAM_INVITATIONS,
+    fields: ['teamId', 'status'],
+  },
+  {
+    collection: FIRESTORE_COLLECTIONS.TEAM_INVITATIONS,
+    fields: ['email', 'status'],
+  },
+  {
+    collection: FIRESTORE_COLLECTIONS.TEAM_INVITATIONS,
+    fields: ['token'],
+  },
+  {
+    collection: FIRESTORE_COLLECTIONS.TEAM_INVITATIONS,
+    fields: ['expiresAt', 'status'],
   },
 ];
 

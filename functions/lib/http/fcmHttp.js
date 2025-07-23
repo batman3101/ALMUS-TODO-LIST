@@ -26,7 +26,9 @@ exports.saveFCMToken = (0, https_1.onRequest)({
             return;
         }
         await fcmService_1.FCMService.saveToken(user.uid, token, platform);
-        res.status(200).json({ success: true, message: 'FCM 토큰이 저장되었습니다.' });
+        res
+            .status(200)
+            .json({ success: true, message: 'FCM 토큰이 저장되었습니다.' });
     }
     catch (error) {
         console.error('FCM 토큰 저장 오류:', error);
@@ -51,7 +53,9 @@ exports.deleteFCMToken = (0, https_1.onRequest)({
             return;
         }
         await fcmService_1.FCMService.deleteToken(token);
-        res.status(200).json({ success: true, message: 'FCM 토큰이 삭제되었습니다.' });
+        res
+            .status(200)
+            .json({ success: true, message: 'FCM 토큰이 삭제되었습니다.' });
     }
     catch (error) {
         console.error('FCM 토큰 삭제 오류:', error);
@@ -122,7 +126,9 @@ exports.saveNotificationSettings = (0, https_1.onRequest)({
         settings.userId = user.uid;
         settings.updatedAt = new Date();
         await fcmService_1.FCMService.saveNotificationSettings(settings);
-        res.status(200).json({ success: true, message: '알림 설정이 저장되었습니다.' });
+        res
+            .status(200)
+            .json({ success: true, message: '알림 설정이 저장되었습니다.' });
     }
     catch (error) {
         console.error('알림 설정 저장 오류:', error);
@@ -148,7 +154,9 @@ exports.sendTestNotification = (0, https_1.onRequest)({
         });
         const success = await fcmService_1.FCMService.sendPushNotification(user.uid, template);
         if (success) {
-            res.status(200).json({ success: true, message: '테스트 알림이 발송되었습니다.' });
+            res
+                .status(200)
+                .json({ success: true, message: '테스트 알림이 발송되었습니다.' });
         }
         else {
             res.status(400).json({ error: '테스트 알림 발송에 실패했습니다.' });

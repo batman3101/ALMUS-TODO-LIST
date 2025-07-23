@@ -5,6 +5,10 @@ export interface User {
   name: string;
   role: UserRole;
   avatar?: string;
+  currentTeamId?: string;
+  teams?: TeamMember[];
+  isActive: boolean;
+  lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -13,6 +17,83 @@ export enum UserRole {
   ADMIN = 'ADMIN',
   EDITOR = 'EDITOR',
   VIEWER = 'VIEWER',
+}
+
+// Team related types
+export interface Team {
+  id: string;
+  name: string;
+  description?: string;
+  ownerId: string;
+  owner?: User;
+  memberCount: number;
+  settings: TeamSettings;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TeamSettings {
+  isPublic: boolean;
+  allowInvitations: boolean;
+  defaultMemberRole: TeamRole;
+  maxMembers: number;
+  timeZone: string;
+  language: string;
+  features: TeamFeatures;
+}
+
+export interface TeamFeatures {
+  ganttView: boolean;
+  timeTracking: boolean;
+  advancedReporting: boolean;
+  customFields: boolean;
+  integrations: boolean;
+}
+
+export enum TeamRole {
+  OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
+  EDITOR = 'EDITOR',
+  VIEWER = 'VIEWER',
+}
+
+export interface TeamMember {
+  id: string;
+  teamId: string;
+  userId: string;
+  user?: User;
+  role: TeamRole;
+  joinedAt: Date;
+  invitedBy?: string;
+  invitedByUser?: User;
+  isActive: boolean;
+}
+
+export interface TeamInvitation {
+  id: string;
+  teamId: string;
+  team?: Team;
+  email: string;
+  role: TeamRole;
+  token: string;
+  invitedBy: string;
+  invitedByUser?: User;
+  message?: string;
+  expiresAt: Date;
+  acceptedAt?: Date;
+  rejectedAt?: Date;
+  status: InvitationStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum InvitationStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+  EXPIRED = 'EXPIRED',
+  CANCELLED = 'CANCELLED',
 }
 
 // Task related types
@@ -215,6 +296,50 @@ export interface LoginInput {
   password?: string;
   provider?: 'google' | 'microsoft';
   code?: string;
+}
+
+// Team Input types
+export interface CreateTeamInput {
+  name: string;
+  description?: string;
+  settings?: Partial<TeamSettings>;
+}
+
+export interface UpdateTeamInput {
+  id: string;
+  name?: string;
+  description?: string;
+  settings?: Partial<TeamSettings>;
+  isActive?: boolean;
+}
+
+export interface InviteTeamMemberInput {
+  teamId: string;
+  email: string;
+  role: TeamRole;
+  message?: string;
+}
+
+export interface UpdateTeamMemberInput {
+  id: string;
+  role?: TeamRole;
+  isActive?: boolean;
+}
+
+export interface TeamFilterInput {
+  ownerId?: string;
+  isActive?: boolean;
+  memberUserId?: string;
+}
+
+export interface AcceptInvitationInput {
+  token: string;
+  userId?: string;
+}
+
+export interface RespondToInvitationInput {
+  invitationId: string;
+  action: 'ACCEPT' | 'REJECT';
 }
 
 export interface CreateTaskInput {

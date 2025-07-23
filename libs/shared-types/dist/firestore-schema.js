@@ -9,6 +9,8 @@ export const FIRESTORE_COLLECTIONS = {
     TASK_DEPENDENCIES: 'task_dependencies',
     PROJECTS: 'projects',
     TEAMS: 'teams',
+    TEAM_MEMBERS: 'team_members',
+    TEAM_INVITATIONS: 'team_invitations',
 };
 // 필수 인덱스 목록
 export const REQUIRED_INDEXES = [
@@ -63,6 +65,45 @@ export const REQUIRED_INDEXES = [
     {
         collection: FIRESTORE_COLLECTIONS.PROJECTS,
         fields: ['teamId', 'isActive'],
+    },
+    // Teams 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.TEAMS,
+        fields: ['ownerId', 'isActive'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.TEAMS,
+        fields: ['isActive', 'createdAt'],
+    },
+    // Team Members 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.TEAM_MEMBERS,
+        fields: ['teamId', 'isActive'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.TEAM_MEMBERS,
+        fields: ['userId', 'isActive'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.TEAM_MEMBERS,
+        fields: ['teamId', 'role', 'joinedAt'],
+    },
+    // Team Invitations 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.TEAM_INVITATIONS,
+        fields: ['teamId', 'status'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.TEAM_INVITATIONS,
+        fields: ['email', 'status'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.TEAM_INVITATIONS,
+        fields: ['token'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.TEAM_INVITATIONS,
+        fields: ['expiresAt', 'status'],
     },
 ];
 //# sourceMappingURL=firestore-schema.js.map

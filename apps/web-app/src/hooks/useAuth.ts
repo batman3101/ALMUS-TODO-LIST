@@ -9,13 +9,20 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, firestore as db } from '../config/firebase';
 
 export interface AuthUser {
+  id: string; // alias for uid
   uid: string;
   email: string | null;
+  name: string | null; // alias for displayName
   displayName: string | null;
   photoURL: string | null;
   role: string;
-  teamId: string;
+  currentTeamId?: string; // updated field name
+  teamId: string; // legacy field
   projectIds: string[];
+  isActive: boolean;
+  lastLoginAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export const useAuth = () => {
@@ -33,25 +40,41 @@ export const useAuth = () => {
 
             if (userDoc.exists()) {
               const userData = userDoc.data();
+              const now = new Date();
               setUser({
+                id: firebaseUser.uid,
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
+                name: firebaseUser.displayName,
                 displayName: firebaseUser.displayName,
                 photoURL: firebaseUser.photoURL,
                 role: userData.role || 'VIEWER',
+                currentTeamId: userData.currentTeamId,
                 teamId: userData.teamId || 'default-team',
                 projectIds: userData.projectIds || [],
+                isActive: userData.isActive !== false,
+                lastLoginAt: userData.lastLoginAt?.toDate(),
+                createdAt: userData.createdAt?.toDate() || now,
+                updatedAt: userData.updatedAt?.toDate() || now,
               });
             } else {
               // 사용자 문서가 없으면 기본 정보만 설정
+              const now = new Date();
               setUser({
+                id: firebaseUser.uid,
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
+                name: firebaseUser.displayName,
                 displayName: firebaseUser.displayName,
                 photoURL: firebaseUser.photoURL,
                 role: 'ADMIN',
+                currentTeamId: 'default-team',
                 teamId: 'default-team',
                 projectIds: ['default-project'],
+                isActive: true,
+                lastLoginAt: now,
+                createdAt: now,
+                updatedAt: now,
               });
             }
           } catch (firestoreError) {
@@ -60,14 +83,22 @@ export const useAuth = () => {
               'Firestore connection failed, using default user data:',
               firestoreError
             );
+            const now = new Date();
             setUser({
+              id: firebaseUser.uid,
               uid: firebaseUser.uid,
               email: firebaseUser.email,
+              name: firebaseUser.displayName,
               displayName: firebaseUser.displayName,
               photoURL: firebaseUser.photoURL,
               role: 'ADMIN',
+              currentTeamId: 'default-team',
               teamId: 'default-team',
               projectIds: ['default-project'],
+              isActive: true,
+              lastLoginAt: now,
+              createdAt: now,
+              updatedAt: now,
             });
           }
         } else {
@@ -211,6 +242,40 @@ export const useAuth = () => {
     }
   };
 
+  const updateUser = async (updates: Partial<AuthUser>): Promise<void> => {
+    if (!user) throw new Error('사용자가 로그인되어 있지 않습니다');
+
+    try {
+      // Firestore 사용자 문서 업데이트
+      const userRef = doc(db, 'users', user.uid);
+      const firestoreUpdates: any = {
+        updatedAt: new Date(),
+      };
+
+      // 업데이트할 필드들을 변환
+      if (updates.currentTeamId !== undefined) {
+        firestoreUpdates.currentTeamId = updates.currentTeamId;
+      }
+      if (updates.name !== undefined) {
+        firestoreUpdates.name = updates.name;
+      }
+      if (updates.role !== undefined) {
+        firestoreUpdates.role = updates.role;
+      }
+      if (updates.isActive !== undefined) {
+        firestoreUpdates.isActive = updates.isActive;
+      }
+
+      await setDoc(userRef, firestoreUpdates, { merge: true });
+
+      // 로컬 상태 업데이트
+      setUser(prev => prev ? { ...prev, ...updates } : null);
+    } catch (error) {
+      console.error('사용자 정보 업데이트 실패:', error);
+      throw new Error('사용자 정보 업데이트에 실패했습니다.');
+    }
+  };
+
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'ADMIN';
   const isEditor = user?.role === 'EDITOR' || user?.role === 'ADMIN';
@@ -226,6 +291,7 @@ export const useAuth = () => {
     signIn,
     signUp,
     logout,
+    updateUser,
     isAuthenticated,
     isAdmin,
     isEditor,

@@ -1,8 +1,36 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthUtils = void 0;
+exports.verifyAuth = verifyAuth;
 const firebase_admin_1 = require("firebase-admin");
 const firebase_admin_2 = require("firebase-admin");
+/**
+ * Cloud Functions v2 CallableRequest의 auth 객체를 검증
+ */
+async function verifyAuth(authContext) {
+    if (!authContext) {
+        throw new Error('인증이 필요합니다.');
+    }
+    const { uid, token } = authContext;
+    if (!uid) {
+        throw new Error('유효하지 않은 인증 정보입니다.');
+    }
+    // 토큰이 유효한지 확인 (선택적)
+    if (token) {
+        try {
+            await (0, firebase_admin_1.auth)().verifyIdToken(token.token);
+        }
+        catch (error) {
+            throw new Error('인증 토큰이 유효하지 않습니다.');
+        }
+    }
+    // 사용자 정보 조회
+    const user = await (0, firebase_admin_1.auth)().getUser(uid);
+    return {
+        userId: uid,
+        email: user.email || '',
+    };
+}
 class AuthUtils {
     /**
      * HTTP 요청에서 토큰을 검증하고 사용자 정보를 반환
@@ -19,7 +47,10 @@ class AuthUtils {
                 throw new Error('유효하지 않은 토큰입니다.');
             }
             // 사용자 정보를 Firestore에서 조회
-            const userDoc = await (0, firebase_admin_2.firestore)().collection('users').doc(decodedToken.uid).get();
+            const userDoc = await (0, firebase_admin_2.firestore)()
+                .collection('users')
+                .doc(decodedToken.uid)
+                .get();
             if (!userDoc.exists) {
                 throw new Error('사용자 정보를 찾을 수 없습니다.');
             }
@@ -53,7 +84,10 @@ class AuthUtils {
                 throw new Error('유효하지 않은 토큰입니다.');
             }
             // 사용자 정보를 Firestore에서 조회
-            const userDoc = await (0, firebase_admin_2.firestore)().collection('users').doc(decodedToken.uid).get();
+            const userDoc = await (0, firebase_admin_2.firestore)()
+                .collection('users')
+                .doc(decodedToken.uid)
+                .get();
             if (!userDoc.exists) {
                 throw new Error('사용자 정보를 찾을 수 없습니다.');
             }
@@ -106,7 +140,10 @@ class AuthUtils {
                     if (resourceType === 'TASK') {
                         // Task 작성자, 담당자, 또는 편집자/관리자
                         if (resourceId) {
-                            const taskDoc = await (0, firebase_admin_2.firestore)().collection('tasks').doc(resourceId).get();
+                            const taskDoc = await (0, firebase_admin_2.firestore)()
+                                .collection('tasks')
+                                .doc(resourceId)
+                                .get();
                             if (taskDoc.exists) {
                                 const taskData = taskDoc.data();
                                 if (taskData) {
@@ -123,7 +160,10 @@ class AuthUtils {
                     if (resourceType === 'TASK') {
                         // Task 작성자 또는 관리자
                         if (resourceId) {
-                            const taskDoc = await (0, firebase_admin_2.firestore)().collection('tasks').doc(resourceId).get();
+                            const taskDoc = await (0, firebase_admin_2.firestore)()
+                                .collection('tasks')
+                                .doc(resourceId)
+                                .get();
                             if (taskDoc.exists) {
                                 const taskData = taskDoc.data();
                                 if (taskData) {

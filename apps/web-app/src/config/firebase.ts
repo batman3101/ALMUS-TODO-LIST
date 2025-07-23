@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getStorage } from 'firebase/storage';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { getFunctions } from 'firebase/functions';
 
 // Firebase 설정
 const firebaseConfig = {
@@ -36,6 +37,8 @@ const app = initializeApp(firebaseConfig);
 // Firebase 서비스 초기화
 export const storage = getStorage(app);
 export const firestore = getFirestore(app);
+export const db = getFirestore(app); // alias for firestore
 export const auth = getAuth(app);
+export const functions = getFunctions(app);
 
 export default app;

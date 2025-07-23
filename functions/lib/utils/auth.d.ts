@@ -1,4 +1,11 @@
 import { ApiRequest, PermissionCheck } from '../types';
+/**
+ * Cloud Functions v2 CallableRequest의 auth 객체를 검증
+ */
+export declare function verifyAuth(authContext: any): Promise<{
+    userId: string;
+    email: string;
+}>;
 export declare class AuthUtils {
     /**
      * HTTP 요청에서 토큰을 검증하고 사용자 정보를 반환

@@ -183,7 +183,8 @@ exports.checkOverdueTasks = (0, firestore_1.onDocumentCreated)({
                     dueDate: new Date(dueDate).toLocaleDateString(),
                 });
                 await fcmService_1.FCMService.sendPushNotification(assigneeId, template, {
-                    overdueDays: Math.floor((now.getTime() - new Date(dueDate).getTime()) / (1000 * 60 * 60 * 24)).toString(),
+                    overdueDays: Math.floor((now.getTime() - new Date(dueDate).getTime()) /
+                        (1000 * 60 * 60 * 24)).toString(),
                 });
             }
         }

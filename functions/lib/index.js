@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.helloWorld = exports.checkOverdueTasks = exports.checkDueTasks = exports.onTaskDeleted = exports.onTaskUpdated = exports.onTaskCreated = exports.sendTestNotification = exports.saveNotificationSettings = exports.getNotificationSettings = exports.deleteFCMToken = exports.saveFCMToken = exports.getTaskAggregation = exports.getTasks = exports.getTask = exports.deleteTask = exports.updateTask = exports.createTask = void 0;
+exports.helloWorld = exports.checkOverdueTasks = exports.checkDueTasks = exports.onTaskDeleted = exports.onTaskUpdated = exports.onTaskCreated = exports.rejectTeamInvitation = exports.acceptTeamInvitation = exports.inviteTeamMember = exports.sendTestNotification = exports.saveNotificationSettings = exports.getNotificationSettings = exports.deleteFCMToken = exports.saveFCMToken = exports.getTaskAggregation = exports.getTasks = exports.getTask = exports.deleteTask = exports.updateTask = exports.createTask = void 0;
 const app_1 = require("firebase-admin/app");
 const https_1 = require("firebase-functions/v2/https");
 // Firebase Admin 초기화
@@ -20,6 +20,11 @@ Object.defineProperty(exports, "deleteFCMToken", { enumerable: true, get: functi
 Object.defineProperty(exports, "getNotificationSettings", { enumerable: true, get: function () { return fcmHttp_1.getNotificationSettings; } });
 Object.defineProperty(exports, "saveNotificationSettings", { enumerable: true, get: function () { return fcmHttp_1.saveNotificationSettings; } });
 Object.defineProperty(exports, "sendTestNotification", { enumerable: true, get: function () { return fcmHttp_1.sendTestNotification; } });
+// Team HTTP 함수들
+var teamHttp_1 = require("./http/teamHttp");
+Object.defineProperty(exports, "inviteTeamMember", { enumerable: true, get: function () { return teamHttp_1.inviteTeamMember; } });
+Object.defineProperty(exports, "acceptTeamInvitation", { enumerable: true, get: function () { return teamHttp_1.acceptTeamInvitation; } });
+Object.defineProperty(exports, "rejectTeamInvitation", { enumerable: true, get: function () { return teamHttp_1.rejectTeamInvitation; } });
 // Firestore 트리거 함수들
 var taskTriggers_1 = require("./triggers/taskTriggers");
 Object.defineProperty(exports, "onTaskCreated", { enumerable: true, get: function () { return taskTriggers_1.onTaskCreated; } });
@@ -32,7 +37,7 @@ exports.helloWorld = (0, https_1.onCall)({
     timeoutSeconds: 30,
     memory: '256MiB',
     region: 'asia-northeast3',
-}, (request) => {
+}, request => {
     return {
         message: 'Hello from Firebase Functions!',
         timestamp: new Date().toISOString(),
