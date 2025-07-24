@@ -22,13 +22,13 @@ service cloud.firestore {
 
     // 팀 멤버십 확인
     function isTeamMember(teamId) {
-      return exists(/databases/$(database)/documents/team_members/$(getUserId() + '_' + teamId)) &&
-             get(/databases/$(database)/documents/team_members/$(getUserId() + '_' + teamId)).data.isActive == true;
+      let memberPath = /databases/$(database)/documents/team_members/$(teamId + '_' + getUserId());
+      return exists(memberPath) && get(memberPath).data.isActive == true;
     }
     
     // 팀 역할 확인
     function getTeamRole(teamId) {
-      let memberPath = /databases/$(database)/documents/team_members/$(getUserId() + '_' + teamId);
+      let memberPath = /databases/$(database)/documents/team_members/$(teamId + '_' + getUserId());
       return exists(memberPath) ? get(memberPath).data.role : null;
     }
     

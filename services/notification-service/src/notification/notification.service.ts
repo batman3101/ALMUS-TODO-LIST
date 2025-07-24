@@ -168,4 +168,26 @@ export class NotificationService {
       channels,
     });
   }
+
+  // Controller methods
+  async create(createNotificationDto: any): Promise<any> {
+    return this.createNotification(createNotificationDto);
+  }
+
+  async findAll(): Promise<any[]> {
+    return this.notificationRepository.find();
+  }
+
+  async findOne(id: string): Promise<any> {
+    return this.notificationRepository.findOne({ where: { id } });
+  }
+
+  async update(id: string, updateNotificationDto: any): Promise<any> {
+    await this.notificationRepository.update(id, updateNotificationDto);
+    return this.findOne(id);
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.deleteNotification(id);
+  }
 }

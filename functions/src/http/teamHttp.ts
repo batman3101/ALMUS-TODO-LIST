@@ -1,5 +1,12 @@
-import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+/**
+ * 팀 관리 Cloud Functions
+ * - 팀 멤버 초대, 수락, 거절 기능
+ * - 보안 강화 및 타입 안전성 보장
+ * - 트랜잭션 기반 데이터 일관성 유지
+ */
+
+import { onCall, HttpsError, CallableRequest } from 'firebase-functions/v2/https';
+import { getFirestore, FieldValue, Timestamp, Transaction } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { logger } from 'firebase-functions/v2';
 import { sendTeamInvitationEmail } from '../services/emailService';
@@ -13,188 +20,502 @@ import {
   type FirestoreTeamMember,
 } from '@almus/shared-types';
 
+// === 상수 정의 ===
+const CONSTANTS = {
+  INVITATION_EXPIRY_DAYS: 7,
+  TOKEN_LENGTH: 32,
+  DEFAULT_MAX_MEMBERS: 50,
+  EMAIL_REGEX: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+  EMAIL_MAX_LENGTH: 254,
+  EMAIL_LOCAL_MAX_LENGTH: 64,
+} as const;
+
+// === Firebase 인스턴스 ===
 const db = getFirestore();
 const auth = getAuth();
 
-// 팀 멤버 초대
+// === 타입 정의 ===
+interface TeamInvitationRequest {
+  teamId: string;
+  email: string;
+  role: TeamRole;
+  message?: string;
+}
+
+interface InvitationTokenRequest {
+  token: string;
+}
+
+interface TeamPermissionResult {
+  hasPermission: boolean;
+  userRole?: TeamRole;
+  memberData?: FirestoreTeamMember;
+  error?: string;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  error?: string;
+}
+
+// === 유틸리티 클래스 ===
+class EmailValidator {
+  static validate(email: string): ValidationResult {
+    if (!email || typeof email !== 'string') {
+      return { isValid: false, error: '이메일 주소가 필요합니다.' };
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!CONSTANTS.EMAIL_REGEX.test(normalizedEmail)) {
+      return { isValid: false, error: '유효하지 않은 이메일 형식입니다.' };
+    }
+
+    if (normalizedEmail.length > CONSTANTS.EMAIL_MAX_LENGTH) {
+      return { isValid: false, error: '이메일 주소가 너무 깁니다.' };
+    }
+
+    if (normalizedEmail.includes('..')) {
+      return { isValid: false, error: '연속된 점이 포함된 이메일은 사용할 수 없습니다.' };
+    }
+
+    const localPart = normalizedEmail.split('@')[0];
+    if (localPart.length > CONSTANTS.EMAIL_LOCAL_MAX_LENGTH) {
+      return { isValid: false, error: '이메일 주소의 로컬 부분이 너무 깁니다.' };
+    }
+
+    return { isValid: true };
+  }
+
+  static normalize(email: string): string {
+    return email.trim().toLowerCase();
+  }
+}
+
+class TokenGenerator {
+  static generateSecure(): string {
+    const crypto = require('crypto');
+    return crypto.randomBytes(CONSTANTS.TOKEN_LENGTH).toString('hex');
+  }
+}
+
+class TeamPermissionChecker {
+  static async checkInvitePermission(
+    teamId: string, 
+    userId: string
+  ): Promise<TeamPermissionResult> {
+    try {
+      const memberDoc = await db
+        .collection(FIRESTORE_COLLECTIONS.TEAM_MEMBERS)
+        .doc(`${teamId}_${userId}`)
+        .get();
+
+      if (!memberDoc.exists) {
+        return { hasPermission: false, error: '팀 멤버가 아닙니다.' };
+      }
+
+      const memberData = memberDoc.data() as FirestoreTeamMember;
+      
+      if (!memberData.isActive) {
+        return { hasPermission: false, error: '비활성화된 멤버입니다.' };
+      }
+
+      const hasPermission = [TeamRole.OWNER, TeamRole.ADMIN].includes(memberData.role as TeamRole);
+      
+      return { 
+        hasPermission, 
+        userRole: memberData.role as TeamRole,
+        memberData 
+      };
+    } catch (error: any) {
+      logger.error('Permission check failed:', { teamId, userId, error: error.message });
+      return { hasPermission: false };
+    }
+  }
+}
+
+class TeamDataManager {
+  static async getTeam(teamId: string): Promise<{ exists: boolean; data?: FirestoreTeam }> {
+    try {
+      const teamDoc = await db.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(teamId).get();
+      
+      if (!teamDoc.exists) {
+        return { exists: false };
+      }
+
+      return { exists: true, data: teamDoc.data() as FirestoreTeam };
+    } catch (error: any) {
+      logger.error('Failed to get team:', { teamId, error: error.message });
+      return { exists: false };
+    }
+  }
+
+  static async findUserByEmail(email: string): Promise<string | null> {
+    try {
+      const validation = EmailValidator.validate(email);
+      if (!validation.isValid) {
+        return null;
+      }
+
+      const normalizedEmail = EmailValidator.normalize(email);
+      const user = await auth.getUserByEmail(normalizedEmail);
+      return user.uid;
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  static async checkExistingMembership(
+    teamId: string, 
+    userId: string
+  ): Promise<{ exists: boolean; isActive?: boolean }> {
+    try {
+      const memberDoc = await db
+        .collection(FIRESTORE_COLLECTIONS.TEAM_MEMBERS)
+        .doc(`${teamId}_${userId}`)
+        .get();
+
+      if (!memberDoc.exists) {
+        return { exists: false };
+      }
+
+      return { 
+        exists: true, 
+        isActive: memberDoc.data()?.isActive || false 
+      };
+    } catch (error: any) {
+      logger.error('Failed to check membership:', { teamId, userId, error: error.message });
+      return { exists: false };
+    }
+  }
+
+  static async checkExistingInvitation(
+    teamId: string, 
+    email: string
+  ): Promise<boolean> {
+    try {
+      const normalizedEmail = EmailValidator.normalize(email);
+      const query = await db
+        .collection(FIRESTORE_COLLECTIONS.TEAM_INVITATIONS)
+        .where('teamId', '==', teamId)
+        .where('email', '==', normalizedEmail)
+        .where('status', '==', InvitationStatus.PENDING)
+        .limit(1)
+        .get();
+
+      return !query.empty;
+    } catch (error: any) {
+      logger.error('Failed to check existing invitation:', { teamId, email, error: error.message });
+      return false;
+    }
+  }
+}
+
+class InvitationManager {
+  static async createInvitation(
+    teamId: string,
+    email: string,
+    role: TeamRole,
+    invitedBy: string,
+    message?: string
+  ): Promise<string> {
+    const normalizedEmail = EmailValidator.normalize(email);
+    const token = TokenGenerator.generateSecure();
+    const expiresAt = new Date(Date.now() + CONSTANTS.INVITATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+
+    const invitationData: Omit<FirestoreTeamInvitation, 'id'> = {
+      teamId,
+      email: normalizedEmail,
+      role,
+      token,
+      invitedBy,
+      message: message?.trim() || '',
+      expiresAt: expiresAt as any,
+      status: InvitationStatus.PENDING,
+      createdAt: FieldValue.serverTimestamp() as any,
+      updatedAt: FieldValue.serverTimestamp() as any,
+    };
+
+    const invitationRef = await db
+      .collection(FIRESTORE_COLLECTIONS.TEAM_INVITATIONS)
+      .add({ ...invitationData, id: '' });
+
+    return invitationRef.id;
+  }
+
+  static async findByToken(token: string): Promise<{
+    exists: boolean;
+    doc?: FirebaseFirestore.DocumentSnapshot;
+    data?: FirestoreTeamInvitation;
+  }> {
+    try {
+      const query = await db
+        .collection(FIRESTORE_COLLECTIONS.TEAM_INVITATIONS)
+        .where('token', '==', token.trim())
+        .where('status', '==', InvitationStatus.PENDING)
+        .limit(1)
+        .get();
+
+      if (query.empty) {
+        return { exists: false };
+      }
+
+      const doc = query.docs[0];
+      return { 
+        exists: true, 
+        doc, 
+        data: doc.data() as FirestoreTeamInvitation 
+      };
+    } catch (error: any) {
+      logger.error('Failed to find invitation by token:', { error: error.message });
+      return { exists: false };
+    }
+  }
+
+  static isExpired(invitation: FirestoreTeamInvitation): boolean {
+    const now = new Date();
+    const expiresAt = invitation.expiresAt instanceof Timestamp 
+      ? invitation.expiresAt.toDate() 
+      : new Date(invitation.expiresAt as any);
+    
+    return now > expiresAt;
+  }
+}
+
+// === 이메일 발송 헬퍼 ===
+class EmailService {
+  static async sendInvitation(
+    email: string,
+    teamName: string,
+    inviterName: string,
+    role: TeamRole,
+    token: string,
+    message: string,
+    expiresAt: Date
+  ): Promise<void> {
+    try {
+      await sendTeamInvitationEmail({
+        recipientEmail: email,
+        recipientName: email.split('@')[0],
+        teamName,
+        inviterName,
+        role,
+        invitationToken: token,
+        message,
+        expiresAt,
+      });
+    } catch (error: any) {
+      logger.warn('Failed to send invitation email:', { 
+        email, 
+        error: error.message 
+      });
+      // 이메일 발송 실패는 전체 프로세스를 중단하지 않음
+    }
+  }
+}
+
+// === 에러 핸들러 ===
+class ErrorHandler {
+  static handle(error: any, context: string, additionalInfo: Record<string, any> = {}): never {
+    logger.error(`Error in ${context}:`, {
+      error: error?.message || String(error),
+      code: error?.code,
+      ...additionalInfo,
+    });
+
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+
+    // Firebase Auth 에러 처리
+    if (error?.code?.startsWith('auth/')) {
+      switch (error.code) {
+        case 'auth/user-not-found':
+          throw new HttpsError('not-found', '사용자를 찾을 수 없습니다.');
+        case 'auth/invalid-email':
+          throw new HttpsError('invalid-argument', '유효하지 않은 이메일 주소입니다.');
+        default:
+          throw new HttpsError('internal', '인증 오류가 발생했습니다.');
+      }
+    }
+
+    throw new HttpsError('internal', `${context} 중 오류가 발생했습니다.`);
+  }
+}
+
+// === Cloud Functions ===
+
+/**
+ * 팀 멤버 초대
+ */
 export const inviteTeamMember = onCall(
   {
     timeoutSeconds: 60,
     memory: '512MiB',
     region: 'asia-northeast3',
   },
-  async (request) => {
+  async (request: CallableRequest<TeamInvitationRequest>) => {
+    let userId = '';
+    
     try {
-      // 인증 확인
-      const { userId } = await verifyAuth(request.auth);
-      
+      // 1. 인증 확인
+      const authResult = await verifyAuth(request.auth);
+      userId = authResult.userId;
+
+      // 2. 입력 데이터 검증
       const { teamId, email, role, message } = request.data;
-      
-      if (!teamId || !email || !role) {
-        throw new HttpsError('invalid-argument', '필수 파라미터가 누락되었습니다.');
+
+      if (!teamId || typeof teamId !== 'string') {
+        throw new HttpsError('invalid-argument', '유효한 팀 ID가 필요합니다.');
       }
 
-      // 팀 정보 확인
-      const teamDoc = await db.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(teamId).get();
-      if (!teamDoc.exists) {
+      const emailValidation = EmailValidator.validate(email);
+      if (!emailValidation.isValid) {
+        throw new HttpsError('invalid-argument', emailValidation.error!);
+      }
+
+      if (!role || !Object.values(TeamRole).includes(role)) {
+        throw new HttpsError('invalid-argument', '유효한 역할이 필요합니다.');
+      }
+
+      if (message && typeof message !== 'string') {
+        throw new HttpsError('invalid-argument', '메시지는 문자열이어야 합니다.');
+      }
+
+      const normalizedEmail = EmailValidator.normalize(email);
+
+      // 3. 팀 존재 확인
+      const teamResult = await TeamDataManager.getTeam(teamId);
+      if (!teamResult.exists) {
         throw new HttpsError('not-found', '팀을 찾을 수 없습니다.');
       }
 
-      const teamData = teamDoc.data() as FirestoreTeam;
+      const teamData = teamResult.data!;
 
-      // 초대자 권한 확인
-      const inviterMemberQuery = await db
-        .collection(FIRESTORE_COLLECTIONS.TEAM_MEMBERS)
-        .where('teamId', '==', teamId)
-        .where('userId', '==', userId)
-        .where('isActive', '==', true)
-        .get();
-
-      if (inviterMemberQuery.empty) {
-        throw new HttpsError('permission-denied', '팀 멤버만 초대할 수 있습니다.');
+      // 4. 초대자 권한 확인
+      const permission = await TeamPermissionChecker.checkInvitePermission(teamId, userId);
+      if (!permission.hasPermission) {
+        throw new HttpsError('permission-denied', '팀 멤버 초대 권한이 없습니다.');
       }
 
-      const inviterRole = inviterMemberQuery.docs[0].data().role as TeamRole;
-      if (inviterRole !== TeamRole.OWNER && inviterRole !== TeamRole.ADMIN) {
-        throw new HttpsError('permission-denied', '초대 권한이 없습니다.');
-      }
-
-      // 팀 설정 확인
-      if (!teamData.settings.allowInvitations && inviterRole !== TeamRole.OWNER) {
+      // 5. 팀 설정 확인
+      if (!teamData.settings?.allowInvitations && permission.userRole !== TeamRole.OWNER) {
         throw new HttpsError('permission-denied', '팀에서 초대를 허용하지 않습니다.');
       }
 
-      // 멤버 수 제한 확인
-      if (teamData.memberCount >= teamData.settings.maxMembers) {
+      // 6. 멤버 수 제한 확인
+      const maxMembers = teamData.settings?.maxMembers || CONSTANTS.DEFAULT_MAX_MEMBERS;
+      if ((teamData.memberCount || 0) >= maxMembers) {
         throw new HttpsError('resource-exhausted', '팀 멤버 수가 최대 제한에 도달했습니다.');
       }
 
-      // 이미 팀 멤버인지 확인
-      const existingMemberQuery = await db
-        .collection(FIRESTORE_COLLECTIONS.TEAM_MEMBERS)
-        .where('teamId', '==', teamId)
-        .where('userId', '==', await getUserIdByEmail(email))
-        .where('isActive', '==', true)
-        .get();
-
-      if (!existingMemberQuery.empty) {
-        throw new HttpsError('already-exists', '이미 팀 멤버입니다.');
+      // 7. 이미 멤버인지 확인
+      const invitedUserId = await TeamDataManager.findUserByEmail(normalizedEmail);
+      if (invitedUserId) {
+        const membership = await TeamDataManager.checkExistingMembership(teamId, invitedUserId);
+        if (membership.exists && membership.isActive) {
+          throw new HttpsError('already-exists', '이미 팀 멤버입니다.');
+        }
       }
 
-      // 기존 대기 중 초대 확인
-      const existingInvitationQuery = await db
-        .collection(FIRESTORE_COLLECTIONS.TEAM_INVITATIONS)
-        .where('teamId', '==', teamId)
-        .where('email', '==', email.toLowerCase())
-        .where('status', '==', InvitationStatus.PENDING)
-        .get();
-
-      if (!existingInvitationQuery.empty) {
+      // 8. 기존 초대장 확인
+      const hasExistingInvitation = await TeamDataManager.checkExistingInvitation(teamId, normalizedEmail);
+      if (hasExistingInvitation) {
         throw new HttpsError('already-exists', '이미 초대장이 발송되었습니다.');
       }
 
-      // 초대장 생성
-      const invitationToken = generateInvitationToken();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // 7일 후 만료
-
-      const invitationData: FirestoreTeamInvitation = {
-        id: '', // Firestore에서 자동 생성
+      // 9. 초대장 생성
+      const invitationId = await InvitationManager.createInvitation(
         teamId,
-        email: email.toLowerCase(),
-        role: role as TeamRole,
-        token: invitationToken,
-        invitedBy: userId,
-        message: message || '',
-        expiresAt: FieldValue.serverTimestamp() as any,
-        status: InvitationStatus.PENDING,
-        createdAt: FieldValue.serverTimestamp() as any,
-        updatedAt: FieldValue.serverTimestamp() as any,
-      };
+        normalizedEmail,
+        role,
+        userId,
+        message
+      );
 
-      // 실제 만료 시간을 Timestamp로 설정
-      invitationData.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) as any;
+      // 10. 이메일 발송
+      const inviterUser = await auth.getUser(userId);
+      const inviterName = inviterUser.displayName || inviterUser.email || '알 수 없는 사용자';
+      const expiresAt = new Date(Date.now() + CONSTANTS.INVITATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+      
+      // 토큰은 보안상 로그에 기록하지 않고 이메일로만 전송
+      const invitationData = await InvitationManager.findByToken(
+        (await db.collection(FIRESTORE_COLLECTIONS.TEAM_INVITATIONS).doc(invitationId).get()).data()?.token
+      );
 
-      const invitationRef = await db
-        .collection(FIRESTORE_COLLECTIONS.TEAM_INVITATIONS)
-        .add(invitationData);
+      if (invitationData.exists) {
+        await EmailService.sendInvitation(
+          normalizedEmail,
+          teamData.name,
+          inviterName,
+          role,
+          invitationData.data!.token,
+          message || '',
+          expiresAt
+        );
+      }
 
-      // 이메일 발송
-      await sendTeamInvitationEmail({
-        recipientEmail: email,
-        recipientName: email.split('@')[0], // 임시로 이메일 앞부분을 이름으로 사용
-        teamName: teamData.name,
-        inviterName: (await auth.getUser(userId)).displayName || 'Unknown',
-        role: role as TeamRole,
-        invitationToken,
-        message: message || '',
-        expiresAt,
-      });
-
-      logger.info(`Team invitation sent`, {
+      logger.info('Team invitation sent successfully', {
         teamId,
-        email,
+        email: normalizedEmail,
         role,
         invitedBy: userId,
-        invitationId: invitationRef.id,
+        invitationId,
       });
 
       return {
         success: true,
-        invitationId: invitationRef.id,
+        invitationId,
         message: '초대장이 성공적으로 발송되었습니다.',
       };
 
-    } catch (error) {
-      logger.error('Error sending team invitation:', error);
-      
-      if (error instanceof HttpsError) {
-        throw error;
-      }
-      
-      throw new HttpsError('internal', '초대 발송 중 오류가 발생했습니다.');
+    } catch (error: any) {
+      ErrorHandler.handle(error, 'inviteTeamMember', {
+        teamId: request.data?.teamId,
+        email: request.data?.email,
+        userId: userId || 'unknown',
+      });
     }
   }
 );
 
-// 초대 수락
+/**
+ * 팀 초대 수락
+ */
 export const acceptTeamInvitation = onCall(
   {
     timeoutSeconds: 60,
     memory: '512MiB',
     region: 'asia-northeast3',
   },
-  async (request) => {
-    try {
-      const { userId } = await verifyAuth(request.auth);
-      const { token } = request.data;
+  async (request: CallableRequest<InvitationTokenRequest>) => {
+    let userId = '';
 
-      if (!token) {
-        throw new HttpsError('invalid-argument', '초대 토큰이 필요합니다.');
+    try {
+      // 1. 인증 확인
+      const authResult = await verifyAuth(request.auth);
+      userId = authResult.userId;
+
+      // 2. 입력 데이터 검증
+      const { token } = request.data;
+      if (!token || typeof token !== 'string' || token.trim().length === 0) {
+        throw new HttpsError('invalid-argument', '유효한 초대 토큰이 필요합니다.');
       }
 
-      // 초대장 찾기
-      const invitationQuery = await db
-        .collection(FIRESTORE_COLLECTIONS.TEAM_INVITATIONS)
-        .where('token', '==', token)
-        .where('status', '==', InvitationStatus.PENDING)
-        .get();
-
-      if (invitationQuery.empty) {
+      // 3. 초대장 찾기
+      const invitationResult = await InvitationManager.findByToken(token);
+      if (!invitationResult.exists) {
         throw new HttpsError('not-found', '유효하지 않은 초대장입니다.');
       }
 
-      const invitationDoc = invitationQuery.docs[0];
-      const invitationData = invitationDoc.data() as FirestoreTeamInvitation;
+      const invitationDoc = invitationResult.doc!;
+      const invitationData = invitationResult.data!;
 
-      // 만료 확인
-      const now = new Date();
-      const expiresAt = invitationData.expiresAt instanceof Date 
-        ? invitationData.expiresAt 
-        : (invitationData.expiresAt as any).toDate();
-
-      if (now > expiresAt) {
-        // 초대장을 만료 상태로 업데이트
+      // 4. 만료 확인
+      if (InvitationManager.isExpired(invitationData)) {
         await invitationDoc.ref.update({
           status: InvitationStatus.EXPIRED,
           updatedAt: FieldValue.serverTimestamp(),
@@ -202,38 +523,46 @@ export const acceptTeamInvitation = onCall(
         throw new HttpsError('deadline-exceeded', '초대장이 만료되었습니다.');
       }
 
-      // 사용자 이메일 확인
+      // 5. 사용자 이메일 확인
       const user = await auth.getUser(userId);
-      if (user.email?.toLowerCase() !== invitationData.email) {
+      if (!user.email || EmailValidator.normalize(user.email) !== invitationData.email) {
         throw new HttpsError('permission-denied', '초대받은 이메일 주소와 일치하지 않습니다.');
       }
 
-      // 팀 정보 확인
-      const teamDoc = await db.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(invitationData.teamId).get();
-      if (!teamDoc.exists) {
+      // 6. 팀 정보 확인
+      const teamResult = await TeamDataManager.getTeam(invitationData.teamId);
+      if (!teamResult.exists) {
         throw new HttpsError('not-found', '팀을 찾을 수 없습니다.');
       }
 
-      const teamData = teamDoc.data() as FirestoreTeam;
+      const teamData = teamResult.data!;
 
-      // 이미 멤버인지 확인
-      const existingMemberQuery = await db
-        .collection(FIRESTORE_COLLECTIONS.TEAM_MEMBERS)
-        .where('teamId', '==', invitationData.teamId)
-        .where('userId', '==', userId)
-        .where('isActive', '==', true)
-        .get();
+      // 7. 트랜잭션으로 멤버 추가 및 초대장 상태 업데이트
+      const result = await db.runTransaction(async (transaction: Transaction) => {
+        // 팀 문서 재조회
+        const teamDocRef = db.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(invitationData.teamId);
+        const teamDocInTransaction = await transaction.get(teamDocRef);
+        
+        if (!teamDocInTransaction.exists) {
+          throw new HttpsError('not-found', '팀을 찾을 수 없습니다.');
+        }
 
-      if (!existingMemberQuery.empty) {
-        throw new HttpsError('already-exists', '이미 팀 멤버입니다.');
-      }
+        const teamDataInTransaction = teamDocInTransaction.data() as FirestoreTeam;
+        const maxMembers = teamDataInTransaction.settings?.maxMembers || CONSTANTS.DEFAULT_MAX_MEMBERS;
 
-      // 트랜잭션으로 멤버 추가 및 초대장 상태 업데이트
-      await db.runTransaction(async (transaction) => {
-        // 팀 멤버 추가
-        const memberRef = db.collection(FIRESTORE_COLLECTIONS.TEAM_MEMBERS).doc();
-        const memberData: FirestoreTeamMember = {
-          id: memberRef.id,
+        // 멤버 수 제한 재확인
+        if ((teamDataInTransaction.memberCount || 0) >= maxMembers) {
+          throw new HttpsError('resource-exhausted', '팀 멤버 수가 최대 제한에 도달했습니다.');
+        }
+
+        // 멤버 문서 처리
+        const memberRef = db
+          .collection(FIRESTORE_COLLECTIONS.TEAM_MEMBERS)
+          .doc(`${invitationData.teamId}_${userId}`);
+        
+        const existingMember = await transaction.get(memberRef);
+
+        const memberData: Omit<FirestoreTeamMember, 'id'> = {
           teamId: invitationData.teamId,
           userId,
           role: invitationData.role,
@@ -241,7 +570,23 @@ export const acceptTeamInvitation = onCall(
           invitedBy: invitationData.invitedBy,
           isActive: true,
         };
-        transaction.set(memberRef, memberData);
+
+        if (existingMember.exists) {
+          // 기존 멤버 재활성화
+          transaction.update(memberRef, {
+            ...memberData,
+            joinedAt: FieldValue.serverTimestamp(),
+          });
+        } else {
+          // 새 멤버 추가
+          transaction.set(memberRef, { ...memberData, id: memberRef.id });
+          
+          // 팀 멤버 수 증가
+          transaction.update(teamDocRef, {
+            memberCount: FieldValue.increment(1),
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+        }
 
         // 초대장 상태 업데이트
         transaction.update(invitationDoc.ref, {
@@ -250,83 +595,81 @@ export const acceptTeamInvitation = onCall(
           updatedAt: FieldValue.serverTimestamp(),
         });
 
-        // 팀 멤버 수 증가
-        transaction.update(teamDoc.ref, {
-          memberCount: FieldValue.increment(1),
-          updatedAt: FieldValue.serverTimestamp(),
-        });
+        return {
+          teamId: invitationData.teamId,
+          teamName: teamData.name,
+          role: invitationData.role,
+        };
       });
 
-      logger.info(`Team invitation accepted`, {
+      logger.info('Team invitation accepted successfully', {
         teamId: invitationData.teamId,
         userId,
         invitationId: invitationDoc.id,
+        role: invitationData.role,
       });
 
       return {
         success: true,
-        teamId: invitationData.teamId,
-        teamName: teamData.name,
-        role: invitationData.role,
+        ...result,
         message: '팀 초대를 수락했습니다.',
       };
 
-    } catch (error) {
-      logger.error('Error accepting team invitation:', error);
-      
-      if (error instanceof HttpsError) {
-        throw error;
-      }
-      
-      throw new HttpsError('internal', '초대 수락 중 오류가 발생했습니다.');
+    } catch (error: any) {
+      ErrorHandler.handle(error, 'acceptTeamInvitation', {
+        token: request.data?.token ? '[PROVIDED]' : '[MISSING]',
+        userId: userId || 'unknown',
+      });
     }
   }
 );
 
-// 초대 거절
+/**
+ * 팀 초대 거절
+ */
 export const rejectTeamInvitation = onCall(
   {
     timeoutSeconds: 30,
     memory: '256MiB',
     region: 'asia-northeast3',
   },
-  async (request) => {
-    try {
-      const { userId } = await verifyAuth(request.auth);
-      const { token } = request.data;
+  async (request: CallableRequest<InvitationTokenRequest>) => {
+    let userId = '';
 
-      if (!token) {
-        throw new HttpsError('invalid-argument', '초대 토큰이 필요합니다.');
+    try {
+      // 1. 인증 확인
+      const authResult = await verifyAuth(request.auth);
+      userId = authResult.userId;
+
+      // 2. 입력 데이터 검증
+      const { token } = request.data;
+      if (!token || typeof token !== 'string' || token.trim().length === 0) {
+        throw new HttpsError('invalid-argument', '유효한 초대 토큰이 필요합니다.');
       }
 
-      // 초대장 찾기
-      const invitationQuery = await db
-        .collection(FIRESTORE_COLLECTIONS.TEAM_INVITATIONS)
-        .where('token', '==', token)
-        .where('status', '==', InvitationStatus.PENDING)
-        .get();
-
-      if (invitationQuery.empty) {
+      // 3. 초대장 찾기
+      const invitationResult = await InvitationManager.findByToken(token);
+      if (!invitationResult.exists) {
         throw new HttpsError('not-found', '유효하지 않은 초대장입니다.');
       }
 
-      const invitationDoc = invitationQuery.docs[0];
-      const invitationData = invitationDoc.data() as FirestoreTeamInvitation;
+      const invitationDoc = invitationResult.doc!;
+      const invitationData = invitationResult.data!;
 
-      // 사용자 이메일 확인
+      // 4. 사용자 이메일 확인
       const user = await auth.getUser(userId);
-      if (user.email?.toLowerCase() !== invitationData.email) {
+      if (!user.email || EmailValidator.normalize(user.email) !== invitationData.email) {
         throw new HttpsError('permission-denied', '초대받은 이메일 주소와 일치하지 않습니다.');
       }
 
-      // 초대장 상태 업데이트
+      // 5. 초대장 상태 업데이트
       await invitationDoc.ref.update({
         status: InvitationStatus.REJECTED,
         rejectedAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       });
 
-      logger.info(`Team invitation rejected`, {
+      logger.info('Team invitation rejected successfully', {
         teamId: invitationData.teamId,
         userId,
         invitationId: invitationDoc.id,
@@ -337,33 +680,11 @@ export const rejectTeamInvitation = onCall(
         message: '팀 초대를 거절했습니다.',
       };
 
-    } catch (error) {
-      logger.error('Error rejecting team invitation:', error);
-      
-      if (error instanceof HttpsError) {
-        throw error;
-      }
-      
-      throw new HttpsError('internal', '초대 거절 중 오류가 발생했습니다.');
+    } catch (error: any) {
+      ErrorHandler.handle(error, 'rejectTeamInvitation', {
+        token: request.data?.token ? '[PROVIDED]' : '[MISSING]',
+        userId: userId || 'unknown',
+      });
     }
   }
 );
-
-// 유틸리티 함수들
-async function getUserIdByEmail(email: string): Promise<string | null> {
-  try {
-    const user = await auth.getUserByEmail(email);
-    return user.uid;
-  } catch (error) {
-    return null; // 사용자가 존재하지 않음
-  }
-}
-
-function generateInvitationToken(): string {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < 32; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}

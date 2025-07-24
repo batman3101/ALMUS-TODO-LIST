@@ -19,6 +19,7 @@ export class AuthService {
       email,
       name: 'Test User',
       role: UserRole.ADMIN,
+      isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -54,6 +55,7 @@ export class AuthService {
       name: profile.name,
       role: UserRole.EDITOR,
       avatar: profile.avatar,
+      isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

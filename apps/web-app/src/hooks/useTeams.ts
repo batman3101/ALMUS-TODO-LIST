@@ -168,8 +168,8 @@ export const useTeams = () => {
     };
     batch.set(teamRef, teamData);
 
-    // Add owner as team member
-    const memberRef = doc(collection(db, FIRESTORE_COLLECTIONS.TEAM_MEMBERS));
+    // Add owner as team member (with predictable ID)
+    const memberRef = doc(db, FIRESTORE_COLLECTIONS.TEAM_MEMBERS, `${teamRef.id}_${user.id}`);
     const memberData: FirestoreTeamMember = {
       id: memberRef.id,
       teamId: teamRef.id,

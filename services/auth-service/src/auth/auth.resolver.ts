@@ -29,6 +29,7 @@ export class AuthResolver {
       email: 'test@example.com',
       name: 'Test User',
       role: 'ADMIN' as any,
+      isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

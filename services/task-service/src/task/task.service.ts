@@ -163,6 +163,7 @@ export class TaskService {
       status: task.status,
       priority: task.priority,
       dueDate: task.dueDate,
+      teamId: task.teamId,
       createdBy: task.createdBy,
       version: task.version,
       createdAt: task.createdAt,

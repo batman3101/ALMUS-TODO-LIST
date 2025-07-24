@@ -22,6 +22,7 @@ let AuthService = class AuthService {
             email,
             name: 'Test User',
             role: UserRole.ADMIN,
+            isActive: true,
             createdAt: new Date(),
             updatedAt: new Date(),
         };
@@ -52,6 +53,7 @@ let AuthService = class AuthService {
             name: profile.name,
             role: UserRole.EDITOR,
             avatar: profile.avatar,
+            isActive: true,
             createdAt: new Date(),
             updatedAt: new Date(),
         };

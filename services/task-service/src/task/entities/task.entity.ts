@@ -23,6 +23,9 @@ export class Task {
   @Column({ type: 'uuid' })
   assigneeId!: string;
 
+  @Column({ type: 'uuid' })
+  teamId!: string;
+
   @Column({
     type: 'enum',
     enum: TaskStatus,

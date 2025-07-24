@@ -14,6 +14,13 @@ export const FIRESTORE_COLLECTIONS = {
     TEAM_MEMBERS: 'team_members',
     TEAM_INVITATIONS: 'team_invitations',
     PERMISSION_AUDIT_LOG: 'permission_audit_log',
+    // Real-time Collaboration Collections
+    COMMENTS: 'comments',
+    MENTIONS: 'mentions',
+    COLLABORATIVE_SESSIONS: 'collaborative_sessions',
+    EDIT_OPERATIONS: 'edit_operations',
+    USER_PRESENCE: 'user_presence',
+    DOCUMENT_VERSIONS: 'document_versions',
 };
 // 필수 인덱스 목록
 export const REQUIRED_INDEXES = [
@@ -162,6 +169,89 @@ export const REQUIRED_INDEXES = [
     {
         collection: FIRESTORE_COLLECTIONS.PERMISSION_AUDIT_LOG,
         fields: ['grantedBy', 'action', 'createdAt'],
+    },
+    // Real-time Collaboration 인덱스
+    // Comments 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.COMMENTS,
+        fields: ['resourceType', 'resourceId', 'createdAt'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.COMMENTS,
+        fields: ['authorId', 'createdAt'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.COMMENTS,
+        fields: ['resourceType', 'resourceId', 'parentCommentId', 'createdAt'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.COMMENTS,
+        fields: ['isDeleted', 'createdAt'],
+    },
+    // Mentions 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.MENTIONS,
+        fields: ['mentionedUserId', 'isRead', 'createdAt'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.MENTIONS,
+        fields: ['commentId'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.MENTIONS,
+        fields: ['resourceType', 'resourceId', 'createdAt'],
+    },
+    // Collaborative Sessions 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.COLLABORATIVE_SESSIONS,
+        fields: ['resourceType', 'resourceId', 'isActive'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.COLLABORATIVE_SESSIONS,
+        fields: ['isActive', 'lastActivity'],
+    },
+    // Edit Operations 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.EDIT_OPERATIONS,
+        fields: ['sessionId', 'timestamp'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.EDIT_OPERATIONS,
+        fields: ['resourceType', 'resourceId', 'timestamp'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.EDIT_OPERATIONS,
+        fields: ['userId', 'timestamp'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.EDIT_OPERATIONS,
+        fields: ['applied', 'timestamp'],
+    },
+    // User Presence 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.USER_PRESENCE,
+        fields: ['status', 'updatedAt'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.USER_PRESENCE,
+        fields: ['sessionId'],
+    },
+    // Document Versions 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.DOCUMENT_VERSIONS,
+        fields: ['resourceType', 'resourceId', 'version'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.DOCUMENT_VERSIONS,
+        fields: ['resourceType', 'resourceId', 'createdAt'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.DOCUMENT_VERSIONS,
+        fields: ['createdBy', 'createdAt'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.DOCUMENT_VERSIONS,
+        fields: ['isAutoSave', 'createdAt'],
     },
 ];
 //# sourceMappingURL=firestore-schema.js.map

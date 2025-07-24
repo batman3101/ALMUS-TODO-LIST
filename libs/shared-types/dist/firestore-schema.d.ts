@@ -21,6 +21,12 @@ export declare const FIRESTORE_COLLECTIONS: {
     readonly TEAM_MEMBERS: "team_members";
     readonly TEAM_INVITATIONS: "team_invitations";
     readonly PERMISSION_AUDIT_LOG: "permission_audit_log";
+    readonly COMMENTS: "comments";
+    readonly MENTIONS: "mentions";
+    readonly COLLABORATIVE_SESSIONS: "collaborative_sessions";
+    readonly EDIT_OPERATIONS: "edit_operations";
+    readonly USER_PRESENCE: "user_presence";
+    readonly DOCUMENT_VERSIONS: "document_versions";
 };
 export interface FirestoreUser {
     id: string;
@@ -237,6 +243,135 @@ export interface FirestorePermissionAuditLog {
     ipAddress?: string;
     userAgent?: string;
     createdAt: Timestamp;
+}
+export type CommentType = 'TASK' | 'PROJECT' | 'DOCUMENT';
+export type PresenceStatus = 'ONLINE' | 'AWAY' | 'BUSY' | 'OFFLINE';
+export type EditOperationType = 'INSERT' | 'DELETE' | 'REPLACE' | 'FORMAT';
+export interface FirestoreComment {
+    id: string;
+    resourceType: CommentType;
+    resourceId: string;
+    parentCommentId?: string;
+    authorId: string;
+    content: string;
+    mentions: string[];
+    isEdited: boolean;
+    editedAt?: Timestamp;
+    isDeleted: boolean;
+    deletedAt?: Timestamp;
+    reactions: FirestoreCommentReaction[];
+    attachments: FirestoreCommentAttachment[];
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export interface FirestoreCommentReaction {
+    userId: string;
+    emoji: string;
+    createdAt: Timestamp;
+}
+export interface FirestoreCommentAttachment {
+    id: string;
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+    uploadedBy: string;
+    uploadedAt: Timestamp;
+}
+export interface FirestoreMention {
+    id: string;
+    commentId: string;
+    mentionedUserId: string;
+    mentionedByUserId: string;
+    resourceType: CommentType;
+    resourceId: string;
+    isRead: boolean;
+    readAt?: Timestamp;
+    createdAt: Timestamp;
+}
+export interface FirestoreCollaborativeSession {
+    id: string;
+    resourceType: 'TASK' | 'PROJECT' | 'DOCUMENT';
+    resourceId: string;
+    participants: FirestoreSessionParticipant[];
+    isActive: boolean;
+    lastActivity: Timestamp;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export interface FirestoreSessionParticipant {
+    userId: string;
+    joinedAt: Timestamp;
+    lastSeen: Timestamp;
+    cursor?: FirestoreCursorPosition;
+    selection?: FirestoreSelection;
+    isActive: boolean;
+}
+export interface FirestoreCursorPosition {
+    line: number;
+    column: number;
+    fieldPath?: string;
+}
+export interface FirestoreSelection {
+    start: FirestoreCursorPosition;
+    end: FirestoreCursorPosition;
+    content?: string;
+}
+export interface FirestoreEditOperation {
+    id: string;
+    sessionId: string;
+    resourceType: 'TASK' | 'PROJECT' | 'DOCUMENT';
+    resourceId: string;
+    userId: string;
+    operation: {
+        type: EditOperationType;
+        position: FirestoreCursorPosition;
+        content?: string;
+        length?: number;
+        attributes?: Record<string, any>;
+    };
+    timestamp: Timestamp;
+    applied: boolean;
+    appliedAt?: Timestamp;
+    conflictsWith?: string[];
+    resolvedBy?: string;
+    createdAt: Timestamp;
+}
+export interface FirestoreUserPresence {
+    id: string;
+    userId: string;
+    status: PresenceStatus;
+    currentResource?: {
+        type: 'TASK' | 'PROJECT' | 'DOCUMENT';
+        id: string;
+        name: string;
+    };
+    lastActivity: Timestamp;
+    sessionId?: string;
+    isTyping: boolean;
+    typingInResource?: string;
+    customStatus?: string;
+    updatedAt: Timestamp;
+}
+export interface FirestoreDocumentVersion {
+    id: string;
+    resourceType: 'TASK' | 'PROJECT' | 'DOCUMENT';
+    resourceId: string;
+    version: number;
+    content: Record<string, any>;
+    changes: FirestoreVersionChange[];
+    createdBy: string;
+    summary?: string;
+    tags?: string[];
+    parentVersionId?: string;
+    isAutoSave: boolean;
+    createdAt: Timestamp;
+}
+export interface FirestoreVersionChange {
+    fieldPath: string;
+    oldValue: any;
+    newValue: any;
+    operationType: 'CREATE' | 'UPDATE' | 'DELETE';
 }
 export interface FirestoreIndex {
     collection: string;
