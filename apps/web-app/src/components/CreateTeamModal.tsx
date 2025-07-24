@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Users, Globe, Lock, Settings } from 'lucide-react';
-import { CreateTeamInput, TeamRole } from '@almus/shared-types';
+import { CreateTeamInput, TeamRole } from '../types/team';
 import { useTeams } from '../hooks/useTeams';
 
 interface CreateTeamModalProps {

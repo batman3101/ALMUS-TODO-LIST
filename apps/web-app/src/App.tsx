@@ -11,6 +11,7 @@ import CreateTaskForm from './components/CreateTaskForm';
 import CalendarView from './components/CalendarView';
 import KanbanView from './components/KanbanView';
 import GanttView from './components/GanttView';
+import { TeamManagement } from './components/TeamManagement';
 import ViewSelector, { ViewType } from './components/ViewSelector';
 import LanguageSelector from './components/LanguageSelector';
 import ThemeToggle from './components/ThemeToggle';
@@ -37,6 +38,8 @@ function App() {
         return <KanbanView />;
       case 'gantt':
         return <GanttView />;
+      case 'team':
+        return <TeamManagement />;
       case 'list':
       default:
         return <TaskList />;

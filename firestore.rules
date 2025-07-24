@@ -16,6 +16,10 @@ service cloud.firestore {
       return request.auth.token.email;
     }
     
+    function isOwner(userId) {
+      return isAuthenticated() && getUserId() == userId;
+    }
+
     // 팀 멤버십 확인
     function isTeamMember(teamId) {
       return exists(/databases/$(database)/documents/team_members/$(getUserId() + '_' + teamId)) &&
@@ -26,6 +30,10 @@ service cloud.firestore {
     function getTeamRole(teamId) {
       let memberPath = /databases/$(database)/documents/team_members/$(getUserId() + '_' + teamId);
       return exists(memberPath) ? get(memberPath).data.role : null;
+    }
+    
+    function hasTeamRole(teamId, roles) {
+      return isTeamMember(teamId) && getTeamRole(teamId) in roles;
     }
     
     function isTeamOwner(teamId) {
@@ -47,154 +55,390 @@ service cloud.firestore {
       return role == 'OWNER' || role == 'ADMIN' || role == 'EDITOR' || role == 'VIEWER';
     }
 
-    // 사용자 문서 - 자신의 문서만 읽기/쓰기 가능
+    // 프로젝트 권한 확인
+    function hasProjectPermission(projectId, action) {
+      let project = get(/databases/$(database)/documents/projects/$(projectId));
+      let teamId = project.data.teamId;
+      
+      // 팀 레벨 권한 확인 (상위 권한이 하위 권한을 포함)
+      if (hasTeamRole(teamId, ['OWNER', 'ADMIN'])) {
+        return true;
+      }
+      
+      if (action in ['READ', 'UPDATE', 'CREATE', 'COMMENT'] && hasTeamRole(teamId, ['EDITOR'])) {
+        return true;
+      }
+      
+      if (action == 'READ' && hasTeamRole(teamId, ['VIEWER'])) {
+        return true;
+      }
+      
+      // 프로젝트 레벨 권한 확인
+      let permissionPath = /databases/$(database)/documents/project_permissions/$(projectId + '_' + getUserId());
+      if (exists(permissionPath)) {
+        let permission = get(permissionPath);
+        let isValid = permission.data.isActive == true &&
+                     (permission.data.expiresAt == null || permission.data.expiresAt > request.time);
+        
+        if (!isValid) return false;
+        
+        // 역할 기반 권한 확인
+        let role = permission.data.role;
+        if (role == 'PROJECT_MANAGER') return true;
+        if (role == 'PROJECT_LEAD' && action in ['READ', 'UPDATE', 'CREATE', 'COMMENT', 'ASSIGN']) return true;
+        if (role == 'CONTRIBUTOR' && action in ['READ', 'UPDATE', 'CREATE', 'COMMENT']) return true;
+        if (role == 'OBSERVER' && action in ['READ', 'COMMENT']) return true;
+      }
+      
+      return false;
+    }
+
+    // 작업 권한 확인
+    function hasTaskPermission(taskId, action) {
+      let task = get(/databases/$(database)/documents/tasks/$(taskId));
+      let projectId = task.data.projectId;
+      
+      // 프로젝트 권한이 있으면 작업 권한도 상속
+      if (hasProjectPermission(projectId, action)) {
+        return true;
+      }
+      
+      // 작업 레벨 권한 확인
+      let permissionPath = /databases/$(database)/documents/task_permissions/$(taskId + '_' + getUserId());
+      if (exists(permissionPath)) {
+        let permission = get(permissionPath);
+        let isValid = permission.data.isActive == true &&
+                     (permission.data.expiresAt == null || permission.data.expiresAt > request.time);
+        
+        if (!isValid) return false;
+        
+        // 역할 기반 권한 확인
+        let role = permission.data.role;
+        if (role == 'ASSIGNEE' && action in ['READ', 'UPDATE', 'COMMENT', 'COMPLETE']) return true;
+        if (role == 'REVIEWER' && action in ['READ', 'UPDATE', 'COMMENT']) return true;
+        if (role == 'COLLABORATOR' && action in ['READ', 'UPDATE', 'COMMENT']) return true;
+        if (role == 'WATCHER' && action in ['READ', 'COMMENT']) return true;
+      }
+      
+      // 담당자는 작업 수정/완료 가능
+      if (action in ['READ', 'UPDATE', 'COMPLETE', 'COMMENT'] && task.data.assigneeId == getUserId()) {
+        return true;
+      }
+      
+      return false;
+    }
+
+    // 데이터 검증 함수들
+    function validateTeamData(data) {
+      return data.keys().hasAll(['name', 'ownerId', 'createdAt', 'updatedAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.ownerId == getUserId() &&
+             data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function validateProjectData(data) {
+      return data.keys().hasAll(['name', 'teamId', 'ownerId', 'status', 'createdAt', 'updatedAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+             data.status in ['PLANNING', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED'] &&
+             data.ownerId == getUserId() &&
+             isTeamMember(data.teamId);
+    }
+
+    function validateTaskData(data) {
+      return data.keys().hasAll(['title', 'projectId', 'status', 'priority', 'createdAt', 'updatedAt']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 300 &&
+             data.status in ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'COMPLETED', 'CANCELLED'] &&
+             data.priority in ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] &&
+             hasProjectPermission(data.projectId, 'READ');
+    }
+
+    // 시간 기반 제한 (예: 근무 시간)
+    function isWorkingHours() {
+      let hour = request.time.toMillis() / (1000 * 60 * 60) % 24;
+      return hour >= 9 && hour <= 18; // 9AM - 6PM (UTC 기준)
+    }
+
+    // 배치 작업 제한
+    function isBatchOperationAllowed() {
+      return request.writeFields.size() <= 50; // 한 번에 최대 50개 필드만 수정 가능
+    }
+
+    // 사용자 문서
     match /users/{userId} {
-      allow read, write: if isAuthenticated() && getUserId() == userId;
+      allow read, write: if isOwner(userId);
+      allow read: if isAuthenticated(); // 다른 사용자 기본 정보는 조회 가능
     }
 
-    // 팀 문서 - 팀 멤버만 읽기 가능, 소유자/관리자만 쓰기 가능
+    // 팀 문서
     match /teams/{teamId} {
-      allow read: if isAuthenticated() && isTeamMember(teamId);
-      allow create: if isAuthenticated() && getUserId() == resource.data.ownerId;
-      allow update: if isAuthenticated() && isTeamAdmin(teamId);
-      allow delete: if isAuthenticated() && isTeamOwner(teamId);
+      allow read: if isTeamMember(teamId);
+      allow write: if hasTeamRole(teamId, ['OWNER', 'ADMIN']);
+      allow create: if isAuthenticated() && validateTeamData(resource.data);
     }
 
-    // 팀 멤버 문서 - 팀 멤버는 읽기 가능, 관리자는 쓰기 가능
-    match /team_members/{memberId} {
+    // 팀 멤버 문서
+    match /team_members/{membershipId} {
       allow read: if isAuthenticated() && (
-        // 자신의 멤버십 정보는 읽을 수 있음
+        // 자신의 멤버십 정보
         resource.data.userId == getUserId() ||
-        // 같은 팀의 다른 멤버 정보는 팀 멤버만 읽을 수 있음
+        // 같은 팀 멤버들은 서로 조회 가능
         isTeamMember(resource.data.teamId)
       );
       
       allow create: if isAuthenticated() && (
-        // 초대 수락 시 자신의 멤버십 생성
-        resource.data.userId == getUserId() ||
-        // 관리자가 직접 멤버 추가
-        isTeamAdmin(resource.data.teamId)
+        // 팀 관리자가 새 멤버 추가
+        hasTeamRole(resource.data.teamId, ['OWNER', 'ADMIN']) ||
+        // 초대받은 사용자가 직접 수락
+        resource.data.userId == getUserId()
       );
       
       allow update: if isAuthenticated() && (
-        // 관리자가 멤버 역할 변경
-        isTeamAdmin(resource.data.teamId) ||
-        // 자신의 활성 상태 변경 (팀 탈퇴)
-        (resource.data.userId == getUserId() && request.resource.data.isActive == false)
+        // 팀 관리자가 멤버 역할 변경
+        hasTeamRole(resource.data.teamId, ['OWNER', 'ADMIN']) ||
+        // 멤버 자신이 일부 정보 수정 (알림 설정 등)
+        (resource.data.userId == getUserId() && 
+         request.data.diff(resource.data).affectedKeys().hasOnly(['notificationSettings', 'lastSeen']))
       );
       
       allow delete: if isAuthenticated() && (
-        isTeamAdmin(resource.data.teamId) ||
-        // 자신의 멤버십 삭제 (팀 탈퇴)
+        // 팀 관리자가 멤버 제거
+        hasTeamRole(resource.data.teamId, ['OWNER', 'ADMIN']) ||
+        // 멤버 자신이 팀 탈퇴
         resource.data.userId == getUserId()
       );
     }
 
-    // 팀 초대 문서 - 초대자와 피초대자만 접근 가능
+    // 팀 초대 문서
     match /team_invitations/{invitationId} {
       allow read: if isAuthenticated() && (
-        // 초대자는 읽을 수 있음
-        resource.data.invitedBy == getUserId() ||
-        // 피초대자는 읽을 수 있음 (이메일 매칭)
+        // 초대받은 사용자
         resource.data.email == getUserEmail() ||
-        // 팀 관리자는 읽을 수 있음
-        isTeamAdmin(resource.data.teamId)
+        // 팀 관리자
+        hasTeamRole(resource.data.teamId, ['OWNER', 'ADMIN'])
       );
       
       allow create: if isAuthenticated() && 
-        resource.data.invitedBy == getUserId() &&
-        isTeamAdmin(resource.data.teamId);
+        hasTeamRole(resource.data.teamId, ['OWNER', 'ADMIN']);
       
       allow update: if isAuthenticated() && (
-        // 초대자 또는 팀 관리자가 초대 취소
-        (resource.data.invitedBy == getUserId() || isTeamAdmin(resource.data.teamId)) ||
-        // 피초대자가 수락/거절 (이메일 매칭 필요)
-        (resource.data.email == getUserEmail() && 
-         request.resource.data.status in ['ACCEPTED', 'REJECTED'])
+        // 초대받은 사용자가 수락/거절
+        resource.data.email == getUserEmail() ||
+        // 팀 관리자가 초대 취소
+        hasTeamRole(resource.data.teamId, ['OWNER', 'ADMIN'])
       );
       
-      allow delete: if isAuthenticated() && (
-        resource.data.invitedBy == getUserId() ||
-        isTeamAdmin(resource.data.teamId)
-      );
+      allow delete: if isAuthenticated() && 
+        hasTeamRole(resource.data.teamId, ['OWNER', 'ADMIN']);
     }
 
-    // 작업 문서 - 팀 멤버만 접근, 역할별 권한 제한
-    match /tasks/{taskId} {
-      allow read: if isAuthenticated() && isTeamViewer(resource.data.teamId);
-      
-      allow create: if isAuthenticated() && 
-        isTeamEditor(resource.data.teamId) &&
-        resource.data.createdBy == getUserId();
-      
-      allow update: if isAuthenticated() && (
-        // 작업 생성자는 수정 가능
-        resource.data.createdBy == getUserId() ||
-        // 작업 담당자는 수정 가능
-        resource.data.assigneeId == getUserId() ||
-        // 편집자 이상은 수정 가능
-        isTeamEditor(resource.data.teamId)
-      );
-      
-      allow delete: if isAuthenticated() && (
-        // 작업 생성자는 삭제 가능
-        resource.data.createdBy == getUserId() ||
-        // 관리자는 삭제 가능
-        isTeamAdmin(resource.data.teamId)
-      );
-    }
-
-    // 프로젝트 문서 - 팀 멤버만 접근
+    // 프로젝트 문서
     match /projects/{projectId} {
-      allow read: if isAuthenticated() && isTeamViewer(resource.data.teamId);
-      allow create: if isAuthenticated() && isTeamEditor(resource.data.teamId);
-      allow update: if isAuthenticated() && (
-        resource.data.createdBy == getUserId() ||
-        isTeamEditor(resource.data.teamId)
+      allow read: if hasProjectPermission(projectId, 'READ');
+      allow create: if isAuthenticated() && validateProjectData(resource.data);
+      allow update: if hasProjectPermission(projectId, 'UPDATE') && isBatchOperationAllowed();
+      allow delete: if hasProjectPermission(projectId, 'DELETE');
+    }
+
+    // 프로젝트 권한 문서
+    match /project_permissions/{permissionId} {
+      function getProjectIdFromPermission() {
+        return resource.data.projectId;
+      }
+      
+      allow read: if isAuthenticated() && (
+        // 자신의 권한 정보
+        resource.data.userId == getUserId() ||
+        // 프로젝트 권한 관리자
+        hasProjectPermission(getProjectIdFromPermission(), 'MANAGE_PERMISSIONS')
       );
-      allow delete: if isAuthenticated() && (
-        resource.data.createdBy == getUserId() ||
-        isTeamAdmin(resource.data.teamId)
-      );
-    }
-
-    // 알림 문서 - 자신의 알림만 접근 가능
-    match /notifications/{notificationId} {
-      allow read, write: if isAuthenticated() && resource.data.userId == getUserId();
-    }
-
-    // 알림 설정 문서 - 자신의 설정만 접근 가능
-    match /notification_settings/{settingsId} {
-      allow read, write: if isAuthenticated() && resource.data.userId == getUserId();
-    }
-
-    // 알림 템플릿 - 시스템 관리자만 접근 (추후 구현)
-    match /notification_templates/{templateId} {
-      allow read: if isAuthenticated();
-      // 쓰기는 시스템 관리자만 (Cloud Functions에서 처리)
-    }
-
-    // 작업 의존성 - 팀 멤버만 접근
-    match /task_dependencies/{dependencyId} {
-      allow read: if isAuthenticated() && 
-        (isTeamViewer(get(/databases/$(database)/documents/tasks/$(resource.data.sourceTaskId)).data.teamId) ||
-         isTeamViewer(get(/databases/$(database)/documents/tasks/$(resource.data.targetTaskId)).data.teamId));
       
       allow create, update, delete: if isAuthenticated() && 
-        (isTeamEditor(get(/databases/$(database)/documents/tasks/$(resource.data.sourceTaskId)).data.teamId) ||
-         isTeamEditor(get(/databases/$(database)/documents/tasks/$(resource.data.targetTaskId)).data.teamId));
+        hasProjectPermission(resource.data.projectId, 'MANAGE_PERMISSIONS');
     }
 
-    // 파일 메타데이터 - 팀 멤버만 접근
-    match /file_metadata/{fileId} {
-      allow read: if isAuthenticated() && isTeamViewer(resource.data.teamId);
-      allow create: if isAuthenticated() && 
-        resource.data.uploaderId == getUserId() &&
-        isTeamEditor(resource.data.teamId);
-      allow update, delete: if isAuthenticated() && (
-        resource.data.uploaderId == getUserId() ||
-        isTeamAdmin(resource.data.teamId)
+    // 작업 문서
+    match /tasks/{taskId} {
+      allow read: if hasTaskPermission(taskId, 'READ');
+      allow create: if isAuthenticated() && validateTaskData(resource.data);
+      allow update: if hasTaskPermission(taskId, 'UPDATE') && isBatchOperationAllowed() &&
+        // 중요한 작업은 근무 시간에만 수정 가능
+        (resource.data.priority != 'URGENT' || isWorkingHours());
+      allow delete: if hasTaskPermission(taskId, 'DELETE');
+    }
+
+    // 작업 권한 문서
+    match /task_permissions/{permissionId} {
+      function getTaskIdFromPermission() {
+        return resource.data.taskId;
+      }
+      
+      allow read: if isAuthenticated() && (
+        // 자신의 권한 정보
+        resource.data.userId == getUserId() ||
+        // 작업 권한 관리자
+        hasTaskPermission(getTaskIdFromPermission(), 'MANAGE_PERMISSIONS')
       );
+      
+      allow create, update, delete: if isAuthenticated() && 
+        hasTaskPermission(resource.data.taskId, 'MANAGE_PERMISSIONS');
+    }
+
+    // 작업 의존성 문서
+    match /task_dependencies/{dependencyId} {
+      allow read: if isAuthenticated() && (
+        hasTaskPermission(resource.data.dependentTaskId, 'READ') ||
+        hasTaskPermission(resource.data.dependsOnTaskId, 'READ')
+      );
+      
+      allow create, update, delete: if isAuthenticated() && (
+        hasTaskPermission(resource.data.dependentTaskId, 'UPDATE') ||
+        hasTaskPermission(resource.data.dependsOnTaskId, 'UPDATE')
+      );
+    }
+
+    // 알림 문서
+    match /notifications/{notificationId} {
+      allow read: if isOwner(resource.data.userId);
+      allow update: if isOwner(resource.data.userId) && 
+        request.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+      allow create: if isAuthenticated(); // 시스템이 알림 생성
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // 알림 설정 문서
+    match /notification_settings/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // 알림 템플릿 문서 (관리자만)
+    match /notification_templates/{templateId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated(); // 실제로는 시스템 관리자만 가능하도록 구현 필요
+    }
+
+    // 권한 감사 로그
+    match /permission_audit_log/{logId} {
+      allow read: if isAuthenticated() && (
+        // 자신과 관련된 로그
+        resource.data.userId == getUserId() ||
+        resource.data.grantedBy == getUserId() ||
+        // 해당 리소스의 관리자
+        (resource.data.resourceType == 'TEAM' && hasTeamRole(resource.data.resourceId, ['OWNER', 'ADMIN'])) ||
+        (resource.data.resourceType == 'PROJECT' && hasProjectPermission(resource.data.resourceId, 'MANAGE_PERMISSIONS')) ||
+        (resource.data.resourceType == 'TASK' && hasTaskPermission(resource.data.resourceId, 'MANAGE_PERMISSIONS'))
+      );
+      
+      allow create: if isAuthenticated(); // 시스템이 로그 생성
+      // 감사 로그는 수정/삭제 불가
+    }
+
+    // Real-time Collaboration - 댓글 문서
+    match /comments/{commentId} {
+      allow read: if isAuthenticated() && (
+        // 댓글이 달린 리소스에 대한 읽기 권한이 있는 경우
+        (resource.data.resourceType == 'TASK' && hasTaskPermission(resource.data.resourceId, 'read')) ||
+        (resource.data.resourceType == 'PROJECT' && hasProjectPermission(resource.data.resourceId, 'read'))
+      );
+      
+      allow create: if isAuthenticated() && validateCommentData(resource.data) && (
+        // 댓글을 달 리소스에 대한 댓글 권한이 있는 경우
+        (resource.data.resourceType == 'TASK' && hasTaskPermission(resource.data.resourceId, 'COMMENT')) ||
+        (resource.data.resourceType == 'PROJECT' && hasProjectPermission(resource.data.resourceId, 'COMMENT'))
+      );
+      
+      allow update: if isAuthenticated() && (
+        // 자신의 댓글만 수정 가능 (내용과 수정 시간만)
+        resource.data.authorId == getUserId() &&
+        request.data.diff(resource.data).affectedKeys().hasOnly(['content', 'isEdited', 'editedAt', 'updatedAt'])
+      );
+      
+      allow delete: if isAuthenticated() && (
+        // 자신의 댓글만 삭제 가능 (소프트 삭제)
+        resource.data.authorId == getUserId() ||
+        // 또는 해당 리소스의 관리자
+        (resource.data.resourceType == 'TASK' && hasTaskPermission(resource.data.resourceId, 'MANAGE_PERMISSIONS')) ||
+        (resource.data.resourceType == 'PROJECT' && hasProjectPermission(resource.data.resourceId, 'MANAGE_PERMISSIONS'))
+      );
+    }
+
+    // 댓글 데이터 검증
+    function validateCommentData(data) {
+      return data.keys().hasAll(['resourceType', 'resourceId', 'authorId', 'content', 'createdAt', 'updatedAt']) &&
+             data.resourceType in ['TASK', 'PROJECT', 'DOCUMENT'] &&
+             data.authorId == getUserId() &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 5000;
+    }
+
+    // 멘션 문서
+    match /mentions/{mentionId} {
+      allow read: if isAuthenticated() && (
+        // 멘션받은 사용자만 조회 가능
+        resource.data.mentionedUserId == getUserId() ||
+        // 멘션한 사용자도 조회 가능
+        resource.data.mentionedByUserId == getUserId()
+      );
+      
+      allow create: if isAuthenticated() && 
+        resource.data.mentionedByUserId == getUserId();
+      
+      allow update: if isAuthenticated() && 
+        resource.data.mentionedUserId == getUserId() &&
+        request.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'readAt']);
+      
+      // 멘션은 삭제하지 않음 (댓글 삭제 시 자동으로 처리)
+    }
+
+    // 협업 세션 문서
+    match /collaborative_sessions/{sessionId} {
+      allow read, write: if isAuthenticated() && (
+        // 세션 참여자만 접근 가능
+        resource.data.participants.keys().hasAny([getUserId()]) ||
+        // 해당 리소스에 대한 권한이 있는 경우
+        (resource.data.resourceType == 'TASK' && hasTaskPermission(resource.data.resourceId, 'read')) ||
+        (resource.data.resourceType == 'PROJECT' && hasProjectPermission(resource.data.resourceId, 'read'))
+      );
+    }
+
+    // 편집 작업 문서
+    match /edit_operations/{operationId} {
+      allow read: if isAuthenticated() && (
+        // 작업한 사용자이거나 세션 참여자
+        resource.data.userId == getUserId() ||
+        // 해당 리소스에 대한 권한이 있는 경우
+        (resource.data.resourceType == 'TASK' && hasTaskPermission(resource.data.resourceId, 'read')) ||
+        (resource.data.resourceType == 'PROJECT' && hasProjectPermission(resource.data.resourceId, 'read'))
+      );
+      
+      allow create: if isAuthenticated() && 
+        resource.data.userId == getUserId();
+      
+      allow update: if isAuthenticated() && (
+        // 자신의 작업만 수정 가능 (충돌 해결 등)
+        resource.data.userId == getUserId() ||
+        // 또는 해당 리소스의 관리자
+        (resource.data.resourceType == 'TASK' && hasTaskPermission(resource.data.resourceId, 'UPDATE')) ||
+        (resource.data.resourceType == 'PROJECT' && hasProjectPermission(resource.data.resourceId, 'UPDATE'))
+      );
+    }
+
+    // 사용자 상태 문서
+    match /user_presence/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+
+    // 문서 버전 문서
+    match /document_versions/{versionId} {
+      allow read: if isAuthenticated() && (
+        // 해당 리소스에 대한 권한이 있는 경우
+        (resource.data.resourceType == 'TASK' && hasTaskPermission(resource.data.resourceId, 'read')) ||
+        (resource.data.resourceType == 'PROJECT' && hasProjectPermission(resource.data.resourceId, 'read'))
+      );
+      
+      allow create: if isAuthenticated() && 
+        resource.data.createdBy == getUserId();
+      
+      // 버전은 수정/삭제하지 않음 (불변)
     }
 
     // 기본적으로 모든 다른 문서는 거부

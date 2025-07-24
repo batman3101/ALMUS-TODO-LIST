@@ -85,6 +85,112 @@ export declare enum InvitationStatus {
     EXPIRED = "EXPIRED",
     CANCELLED = "CANCELLED"
 }
+export declare enum ProjectRole {
+    PROJECT_MANAGER = "PROJECT_MANAGER",
+    PROJECT_LEAD = "PROJECT_LEAD",
+    CONTRIBUTOR = "CONTRIBUTOR",
+    OBSERVER = "OBSERVER"
+}
+export declare enum TaskRole {
+    ASSIGNEE = "ASSIGNEE",
+    REVIEWER = "REVIEWER",
+    COLLABORATOR = "COLLABORATOR",
+    WATCHER = "WATCHER"
+}
+export declare enum PermissionAction {
+    CREATE = "CREATE",
+    READ = "READ",
+    UPDATE = "UPDATE",
+    DELETE = "DELETE",
+    ASSIGN = "ASSIGN",
+    COMMENT = "COMMENT",
+    COMPLETE = "COMPLETE",
+    MANAGE_PERMISSIONS = "MANAGE_PERMISSIONS"
+}
+export declare enum ResourceType {
+    TEAM = "TEAM",
+    PROJECT = "PROJECT",
+    TASK = "TASK"
+}
+export interface Permission {
+    resource: ResourceType;
+    action: PermissionAction;
+    granted: boolean;
+    conditions?: PermissionConditions;
+}
+export interface PermissionConditions {
+    timeRange?: {
+        start: Date;
+        end: Date;
+    };
+    ipRange?: string[];
+    deviceType?: string[];
+    customConditions?: Record<string, any>;
+}
+export interface ProjectPermission {
+    id: string;
+    projectId: string;
+    userId: string;
+    user?: User;
+    role: ProjectRole;
+    permissions: Permission[];
+    grantedBy: string;
+    grantedByUser?: User;
+    grantedAt: Date;
+    expiresAt?: Date;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
+export interface TaskPermission {
+    id: string;
+    taskId: string;
+    userId: string;
+    user?: User;
+    role: TaskRole;
+    permissions: Permission[];
+    grantedBy: string;
+    grantedByUser?: User;
+    grantedAt: Date;
+    expiresAt?: Date;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
+export interface Project {
+    id: string;
+    name: string;
+    description?: string;
+    teamId: string;
+    ownerId: string;
+    owner?: User;
+    status: ProjectStatus;
+    priority: ProjectPriority;
+    startDate?: Date;
+    endDate?: Date;
+    budget?: number;
+    tags?: string[];
+    memberCount: number;
+    taskCount: number;
+    completedTaskCount: number;
+    progress: number;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
+export declare enum ProjectStatus {
+    PLANNING = "PLANNING",
+    ACTIVE = "ACTIVE",
+    ON_HOLD = "ON_HOLD",
+    COMPLETED = "COMPLETED",
+    CANCELLED = "CANCELLED"
+}
+export declare enum ProjectPriority {
+    LOW = "LOW",
+    MEDIUM = "MEDIUM",
+    HIGH = "HIGH",
+    URGENT = "URGENT"
+}
 export interface Task {
     id: string;
     title: string;
@@ -98,12 +204,16 @@ export interface Task {
     createdByUser?: User;
     version: number;
     teamId: string;
+    projectId?: string;
+    project?: Project;
     createdAt: Date;
     updatedAt: Date;
     startDate?: Date;
     endDate?: Date;
     dependencies?: string[];
     progress?: number;
+    permissions?: TaskPermission[];
+    collaborators?: User[];
 }
 export declare enum TaskStatus {
     TODO = "TODO",
@@ -294,6 +404,67 @@ export interface RespondToInvitationInput {
     invitationId: string;
     action: 'ACCEPT' | 'REJECT';
 }
+export interface CreateProjectInput {
+    name: string;
+    description?: string;
+    teamId: string;
+    status?: ProjectStatus;
+    priority?: ProjectPriority;
+    startDate?: Date;
+    endDate?: Date;
+    budget?: number;
+    tags?: string[];
+}
+export interface UpdateProjectInput {
+    id: string;
+    name?: string;
+    description?: string;
+    status?: ProjectStatus;
+    priority?: ProjectPriority;
+    startDate?: Date;
+    endDate?: Date;
+    budget?: number;
+    tags?: string[];
+    isActive?: boolean;
+}
+export interface CreateProjectPermissionInput {
+    projectId: string;
+    userId: string;
+    role: ProjectRole;
+    permissions?: Permission[];
+    expiresAt?: Date;
+}
+export interface UpdateProjectPermissionInput {
+    id: string;
+    role?: ProjectRole;
+    permissions?: Permission[];
+    expiresAt?: Date;
+    isActive?: boolean;
+}
+export interface CreateTaskPermissionInput {
+    taskId: string;
+    userId: string;
+    role: TaskRole;
+    permissions?: Permission[];
+    expiresAt?: Date;
+}
+export interface UpdateTaskPermissionInput {
+    id: string;
+    role?: TaskRole;
+    permissions?: Permission[];
+    expiresAt?: Date;
+    isActive?: boolean;
+}
+export interface PermissionCheckInput {
+    userId: string;
+    resource: {
+        type: ResourceType;
+        teamId?: string;
+        projectId?: string;
+        taskId?: string;
+    };
+    action: PermissionAction;
+}
 export interface CreateTaskInput {
     title: string;
     description?: string;
@@ -382,13 +553,13 @@ export interface UpdateNotificationSettingsInput {
     teamsWebhook?: string;
     kakaoWebhook?: string;
 }
-export interface Permission {
+export interface LegacyPermission {
     resource: string;
     action: string;
 }
 export interface RolePermissions {
     role: UserRole;
-    permissions: Permission[];
+    permissions: LegacyPermission[];
 }
 export interface TaskConflict {
     taskId: string;

@@ -25,7 +25,7 @@ import {
   FIRESTORE_COLLECTIONS,
   FirestoreTeam,
   FirestoreTeamMember,
-} from '@almus/shared-types';
+} from '../types/team';
 import { toast } from '../utils/toast';
 
 export const useTeams = () => {

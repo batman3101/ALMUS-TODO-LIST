@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Mail, UserPlus, Crown, Shield, Edit, Eye } from 'lucide-react';
-import { Team, TeamRole, InviteTeamMemberInput } from '@almus/shared-types';
+import { Team, TeamRole, InviteTeamMemberInput } from '../types/team';
 import { useTeams } from '../hooks/useTeams';
 
 interface InviteMemberModalProps {

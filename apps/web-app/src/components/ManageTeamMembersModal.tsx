@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, UserPlus, Crown, Shield, Edit, Eye, Trash2, Mail, Search, Filter } from 'lucide-react';
-import { Team, TeamMember, TeamRole, InviteTeamMemberInput } from '@almus/shared-types';
+import { Team, TeamMember, TeamRole, InviteTeamMemberInput } from '../types/team';
 import { useTeams } from '../hooks/useTeams';
 import { useTeamMembers } from '../hooks/useTeamMembers';
 import { useAuth } from '../hooks/useAuth';

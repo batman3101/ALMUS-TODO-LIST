@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Settings, Globe, Users } from 'lucide-react';
-import { Team, UpdateTeamInput, TeamRole } from '@almus/shared-types';
+import { Team, UpdateTeamInput, TeamRole } from '../types/team';
 import { useTeams } from '../hooks/useTeams';
 
 interface EditTeamModalProps {

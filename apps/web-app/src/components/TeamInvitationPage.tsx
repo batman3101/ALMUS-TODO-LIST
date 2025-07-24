@@ -4,7 +4,7 @@ import { CheckCircle, XCircle, Clock, Users, Mail, Crown, Shield, Edit, Eye } fr
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../config/firebase';
 import { useAuth } from '../hooks/useAuth';
-import { TeamRole } from '@almus/shared-types';
+import { TeamRole } from '../types/team';
 
 interface InvitationDetails {
   teamName: string;

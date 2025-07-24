@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-export type ViewType = 'list' | 'calendar' | 'kanban' | 'gantt';
+export type ViewType = 'list' | 'calendar' | 'kanban' | 'gantt' | 'team';
 
 interface ViewSelectorProps {
   currentView: ViewType;
@@ -41,6 +41,12 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
       icon: '📊',
       description: t('view.ganttDescription'),
     },
+    {
+      id: 'team' as ViewType,
+      label: '팀 관리',
+      icon: '👥',
+      description: '팀 생성, 편집 및 멤버 관리',
+    },
   ];
 
   return (
@@ -57,7 +63,7 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
       </div>
 
       <div className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {views.map(view => (
             <button
               key={view.id}

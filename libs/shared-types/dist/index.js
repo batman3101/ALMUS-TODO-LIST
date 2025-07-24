@@ -19,6 +19,53 @@ export var InvitationStatus;
     InvitationStatus["EXPIRED"] = "EXPIRED";
     InvitationStatus["CANCELLED"] = "CANCELLED";
 })(InvitationStatus || (InvitationStatus = {}));
+// Advanced Permission System Types
+export var ProjectRole;
+(function (ProjectRole) {
+    ProjectRole["PROJECT_MANAGER"] = "PROJECT_MANAGER";
+    ProjectRole["PROJECT_LEAD"] = "PROJECT_LEAD";
+    ProjectRole["CONTRIBUTOR"] = "CONTRIBUTOR";
+    ProjectRole["OBSERVER"] = "OBSERVER";
+})(ProjectRole || (ProjectRole = {}));
+export var TaskRole;
+(function (TaskRole) {
+    TaskRole["ASSIGNEE"] = "ASSIGNEE";
+    TaskRole["REVIEWER"] = "REVIEWER";
+    TaskRole["COLLABORATOR"] = "COLLABORATOR";
+    TaskRole["WATCHER"] = "WATCHER";
+})(TaskRole || (TaskRole = {}));
+export var PermissionAction;
+(function (PermissionAction) {
+    PermissionAction["CREATE"] = "CREATE";
+    PermissionAction["READ"] = "READ";
+    PermissionAction["UPDATE"] = "UPDATE";
+    PermissionAction["DELETE"] = "DELETE";
+    PermissionAction["ASSIGN"] = "ASSIGN";
+    PermissionAction["COMMENT"] = "COMMENT";
+    PermissionAction["COMPLETE"] = "COMPLETE";
+    PermissionAction["MANAGE_PERMISSIONS"] = "MANAGE_PERMISSIONS";
+})(PermissionAction || (PermissionAction = {}));
+export var ResourceType;
+(function (ResourceType) {
+    ResourceType["TEAM"] = "TEAM";
+    ResourceType["PROJECT"] = "PROJECT";
+    ResourceType["TASK"] = "TASK";
+})(ResourceType || (ResourceType = {}));
+export var ProjectStatus;
+(function (ProjectStatus) {
+    ProjectStatus["PLANNING"] = "PLANNING";
+    ProjectStatus["ACTIVE"] = "ACTIVE";
+    ProjectStatus["ON_HOLD"] = "ON_HOLD";
+    ProjectStatus["COMPLETED"] = "COMPLETED";
+    ProjectStatus["CANCELLED"] = "CANCELLED";
+})(ProjectStatus || (ProjectStatus = {}));
+export var ProjectPriority;
+(function (ProjectPriority) {
+    ProjectPriority["LOW"] = "LOW";
+    ProjectPriority["MEDIUM"] = "MEDIUM";
+    ProjectPriority["HIGH"] = "HIGH";
+    ProjectPriority["URGENT"] = "URGENT";
+})(ProjectPriority || (ProjectPriority = {}));
 export var TaskStatus;
 (function (TaskStatus) {
     TaskStatus["TODO"] = "TODO";

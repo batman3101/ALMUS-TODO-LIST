@@ -15,9 +15,12 @@ export declare const FIRESTORE_COLLECTIONS: {
     readonly NOTIFICATION_TEMPLATES: "notification_templates";
     readonly TASK_DEPENDENCIES: "task_dependencies";
     readonly PROJECTS: "projects";
+    readonly PROJECT_PERMISSIONS: "project_permissions";
+    readonly TASK_PERMISSIONS: "task_permissions";
     readonly TEAMS: "teams";
     readonly TEAM_MEMBERS: "team_members";
     readonly TEAM_INVITATIONS: "team_invitations";
+    readonly PERMISSION_AUDIT_LOG: "permission_audit_log";
 };
 export interface FirestoreUser {
     id: string;
@@ -110,7 +113,17 @@ export interface FirestoreProject {
     name: string;
     description?: string;
     teamId: string;
-    createdBy: string;
+    ownerId: string;
+    status: 'PLANNING' | 'ACTIVE' | 'ON_HOLD' | 'COMPLETED' | 'CANCELLED';
+    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+    startDate?: Timestamp;
+    endDate?: Timestamp;
+    budget?: number;
+    tags: string[];
+    memberCount: number;
+    taskCount: number;
+    completedTaskCount: number;
+    progress: number;
     isActive: boolean;
     createdAt: Timestamp;
     updatedAt: Timestamp;
@@ -165,6 +178,65 @@ export interface FirestoreTeamInvitation {
     status: InvitationStatus;
     createdAt: Timestamp;
     updatedAt: Timestamp;
+}
+export type ProjectRole = 'PROJECT_MANAGER' | 'PROJECT_LEAD' | 'CONTRIBUTOR' | 'OBSERVER';
+export type TaskRole = 'ASSIGNEE' | 'REVIEWER' | 'COLLABORATOR' | 'WATCHER';
+export type PermissionAction = 'CREATE' | 'READ' | 'UPDATE' | 'DELETE' | 'ASSIGN' | 'COMMENT' | 'COMPLETE' | 'MANAGE_PERMISSIONS';
+export type ResourceType = 'TEAM' | 'PROJECT' | 'TASK';
+export interface FirestorePermission {
+    resource: ResourceType;
+    action: PermissionAction;
+    granted: boolean;
+    conditions?: FirestorePermissionConditions;
+}
+export interface FirestorePermissionConditions {
+    timeRange?: {
+        start: Timestamp;
+        end: Timestamp;
+    };
+    ipRange?: string[];
+    deviceType?: string[];
+    customConditions?: Record<string, any>;
+}
+export interface FirestoreProjectPermission {
+    id: string;
+    projectId: string;
+    userId: string;
+    role: ProjectRole;
+    permissions: FirestorePermission[];
+    grantedBy: string;
+    grantedAt: Timestamp;
+    expiresAt?: Timestamp;
+    isActive: boolean;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export interface FirestoreTaskPermission {
+    id: string;
+    taskId: string;
+    userId: string;
+    role: TaskRole;
+    permissions: FirestorePermission[];
+    grantedBy: string;
+    grantedAt: Timestamp;
+    expiresAt?: Timestamp;
+    isActive: boolean;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export interface FirestorePermissionAuditLog {
+    id: string;
+    action: 'GRANTED' | 'REVOKED' | 'MODIFIED' | 'EXPIRED';
+    resourceType: ResourceType;
+    resourceId: string;
+    userId: string;
+    grantedBy: string;
+    previousPermissions?: FirestorePermission[];
+    newPermissions?: FirestorePermission[];
+    reason?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    createdAt: Timestamp;
 }
 export interface FirestoreIndex {
     collection: string;

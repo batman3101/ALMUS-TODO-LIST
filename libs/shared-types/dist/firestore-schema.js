@@ -8,9 +8,12 @@ export const FIRESTORE_COLLECTIONS = {
     NOTIFICATION_TEMPLATES: 'notification_templates',
     TASK_DEPENDENCIES: 'task_dependencies',
     PROJECTS: 'projects',
+    PROJECT_PERMISSIONS: 'project_permissions',
+    TASK_PERMISSIONS: 'task_permissions',
     TEAMS: 'teams',
     TEAM_MEMBERS: 'team_members',
     TEAM_INVITATIONS: 'team_invitations',
+    PERMISSION_AUDIT_LOG: 'permission_audit_log',
 };
 // 필수 인덱스 목록
 export const REQUIRED_INDEXES = [
@@ -104,6 +107,61 @@ export const REQUIRED_INDEXES = [
     {
         collection: FIRESTORE_COLLECTIONS.TEAM_INVITATIONS,
         fields: ['expiresAt', 'status'],
+    },
+    // Project Permissions 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS,
+        fields: ['projectId', 'isActive'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS,
+        fields: ['userId', 'isActive'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS,
+        fields: ['projectId', 'userId', 'isActive'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS,
+        fields: ['projectId', 'role', 'grantedAt'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS,
+        fields: ['expiresAt', 'isActive'],
+    },
+    // Task Permissions 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.TASK_PERMISSIONS,
+        fields: ['taskId', 'isActive'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.TASK_PERMISSIONS,
+        fields: ['userId', 'isActive'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.TASK_PERMISSIONS,
+        fields: ['taskId', 'userId', 'isActive'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.TASK_PERMISSIONS,
+        fields: ['taskId', 'role', 'grantedAt'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.TASK_PERMISSIONS,
+        fields: ['expiresAt', 'isActive'],
+    },
+    // Permission Audit Log 컬렉션 인덱스
+    {
+        collection: FIRESTORE_COLLECTIONS.PERMISSION_AUDIT_LOG,
+        fields: ['userId', 'createdAt'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.PERMISSION_AUDIT_LOG,
+        fields: ['resourceType', 'resourceId', 'createdAt'],
+    },
+    {
+        collection: FIRESTORE_COLLECTIONS.PERMISSION_AUDIT_LOG,
+        fields: ['grantedBy', 'action', 'createdAt'],
     },
 ];
 //# sourceMappingURL=firestore-schema.js.map

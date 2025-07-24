@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Settings, Users, Edit2, Trash2, Crown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { Team, TeamRole, TeamMember } from '@almus/shared-types';
+import { Team, TeamRole, TeamMember } from '../types/team';
 import { CreateTeamModal } from './CreateTeamModal';
 import { EditTeamModal } from './EditTeamModal';
 import { ManageTeamMembersModal } from './ManageTeamMembersModal';

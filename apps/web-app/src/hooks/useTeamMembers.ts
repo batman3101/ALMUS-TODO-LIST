@@ -20,8 +20,8 @@ import {
   FIRESTORE_COLLECTIONS,
   FirestoreTeamMember,
   FirestoreTeamInvitation,
-  FirestoreUser,
-} from '@almus/shared-types';
+} from '../types/team';
+import { FirestoreUser } from '@almus/shared-types';
 import { toast } from '../utils/toast';
 
 export const useTeamMembers = (teamId: string) => {
