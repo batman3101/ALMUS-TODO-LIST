@@ -125,7 +125,7 @@ export interface PermissionConditions {
     };
     ipRange?: string[];
     deviceType?: string[];
-    customConditions?: Record<string, any>;
+    customConditions?: Record<string, unknown>;
 }
 export interface ProjectPermission {
     id: string;
@@ -292,7 +292,7 @@ export interface Notification {
     type: NotificationType;
     title: string;
     message: string;
-    data?: Record<string, any>;
+    data?: Record<string, unknown>;
     channels: NotificationChannel[];
     isRead: boolean;
     isSent: boolean;
@@ -507,7 +507,7 @@ export interface CreateNotificationInput {
     type: NotificationType;
     title: string;
     message: string;
-    data?: Record<string, any>;
+    data?: Record<string, unknown>;
     channels: NotificationChannel[];
 }
 export interface UpdateNotificationInput {

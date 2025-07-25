@@ -7,7 +7,6 @@ import { NotificationTemplate } from './entities/notification-template.entity';
 import {
   Notification as NotificationType,
   CreateNotificationInput,
-  UpdateNotificationInput,
   NotificationType as NotificationTypeEnum,
   NotificationChannel,
 } from '@almus/shared-types';
@@ -170,19 +169,24 @@ export class NotificationService {
   }
 
   // Controller methods
-  async create(createNotificationDto: any): Promise<any> {
+  async create(
+    createNotificationDto: CreateNotificationInput
+  ): Promise<NotificationType> {
     return this.createNotification(createNotificationDto);
   }
 
-  async findAll(): Promise<any[]> {
+  async findAll(): Promise<NotificationType[]> {
     return this.notificationRepository.find();
   }
 
-  async findOne(id: string): Promise<any> {
+  async findOne(id: string): Promise<NotificationType> {
     return this.notificationRepository.findOne({ where: { id } });
   }
 
-  async update(id: string, updateNotificationDto: any): Promise<any> {
+  async update(
+    id: string,
+    updateNotificationDto: Partial<NotificationType>
+  ): Promise<NotificationType> {
     await this.notificationRepository.update(id, updateNotificationDto);
     return this.findOne(id);
   }

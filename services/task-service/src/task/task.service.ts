@@ -147,7 +147,7 @@ export class TaskService {
         serverVersion: task.version,
         clientVersion,
         serverData: this.mapToTaskType(task),
-        clientData: null as any, // 클라이언트에서 제공해야 함
+        clientData: null as TaskType | null, // 클라이언트에서 제공해야 함
       };
     }
 

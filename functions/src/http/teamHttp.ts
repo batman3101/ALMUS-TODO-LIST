@@ -6,7 +6,7 @@
  */
 
 import { onCall, HttpsError, CallableRequest } from 'firebase-functions/v2/https';
-import { getFirestore, FieldValue, Timestamp, Transaction } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue, Timestamp, Transaction, DocumentSnapshot } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { logger } from 'firebase-functions/v2';
 import { sendTeamInvitationEmail } from '../services/emailService';
@@ -248,7 +248,7 @@ class InvitationManager {
 
   static async findByToken(token: string): Promise<{
     exists: boolean;
-    doc?: FirebaseFirestore.DocumentSnapshot;
+    doc?: DocumentSnapshot;
     data?: FirestoreTeamInvitation;
   }> {
     try {
@@ -319,7 +319,7 @@ class EmailService {
 
 // === 에러 핸들러 ===
 class ErrorHandler {
-  static handle(error: any, context: string, additionalInfo: Record<string, any> = {}): never {
+  static handle(error: unknown, context: string, additionalInfo: Record<string, unknown> = {}): never {
     logger.error(`Error in ${context}:`, {
       error: error?.message || String(error),
       code: error?.code,

@@ -65,7 +65,7 @@ export interface FirestoreNotification {
     type: NotificationType;
     title: string;
     message: string;
-    data?: Record<string, any>;
+    data?: Record<string, unknown>;
     channels: NotificationChannel[];
     isRead: boolean;
     isSent: boolean;
@@ -202,7 +202,7 @@ export interface FirestorePermissionConditions {
     };
     ipRange?: string[];
     deviceType?: string[];
-    customConditions?: Record<string, any>;
+    customConditions?: Record<string, unknown>;
 }
 export interface FirestoreProjectPermission {
     id: string;
@@ -328,7 +328,7 @@ export interface FirestoreEditOperation {
         position: FirestoreCursorPosition;
         content?: string;
         length?: number;
-        attributes?: Record<string, any>;
+        attributes?: Record<string, unknown>;
     };
     timestamp: Timestamp;
     applied: boolean;
@@ -358,7 +358,7 @@ export interface FirestoreDocumentVersion {
     resourceType: 'TASK' | 'PROJECT' | 'DOCUMENT';
     resourceId: string;
     version: number;
-    content: Record<string, any>;
+    content: Record<string, unknown>;
     changes: FirestoreVersionChange[];
     createdBy: string;
     summary?: string;
@@ -369,8 +369,8 @@ export interface FirestoreDocumentVersion {
 }
 export interface FirestoreVersionChange {
     fieldPath: string;
-    oldValue: any;
-    newValue: any;
+    oldValue: unknown;
+    newValue: unknown;
     operationType: 'CREATE' | 'UPDATE' | 'DELETE';
 }
 export interface FirestoreIndex {

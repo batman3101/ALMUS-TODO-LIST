@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   collection,
   doc,
-  addDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
   orderBy,
@@ -233,12 +231,6 @@ export const useTeams = () => {
     const teamRef = doc(db, FIRESTORE_COLLECTIONS.TEAMS, teamId);
     batch.delete(teamRef);
 
-    // Delete all team members
-    const membersQuery = query(
-      collection(db, FIRESTORE_COLLECTIONS.TEAM_MEMBERS),
-      where('teamId', '==', teamId)
-    );
-    
     // Note: In a real implementation, you'd want to get the members first
     // and then delete them in the batch. This is a simplified version.
     await batch.commit();
@@ -284,15 +276,11 @@ export const useTeams = () => {
       const data = result.data as any;
       toast.success(data.message || `${input.email}에게 초대장을 보냈습니다.`);
     } catch (error: any) {
-      console.error('멤버 초대 실패:', error);
       throw new Error(error.message || '멤버 초대에 실패했습니다.');
     }
   };
 
-  const generateInvitationToken = (): string => {
-    return Math.random().toString(36).substring(2, 15) + 
-           Math.random().toString(36).substring(2, 15);
-  };
+
 
   const getUserRole = (teamId: string): TeamRole | null => {
     const membership = userTeams.find(ut => ut.teamId === teamId);

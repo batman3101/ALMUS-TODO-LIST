@@ -58,9 +58,9 @@ export class Task {
   // Relations
   @ManyToOne(() => Task, { nullable: true })
   @JoinColumn({ name: 'assigneeId' })
-  assignee?: any;
+  assignee?: Task;
 
   @ManyToOne(() => Task, { nullable: true })
   @JoinColumn({ name: 'createdBy' })
-  createdByUser?: any;
+  createdByUser?: Task;
 }

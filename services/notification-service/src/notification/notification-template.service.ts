@@ -21,7 +21,7 @@ export class NotificationTemplateService {
     return { id, ...updateData };
   }
 
-  async deleteTemplate(id: string): Promise<void> {
+  async deleteTemplate(): Promise<void> {
     // TODO: 템플릿 삭제 로직 구현
   }
 }
