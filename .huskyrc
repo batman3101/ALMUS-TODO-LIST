@@ -1,0 +1,3 @@
+#!/bin/sh
+# Windows compatibility for husky
+export PATH="/c/Program Files/nodejs:$PATH"

@@ -19,7 +19,16 @@
       "Bash(npx tsc:*)",
       "Bash(mv:*)",
       "Bash(claude mcp add:*)",
-      "Bash(claude mcp:*)"
+      "Bash(claude mcp:*)",
+      "Bash(where bash)",
+      "Bash(echo $SHELL)",
+      "Bash(npm ls:*)",
+      "Bash(npx husky add:*)",
+      "Bash(dir:*)",
+      "Bash(set HUSKY=0)",
+      "Bash(powershell:*)",
+      "Bash(del .lintstagedrc.js)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": []
   }
