@@ -66,7 +66,10 @@ const GanttView: React.FC = () => {
   };
 
   // 태스크 업데이트 핸들러
-  const handleTaskSave = async (taskId: string, updateData: UpdateTaskInput) => {
+  const handleTaskSave = async (
+    taskId: string,
+    updateData: UpdateTaskInput
+  ) => {
     try {
       await updateTask.mutateAsync({ id: taskId, updates: updateData });
     } catch (error) {
@@ -167,7 +170,8 @@ const GanttView: React.FC = () => {
     target.setDate(target.getDate() - dayNr + 3); // 해당 주의 목요일로 이동
     const jan4 = new Date(target.getFullYear(), 0, 4); // 1월 4일
     const dayDiff = (target.getTime() - jan4.getTime()) / 86400000; // 일 단위 차이
-    const weekNum = 1 + Math.round((dayDiff - 3 + (jan4.getDay() + 6) % 7) / 7);
+    const weekNum =
+      1 + Math.round((dayDiff - 3 + ((jan4.getDay() + 6) % 7)) / 7);
     return { year: target.getFullYear(), week: weekNum };
   };
 
@@ -244,7 +248,7 @@ const GanttView: React.FC = () => {
 
         while (weekIterator <= end) {
           const weekInfo = getWeekNumber(weekIterator);
-          
+
           units.push({
             date: new Date(weekIterator),
             label: `${weekInfo.year}년\n${weekInfo.week}주`,
@@ -493,50 +497,57 @@ const GanttView: React.FC = () => {
   const scrollToToday = useCallback(() => {
     const today = getCurrentDate(); // 실시간 현재 날짜 사용
     const { start, end } = config.dateRange;
-    
+
     // 타임라인과 동일한 시간 단위 생성으로 정확한 위치 계산
     const timeUnits = generateTimeUnits(start, end, config.zoomLevel);
     const totalMs = end.getTime() - start.getTime();
-    
+
     // 시간 단위 기반으로 오늘 날짜의 위치 계산
     const calculateTodayPosition = (): number => {
       if (today <= start) return 0;
       if (today >= end) return 100;
-      
+
       let cumulativePosition = 0;
-      
+
       for (let i = 0; i < timeUnits.length; i++) {
         const currentUnit = timeUnits[i];
         const nextUnit = timeUnits[i + 1];
         const unitEndDate = nextUnit ? nextUnit.date : end;
-        
+
         // 현재 시간 단위의 실제 기간과 화면상 너비 비율 계산
-        const unitDurationMs = unitEndDate.getTime() - currentUnit.date.getTime();
+        const unitDurationMs =
+          unitEndDate.getTime() - currentUnit.date.getTime();
         const unitWidthPercentage = (unitDurationMs / totalMs) * 100;
-        
+
         // 오늘 날짜가 현재 시간 단위 내에 있는지 확인
         if (today >= currentUnit.date && today < unitEndDate) {
           // 시간 단위 내에서의 상대적 위치 계산
-          const relativePositionMs = today.getTime() - currentUnit.date.getTime();
-          const relativePositionPercentage = (relativePositionMs / unitDurationMs) * unitWidthPercentage;
+          const relativePositionMs =
+            today.getTime() - currentUnit.date.getTime();
+          const relativePositionPercentage =
+            (relativePositionMs / unitDurationMs) * unitWidthPercentage;
           return cumulativePosition + relativePositionPercentage;
         }
-        
+
         cumulativePosition += unitWidthPercentage;
       }
-      
+
       return cumulativePosition;
     };
 
     const todayPositionPercentage = calculateTodayPosition();
 
     if (scrollContainerRef.current) {
-      const scrollWidth = scrollContainerRef.current.scrollWidth - scrollContainerRef.current.clientWidth;
+      const scrollWidth =
+        scrollContainerRef.current.scrollWidth -
+        scrollContainerRef.current.clientWidth;
       const containerWidth = scrollContainerRef.current.clientWidth;
-      
+
       // 오늘 날짜를 화면 중앙에 위치시키기 위한 스크롤 위치 계산
-      const todayPixelPosition = (todayPositionPercentage / 100) * scrollContainerRef.current.scrollWidth;
-      const targetScrollLeft = todayPixelPosition - (containerWidth / 2);
+      const todayPixelPosition =
+        (todayPositionPercentage / 100) *
+        scrollContainerRef.current.scrollWidth;
+      const targetScrollLeft = todayPixelPosition - containerWidth / 2;
 
       scrollContainerRef.current.scrollTo({
         left: Math.max(0, Math.min(scrollWidth, targetScrollLeft)),
@@ -547,7 +558,7 @@ const GanttView: React.FC = () => {
 
   const renderTimeline = () => {
     const { start, end } = config.dateRange;
-    
+
     // 공통 함수를 사용하여 시간 단위 생성
     const timeUnits = generateTimeUnits(start, end, config.zoomLevel);
 

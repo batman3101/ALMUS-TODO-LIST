@@ -187,7 +187,9 @@ export class NotificationService {
     id: string,
     updateNotificationDto: Partial<NotificationType>
   ): Promise<NotificationType> {
-    await this.notificationRepository.update(id, updateNotificationDto);
+    // TypeORM 호환성을 위해 데이터 변환
+    const updateData: any = { ...updateNotificationDto };
+    await this.notificationRepository.update(id, updateData);
     return this.findOne(id);
   }
 

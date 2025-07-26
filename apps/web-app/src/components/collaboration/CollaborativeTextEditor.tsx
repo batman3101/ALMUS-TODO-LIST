@@ -1,7 +1,17 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
 import { useCollaborativeSession } from '../../hooks/useCollaborativeSession';
 import { useUserPresence } from '../../hooks/useUserPresence';
-import { OperationalTransform, TextOperation, ConflictResolver } from '../../utils/operationalTransform';
+import {
+  OperationalTransform,
+  TextOperation,
+  ConflictResolver,
+} from '../../utils/operationalTransform';
 import type { EditOperation, UserPresence } from '../../services/websocket';
 import './CollaborativeTextEditor.css';
 
@@ -33,7 +43,9 @@ interface SelectionInfo {
   color: string;
 }
 
-export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = ({
+export const CollaborativeTextEditor: React.FC<
+  CollaborativeTextEditorProps
+> = ({
   resourceType,
   resourceId,
   fieldPath,
@@ -49,7 +61,7 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
   const [text, setText] = useState(initialValue);
   const [isComposing, setIsComposing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  
+
   // 협업 세션 및 사용자 상태
   const {
     isActive: isSessionActive,
@@ -77,15 +89,23 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
   // 사용자별 색상 매핑
   const userColors = useMemo(() => {
     const colors = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-      '#DDA0DD', '#98D8C8', '#F7DC6F', '#AED6F1', '#A9DFBF'
+      '#FF6B6B',
+      '#4ECDC4',
+      '#45B7D1',
+      '#96CEB4',
+      '#FFEAA7',
+      '#DDA0DD',
+      '#98D8C8',
+      '#F7DC6F',
+      '#AED6F1',
+      '#A9DFBF',
     ];
     const colorMap = new Map<string, string>();
-    
+
     participants.forEach((participant, index) => {
       colorMap.set(participant.userId, colors[index % colors.length]);
     });
-    
+
     return colorMap;
   }, [participants]);
 
@@ -111,7 +131,7 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
     if (operation.position.fieldPath !== fieldPath) return;
 
     setRemoteOperations(prev => [...prev, operation]);
-    
+
     // 작업을 텍스트에 적용
     applyRemoteOperation(operation);
   }
@@ -119,10 +139,10 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
   // 충돌 감지 처리
   function handleConflictDetected(operations: EditOperation[]) {
     console.log('Conflict detected:', operations);
-    
+
     // 타임스탬프 기반으로 충돌 해결
     const sortedOps = operations.sort((a, b) => a.timestamp - b.timestamp);
-    
+
     // 각 작업을 순차적으로 적용
     sortedOps.forEach(op => {
       if (op.position.fieldPath === fieldPath) {
@@ -132,25 +152,31 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
   }
 
   // 원격 작업을 텍스트에 적용
-  const applyRemoteOperation = useCallback((operation: EditOperation) => {
-    setText(currentText => {
-      try {
-        // EditOperation을 TextOperation으로 변환
-        const textOp = convertEditOperationToTextOperation(operation, currentText);
-        
-        // 작업 적용
-        const newText = OperationalTransform.apply(currentText, textOp);
-        
-        // 변경사항 통지
-        onValueChange?.(newText);
-        
-        return newText;
-      } catch (error) {
-        console.error('Error applying remote operation:', error);
-        return currentText;
-      }
-    });
-  }, [onValueChange]);
+  const applyRemoteOperation = useCallback(
+    (operation: EditOperation) => {
+      setText(currentText => {
+        try {
+          // EditOperation을 TextOperation으로 변환
+          const textOp = convertEditOperationToTextOperation(
+            operation,
+            currentText
+          );
+
+          // 작업 적용
+          const newText = OperationalTransform.apply(currentText, textOp);
+
+          // 변경사항 통지
+          onValueChange?.(newText);
+
+          return newText;
+        } catch (error) {
+          console.error('Error applying remote operation:', error);
+          return currentText;
+        }
+      });
+    },
+    [onValueChange]
+  );
 
   // EditOperation을 TextOperation으로 변환
   const convertEditOperationToTextOperation = (
@@ -180,7 +206,8 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
     }
 
     // Retain after position
-    const remainingLength = currentText.length - position - (operation.length || 0);
+    const remainingLength =
+      currentText.length - position - (operation.length || 0);
     if (remainingLength > 0) {
       ops.push({ type: 'retain', length: remainingLength });
     }
@@ -188,81 +215,107 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
     return {
       ops,
       baseLength: currentText.length,
-      targetLength: OperationalTransform.calculateTargetLength(currentText.length, ops),
+      targetLength: OperationalTransform.calculateTargetLength(
+        currentText.length,
+        ops
+      ),
     };
   };
 
   // 로컬 편집 작업 생성 및 전송
-  const createAndSendEditOperation = useCallback((
-    type: 'INSERT' | 'DELETE' | 'REPLACE',
-    position: number,
-    content?: string,
-    length?: number
-  ) => {
-    if (!isSessionActive) return;
+  const createAndSendEditOperation = useCallback(
+    (
+      type: 'INSERT' | 'DELETE' | 'REPLACE',
+      position: number,
+      content?: string,
+      length?: number
+    ) => {
+      if (!isSessionActive) return;
 
-    const operation = {
-      type,
-      position: {
-        line: 0, // 단순 텍스트 에디터에서는 항상 0
-        column: position,
-        fieldPath,
-      },
-      content,
-      length,
-    };
+      const operation = {
+        type,
+        position: {
+          line: 0, // 단순 텍스트 에디터에서는 항상 0
+          column: position,
+          fieldPath,
+        },
+        content,
+        length,
+      };
 
-    sendEditOperation(operation);
-    
-    setLocalOperations(prev => [...prev, {
-      ...operation,
-      id: `local_${Date.now()}`,
-      userId: 'current_user',
-      timestamp: Date.now(),
-    }]);
-  }, [isSessionActive, sendEditOperation, fieldPath]);
+      sendEditOperation(operation);
+
+      setLocalOperations(prev => [
+        ...prev,
+        {
+          ...operation,
+          id: `local_${Date.now()}`,
+          userId: 'current_user',
+          timestamp: Date.now(),
+        },
+      ]);
+    },
+    [isSessionActive, sendEditOperation, fieldPath]
+  );
 
   // 텍스트 변경 핸들러
-  const handleTextChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (disabled || isComposing) return;
+  const handleTextChange = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      if (disabled || isComposing) return;
 
-    const newValue = event.target.value;
-    const oldValue = text;
-    
-    // 변경 감지 및 작업 생성
-    const cursorPosition = event.target.selectionStart || 0;
-    
-    if (newValue.length > oldValue.length) {
-      // 삽입
-      const insertedText = newValue.slice(oldValue.length === 0 ? 0 : cursorPosition - (newValue.length - oldValue.length), cursorPosition);
-      createAndSendEditOperation('INSERT', cursorPosition - insertedText.length, insertedText);
-    } else if (newValue.length < oldValue.length) {
-      // 삭제
-      const deleteLength = oldValue.length - newValue.length;
-      createAndSendEditOperation('DELETE', cursorPosition, undefined, deleteLength);
-    }
+      const newValue = event.target.value;
+      const oldValue = text;
 
-    setText(newValue);
-    onValueChange?.(newValue);
-    setHasUnsavedChanges(true);
-    
-    // 타이핑 상태 업데이트
-    setTyping(true, fieldPath);
-    debounceStopTyping();
-    
-    // 저장 디바운스
-    debounceSave(newValue);
-  }, [
-    disabled,
-    isComposing,
-    text,
-    createAndSendEditOperation,
-    onValueChange,
-    setTyping,
-    fieldPath,
-    debounceStopTyping,
-    debounceSave,
-  ]);
+      // 변경 감지 및 작업 생성
+      const cursorPosition = event.target.selectionStart || 0;
+
+      if (newValue.length > oldValue.length) {
+        // 삽입
+        const insertedText = newValue.slice(
+          oldValue.length === 0
+            ? 0
+            : cursorPosition - (newValue.length - oldValue.length),
+          cursorPosition
+        );
+        createAndSendEditOperation(
+          'INSERT',
+          cursorPosition - insertedText.length,
+          insertedText
+        );
+      } else if (newValue.length < oldValue.length) {
+        // 삭제
+        const deleteLength = oldValue.length - newValue.length;
+        createAndSendEditOperation(
+          'DELETE',
+          cursorPosition,
+          undefined,
+          deleteLength
+        );
+      }
+
+      setText(newValue);
+      onValueChange?.(newValue);
+      setHasUnsavedChanges(true);
+
+      // 타이핑 상태 업데이트
+      setTyping(true, fieldPath);
+      debounceStopTyping();
+
+      // 저장 디바운스
+      debounceSave(newValue);
+    },
+    [
+      disabled,
+      isComposing,
+      text,
+      createAndSendEditOperation,
+      onValueChange,
+      setTyping,
+      fieldPath,
+      debounceStopTyping,
+      debounceSave,
+    ]
+  );
 
   // 커서 위치 변경 핸들러
   const handleSelectionChange = useCallback(() => {
@@ -296,7 +349,7 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
 
     participants.forEach(participant => {
       const color = userColors.get(participant.userId) || '#999999';
-      
+
       // 타이핑 상태
       if (participant.isTyping) {
         newTypingUsers.add(participant.userId);
@@ -313,9 +366,11 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
       }
 
       // 선택 영역
-      if (participant.selection && 
-          participant.selection.start.fieldPath === fieldPath &&
-          participant.selection.end.fieldPath === fieldPath) {
+      if (
+        participant.selection &&
+        participant.selection.start.fieldPath === fieldPath &&
+        participant.selection.end.fieldPath === fieldPath
+      ) {
         newSelections.push({
           userId: participant.userId,
           userName: `User ${participant.userId}`,
@@ -332,14 +387,17 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
   }, [participants, userColors, fieldPath]);
 
   // 키보드 단축키 처리
-  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Ctrl+S로 저장
-    if (event.ctrlKey && event.key === 's') {
-      event.preventDefault();
-      onSave?.(text);
-      setHasUnsavedChanges(false);
-    }
-  }, [onSave, text]);
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Ctrl+S로 저장
+      if (event.ctrlKey && event.key === 's') {
+        event.preventDefault();
+        onSave?.(text);
+        setHasUnsavedChanges(false);
+      }
+    },
+    [onSave, text]
+  );
 
   // IME 처리
   const handleCompositionStart = useCallback(() => {
@@ -365,7 +423,7 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
             {isOnline ? (isSessionActive ? '협업 중' : '온라인') : '오프라인'}
           </span>
         </div>
-        
+
         {participants.length > 0 && (
           <div className="participants-list">
             {participants.map(participant => (
@@ -400,7 +458,7 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
           disabled={disabled}
           className="editor-textarea"
         />
-        
+
         {/* 다른 사용자의 커서 표시 */}
         {cursors.map(cursor => (
           <div
@@ -411,7 +469,7 @@ export const CollaborativeTextEditor: React.FC<CollaborativeTextEditorProps> = (
               left: `${getCursorPixelPosition(cursor.position)}px`,
             }}
           >
-            <div 
+            <div
               className="cursor-label"
               style={{ backgroundColor: cursor.color }}
             >
@@ -467,10 +525,10 @@ function debounce<T extends (...args: any[]) => void>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
+  let timeout: number | undefined;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
+    timeout = window.setTimeout(() => func(...args), wait);
   };
 }
 

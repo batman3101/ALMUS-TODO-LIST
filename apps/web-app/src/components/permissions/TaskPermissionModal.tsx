@@ -23,11 +23,7 @@ import { CalendarIcon, UserPlus, X, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
-import {
-  TaskRole,
-  CreateTaskPermissionInput,
-  User,
-} from '../../types/team';
+import { TaskRole, CreateTaskPermissionInput, User } from '../../types/team';
 import { useTaskPermissions } from '../../hooks/useTaskPermissions';
 import { toast } from '../../utils/toast';
 
@@ -46,7 +42,9 @@ export const TaskPermissionModal: React.FC<TaskPermissionModalProps> = ({
 }) => {
   const { grantPermission, getPermissionsByRole } = useTaskPermissions(taskId);
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
-  const [selectedRole, setSelectedRole] = useState<TaskRole>(TaskRole.COLLABORATOR);
+  const [selectedRole, setSelectedRole] = useState<TaskRole>(
+    TaskRole.COLLABORATOR
+  );
   const [expiresAt, setExpiresAt] = useState<Date | undefined>();
   const [userSearch, setUserSearch] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
@@ -138,7 +136,7 @@ export const TaskPermissionModal: React.FC<TaskPermissionModalProps> = ({
 
   const handleRoleChange = (newRole: TaskRole) => {
     setSelectedRole(newRole);
-    
+
     // 담당자 역할로 변경시 첫 번째 사용자만 유지
     if (newRole === TaskRole.ASSIGNEE && selectedUsers.length > 1) {
       setSelectedUsers(selectedUsers.slice(0, 1));
@@ -175,7 +173,9 @@ export const TaskPermissionModal: React.FC<TaskPermissionModalProps> = ({
       }
 
       const roleLabel = roleLabels[selectedRole];
-      toast.success(`${selectedUsers.length}명에게 ${roleLabel} 권한이 부여되었습니다.`);
+      toast.success(
+        `${selectedUsers.length}명에게 ${roleLabel} 권한이 부여되었습니다.`
+      );
       onClose();
       resetForm();
     } catch (error) {
@@ -210,7 +210,10 @@ export const TaskPermissionModal: React.FC<TaskPermissionModalProps> = ({
           {/* 역할 선택 */}
           <div className="space-y-2">
             <Label>역할</Label>
-            <Select value={selectedRole} onValueChange={(value) => handleRoleChange(value as TaskRole)}>
+            <Select
+              value={selectedRole}
+              onValueChange={value => handleRoleChange(value as TaskRole)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -229,7 +232,8 @@ export const TaskPermissionModal: React.FC<TaskPermissionModalProps> = ({
             </Select>
             {isAssigneeRole && (
               <div className="text-sm text-orange-600 bg-orange-50 p-2 rounded">
-                ⚠️ 담당자는 한 명만 지정할 수 있습니다. 기존 담당자가 있다면 교체됩니다.
+                ⚠️ 담당자는 한 명만 지정할 수 있습니다. 기존 담당자가 있다면
+                교체됩니다.
               </div>
             )}
           </div>
@@ -249,30 +253,35 @@ export const TaskPermissionModal: React.FC<TaskPermissionModalProps> = ({
               <Input
                 placeholder="프로젝트 멤버 검색 (이름 또는 이메일)"
                 value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
+                onChange={e => setUserSearch(e.target.value)}
                 className="pl-9"
                 disabled={maxUsers && selectedUsers.length >= maxUsers}
               />
               {searchResults.length > 0 && (
                 <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-white border rounded-md shadow-lg max-h-48 overflow-y-auto">
-                  {searchResults.map((user) => {
-                    const isDisabled = maxUsers && selectedUsers.length >= maxUsers;
+                  {searchResults.map(user => {
+                    const isDisabled =
+                      maxUsers && selectedUsers.length >= maxUsers;
                     return (
                       <button
                         key={user.id}
                         onClick={() => handleAddUser(user)}
                         disabled={isDisabled}
                         className={cn(
-                          "w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center gap-2",
-                          isDisabled && "opacity-50 cursor-not-allowed"
+                          'w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center gap-2',
+                          isDisabled && 'opacity-50 cursor-not-allowed'
                         )}
                       >
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                           {user.displayName?.[0] || user.email[0]}
                         </div>
                         <div>
-                          <div className="font-medium">{user.displayName || user.email}</div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
+                          <div className="font-medium">
+                            {user.displayName || user.email}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {user.email}
+                          </div>
                         </div>
                       </button>
                     );
@@ -284,7 +293,7 @@ export const TaskPermissionModal: React.FC<TaskPermissionModalProps> = ({
             {/* 선택된 사용자들 */}
             {selectedUsers.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
-                {selectedUsers.map((user) => (
+                {selectedUsers.map(user => (
                   <Badge key={user.id} variant="secondary" className="gap-1">
                     {user.displayName || user.email}
                     <button
@@ -312,7 +321,9 @@ export const TaskPermissionModal: React.FC<TaskPermissionModalProps> = ({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {expiresAt ? format(expiresAt, 'PPP', { locale: ko }) : '만료일 없음'}
+                  {expiresAt
+                    ? format(expiresAt, 'PPP', { locale: ko })
+                    : '만료일 없음'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -320,7 +331,7 @@ export const TaskPermissionModal: React.FC<TaskPermissionModalProps> = ({
                   mode="single"
                   selected={expiresAt}
                   onSelect={setExpiresAt}
-                  disabled={(date) => date < new Date()}
+                  disabled={date => date < new Date()}
                   initialFocus
                 />
                 {expiresAt && (
@@ -342,12 +353,16 @@ export const TaskPermissionModal: React.FC<TaskPermissionModalProps> = ({
           {/* 역할별 추가 안내 */}
           {selectedRole === TaskRole.ASSIGNEE && (
             <div className="bg-blue-50 p-3 rounded-md">
-              <div className="text-sm font-medium text-blue-800 mb-1">담당자 권한</div>
+              <div className="text-sm font-medium text-blue-800 mb-1">
+                담당자 권한
+              </div>
               <div className="text-sm text-blue-700">
-                • 작업을 완료할 수 있습니다<br/>
-                • 작업 상태를 변경할 수 있습니다<br/>
-                • 작업 내용을 편집할 수 있습니다<br/>
-                • 한 번에 한 명만 지정 가능합니다
+                • 작업을 완료할 수 있습니다
+                <br />
+                • 작업 상태를 변경할 수 있습니다
+                <br />
+                • 작업 내용을 편집할 수 있습니다
+                <br />• 한 번에 한 명만 지정 가능합니다
               </div>
             </div>
           )}

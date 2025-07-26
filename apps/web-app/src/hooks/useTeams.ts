@@ -53,8 +53,8 @@ export const useTeams = () => {
       orderBy('joinedAt', 'desc')
     );
 
-    const unsubscribeMembers = onSnapshot(teamMembersQuery, (snapshot) => {
-      const memberships = snapshot.docs.map((doc) => {
+    const unsubscribeMembers = onSnapshot(teamMembersQuery, snapshot => {
+      const memberships = snapshot.docs.map(doc => {
         const data = doc.data() as FirestoreTeamMember;
         return {
           id: doc.id,
@@ -76,8 +76,8 @@ export const useTeams = () => {
           where('__name__', 'in', teamIds)
         );
 
-        const unsubscribeTeams = onSnapshot(teamsQuery, (teamsSnapshot) => {
-          const teamsData = teamsSnapshot.docs.map((doc) => {
+        const unsubscribeTeams = onSnapshot(teamsQuery, teamsSnapshot => {
+          const teamsData = teamsSnapshot.docs.map(doc => {
             const data = doc.data() as FirestoreTeam;
             return {
               id: doc.id,
@@ -148,14 +148,18 @@ export const useTeams = () => {
       settings: {
         isPublic: input.settings?.isPublic || false,
         allowInvitations: input.settings?.allowInvitations ?? true,
-        defaultMemberRole: (input.settings?.defaultMemberRole || TeamRole.EDITOR) as any,
+        defaultMemberRole: (input.settings?.defaultMemberRole ||
+          TeamRole.EDITOR) as any,
         maxMembers: input.settings?.maxMembers || 50,
-        timeZone: input.settings?.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone:
+          input.settings?.timeZone ||
+          Intl.DateTimeFormat().resolvedOptions().timeZone,
         language: input.settings?.language || 'ko',
         features: {
           ganttView: input.settings?.features?.ganttView ?? true,
           timeTracking: input.settings?.features?.timeTracking ?? false,
-          advancedReporting: input.settings?.features?.advancedReporting ?? false,
+          advancedReporting:
+            input.settings?.features?.advancedReporting ?? false,
           customFields: input.settings?.features?.customFields ?? false,
           integrations: input.settings?.features?.integrations ?? false,
         },
@@ -167,7 +171,11 @@ export const useTeams = () => {
     batch.set(teamRef, teamData);
 
     // Add owner as team member (with predictable ID)
-    const memberRef = doc(db, FIRESTORE_COLLECTIONS.TEAM_MEMBERS, `${teamRef.id}_${user.id}`);
+    const memberRef = doc(
+      db,
+      FIRESTORE_COLLECTIONS.TEAM_MEMBERS,
+      `${teamRef.id}_${user.id}`
+    );
     const memberData: FirestoreTeamMember = {
       id: memberRef.id,
       teamId: teamRef.id,
@@ -207,15 +215,17 @@ export const useTeams = () => {
 
   const updateTeam = async (input: UpdateTeamInput): Promise<void> => {
     if (!user) throw new Error('사용자가 로그인되어 있지 않습니다');
-    
+
     const teamRef = doc(db, FIRESTORE_COLLECTIONS.TEAMS, input.id);
     const updateData: Partial<FirestoreTeam> = {
       updatedAt: Timestamp.now(),
     };
 
     if (input.name !== undefined) updateData.name = input.name;
-    if (input.description !== undefined) updateData.description = input.description;
-    if (input.settings !== undefined) updateData.settings = input.settings as any;
+    if (input.description !== undefined)
+      updateData.description = input.description;
+    if (input.settings !== undefined)
+      updateData.settings = input.settings as any;
     if (input.isActive !== undefined) updateData.isActive = input.isActive;
 
     await updateDoc(teamRef, updateData);
@@ -261,7 +271,9 @@ export const useTeams = () => {
     toast.success(`"${team.name}" 팀으로 전환되었습니다.`);
   };
 
-  const inviteTeamMember = async (input: InviteTeamMemberInput): Promise<void> => {
+  const inviteTeamMember = async (
+    input: InviteTeamMemberInput
+  ): Promise<void> => {
     if (!user) throw new Error('사용자가 로그인되어 있지 않습니다');
 
     try {
@@ -280,8 +292,6 @@ export const useTeams = () => {
     }
   };
 
-
-
   const getUserRole = (teamId: string): TeamRole | null => {
     const membership = userTeams.find(ut => ut.teamId === teamId);
     return membership?.role || null;
@@ -290,9 +300,9 @@ export const useTeams = () => {
   const canManageTeam = (teamId: string): boolean => {
     const team = teams.find(t => t.id === teamId);
     if (!team || !user) return false;
-    
+
     if (team.ownerId === user.id) return true;
-    
+
     const role = getUserRole(teamId);
     return role === TeamRole.ADMIN;
   };

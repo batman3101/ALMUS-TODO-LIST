@@ -28,6 +28,10 @@ __decorate([
     __metadata("design:type", String)
 ], Task.prototype, "assigneeId", void 0);
 __decorate([
+    Column({ type: 'uuid' }),
+    __metadata("design:type", String)
+], Task.prototype, "teamId", void 0);
+__decorate([
     Column({
         type: 'enum',
         enum: TaskStatus,
@@ -66,12 +70,12 @@ __decorate([
 __decorate([
     ManyToOne(() => Task, { nullable: true }),
     JoinColumn({ name: 'assigneeId' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Task)
 ], Task.prototype, "assignee", void 0);
 __decorate([
     ManyToOne(() => Task, { nullable: true }),
     JoinColumn({ name: 'createdBy' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Task)
 ], Task.prototype, "createdByUser", void 0);
 Task = __decorate([
     Entity('tasks')

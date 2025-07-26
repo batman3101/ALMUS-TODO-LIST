@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { CreateNotificationInput, Notification } from '@almus/shared-types';
 
@@ -22,7 +30,10 @@ export class NotificationController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateNotificationDto: Partial<Notification>) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateNotificationDto: Partial<Notification>
+  ) {
     return this.notificationService.update(id, updateNotificationDto);
   }
 

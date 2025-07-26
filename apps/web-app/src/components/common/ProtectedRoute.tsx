@@ -57,13 +57,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       toast.error('로그인이 필요한 페이지입니다.');
       setHasShownToast(true);
     }
-    
+
     return (
-      <Navigate 
-        to={redirectTo} 
-        state={{ from: location.pathname }}
-        replace 
-      />
+      <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
     );
   }
 
@@ -91,7 +87,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           <div className="text-8xl mb-6">🔒</div>
           <h1 className="text-2xl font-bold mb-4">접근 권한이 없습니다</h1>
           <p className="text-center mb-6 max-w-md">
-            이 페이지에 접근하기 위한 권한이 없습니다.<br />
+            이 페이지에 접근하기 위한 권한이 없습니다.
+            <br />
             관리자에게 권한 부여를 요청하거나 이전 페이지로 돌아가세요.
           </p>
           <div className="flex gap-4">
@@ -102,7 +99,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               이전 페이지로
             </button>
             <button
-              onClick={() => window.location.href = '/dashboard'}
+              onClick={() => (window.location.href = '/dashboard')}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               대시보드로
@@ -155,23 +152,19 @@ export const MultiPermissionRoute: React.FC<MultiPermissionRouteProps> = ({
   }
 
   if (!user) {
-    return (
-      <Navigate 
-        to="/login" 
-        state={{ from: location.pathname }}
-        replace 
-      />
-    );
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   // 권한 확인
-  const permissionResults = permissions.map(({ resourceType, resourceId, action }) =>
-    hasPermission(resourceType, resourceId, action)
+  const permissionResults = permissions.map(
+    ({ resourceType, resourceId, action }) =>
+      hasPermission(resourceType, resourceId, action)
   );
 
-  const hasRequiredPermission = operator === 'AND' 
-    ? permissionResults.every(result => result)
-    : permissionResults.some(result => result);
+  const hasRequiredPermission =
+    operator === 'AND'
+      ? permissionResults.every(result => result)
+      : permissionResults.some(result => result);
 
   if (!hasRequiredPermission) {
     if (fallback) {
@@ -203,7 +196,12 @@ export const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
   redirectTo = '/dashboard',
 }) => {
   const { user, loading: authLoading } = useAuth();
-  const { getUserTeamRole, getUserProjectRole, getUserTaskRole, loading: permissionLoading } = usePermissions();
+  const {
+    getUserTeamRole,
+    getUserProjectRole,
+    getUserTaskRole,
+    loading: permissionLoading,
+  } = usePermissions();
   const location = useLocation();
 
   const loading = authLoading || permissionLoading;
@@ -217,13 +215,7 @@ export const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
   }
 
   if (!user) {
-    return (
-      <Navigate 
-        to="/login" 
-        state={{ from: location.pathname }}
-        replace 
-      />
-    );
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   // 사용자 역할 확인

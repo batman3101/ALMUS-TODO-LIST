@@ -65,7 +65,10 @@ const TEAM_PERMISSIONS: Record<TeamRole, Record<PermissionAction, boolean>> = {
   },
 };
 
-const PROJECT_PERMISSIONS: Record<ProjectRole, Record<PermissionAction, boolean>> = {
+const PROJECT_PERMISSIONS: Record<
+  ProjectRole,
+  Record<PermissionAction, boolean>
+> = {
   [ProjectRole.PROJECT_MANAGER]: {
     [PermissionAction.CREATE]: true,
     [PermissionAction.READ]: true,
@@ -159,14 +162,17 @@ interface UsePermissionsReturn {
     action: PermissionAction
   ) => boolean;
   hasTeamPermission: (action: PermissionAction, teamId?: string) => boolean;
-  hasProjectPermission: (action: PermissionAction, projectId: string) => boolean;
+  hasProjectPermission: (
+    action: PermissionAction,
+    projectId: string
+  ) => boolean;
   hasTaskPermission: (action: PermissionAction, taskId: string) => boolean;
-  
+
   // 권한 데이터
   projectPermissions: ProjectPermission[];
   taskPermissions: TaskPermission[];
   loading: boolean;
-  
+
   // 유틸리티 함수들
   getUserTeamRole: (teamId?: string) => TeamRole | null;
   getUserProjectRole: (projectId: string) => ProjectRole | null;
@@ -177,7 +183,9 @@ interface UsePermissionsReturn {
 
 export const usePermissions = (): UsePermissionsReturn => {
   const { user } = useAuth();
-  const [projectPermissions, setProjectPermissions] = useState<ProjectPermission[]>([]);
+  const [projectPermissions, setProjectPermissions] = useState<
+    ProjectPermission[]
+  >([]);
   const [taskPermissions, setTaskPermissions] = useState<TaskPermission[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -199,25 +207,28 @@ export const usePermissions = (): UsePermissionsReturn => {
       where('isActive', '==', true)
     );
 
-    const unsubscribeProjects = onSnapshot(projectPermissionsQuery, (snapshot) => {
-      const permissions = snapshot.docs.map((doc) => {
-        const data = doc.data() as any;
-        return {
-          id: doc.id,
-          projectId: data.projectId,
-          userId: data.userId,
-          role: data.role,
-          permissions: data.permissions || [],
-          grantedBy: data.grantedBy,
-          grantedAt: data.grantedAt.toDate(),
-          expiresAt: data.expiresAt?.toDate(),
-          isActive: data.isActive,
-          createdAt: data.createdAt.toDate(),
-          updatedAt: data.updatedAt.toDate(),
-        } as ProjectPermission;
-      });
-      setProjectPermissions(permissions);
-    });
+    const unsubscribeProjects = onSnapshot(
+      projectPermissionsQuery,
+      snapshot => {
+        const permissions = snapshot.docs.map(doc => {
+          const data = doc.data() as any;
+          return {
+            id: doc.id,
+            projectId: data.projectId,
+            userId: data.userId,
+            role: data.role,
+            permissions: data.permissions || [],
+            grantedBy: data.grantedBy,
+            grantedAt: data.grantedAt.toDate(),
+            expiresAt: data.expiresAt?.toDate(),
+            isActive: data.isActive,
+            createdAt: data.createdAt.toDate(),
+            updatedAt: data.updatedAt.toDate(),
+          } as ProjectPermission;
+        });
+        setProjectPermissions(permissions);
+      }
+    );
 
     unsubscribes.push(unsubscribeProjects);
 
@@ -228,8 +239,8 @@ export const usePermissions = (): UsePermissionsReturn => {
       where('isActive', '==', true)
     );
 
-    const unsubscribeTasks = onSnapshot(taskPermissionsQuery, (snapshot) => {
-      const permissions = snapshot.docs.map((doc) => {
+    const unsubscribeTasks = onSnapshot(taskPermissionsQuery, snapshot => {
+      const permissions = snapshot.docs.map(doc => {
         const data = doc.data() as any;
         return {
           id: doc.id,
@@ -277,14 +288,20 @@ export const usePermissions = (): UsePermissionsReturn => {
   };
 
   // 팀 권한 확인
-  const hasTeamPermission = (action: PermissionAction, teamId?: string): boolean => {
+  const hasTeamPermission = (
+    action: PermissionAction,
+    teamId?: string
+  ): boolean => {
     const teamRole = getUserTeamRole(teamId);
     if (!teamRole) return false;
     return TEAM_PERMISSIONS[teamRole][action] || false;
   };
 
   // 프로젝트 권한 확인
-  const hasProjectPermission = (action: PermissionAction, projectId: string): boolean => {
+  const hasProjectPermission = (
+    action: PermissionAction,
+    projectId: string
+  ): boolean => {
     // 1. 팀 레벨 권한 확인
     if (hasTeamPermission(action)) return true;
 
@@ -305,7 +322,10 @@ export const usePermissions = (): UsePermissionsReturn => {
   };
 
   // 작업 권한 확인
-  const hasTaskPermission = (action: PermissionAction, taskId: string): boolean => {
+  const hasTaskPermission = (
+    action: PermissionAction,
+    taskId: string
+  ): boolean => {
     // 1. 팀 레벨 권한 확인
     if (hasTeamPermission(action)) return true;
 

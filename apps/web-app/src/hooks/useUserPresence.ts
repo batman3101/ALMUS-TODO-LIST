@@ -2,18 +2,21 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './useAuth';
 import { useWebSocket } from '../services/websocket';
 import type { UserPresence } from '../services/websocket';
-import type { FirestoreUserPresence, PresenceStatus } from '@almus/shared-types';
-import { 
-  doc, 
-  setDoc, 
+import type {
+  FirestoreUserPresence,
+  PresenceStatus,
+} from '@almus/shared-types';
+import {
+  doc,
+  setDoc,
   getDoc,
-  onSnapshot, 
+  onSnapshot,
   serverTimestamp,
   Timestamp,
   collection,
   query,
   where,
-  getDocs
+  getDocs,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -27,9 +30,16 @@ interface UseUserPresenceReturn {
   currentUserPresence: UserPresence | null;
   onlineUsers: UserPresence[];
   isOnline: boolean;
-  updateStatus: (status: PresenceStatus, customStatus?: string) => Promise<void>;
-  updateCursor: (position: { line: number; column: number; fieldPath?: string }) => void;
-  updateSelection: (selection: { 
+  updateStatus: (
+    status: PresenceStatus,
+    customStatus?: string
+  ) => Promise<void>;
+  updateCursor: (position: {
+    line: number;
+    column: number;
+    fieldPath?: string;
+  }) => void;
+  updateSelection: (selection: {
     start: { line: number; column: number; fieldPath?: string };
     end: { line: number; column: number; fieldPath?: string };
   }) => void;
@@ -45,130 +55,166 @@ export const useUserPresence = ({
 }: UseUserPresenceOptions = {}): UseUserPresenceReturn => {
   const { user } = useAuth();
   const websocket = useWebSocket();
-  
-  const [currentUserPresence, setCurrentUserPresence] = useState<UserPresence | null>(null);
+
+  const [currentUserPresence, setCurrentUserPresence] =
+    useState<UserPresence | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<UserPresence[]>([]);
   const [isOnline, setIsOnline] = useState(false);
-  
+
   const lastActivityRef = useRef<number>(Date.now());
-  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const heartbeatIntervalRef = useRef<number | null>(null);
   const presenceUnsubscribeRef = useRef<(() => void) | null>(null);
 
   // Firestore 사용자 상태를 UserPresence로 변환
-  const transformFirestorePresence = useCallback((data: FirestoreUserPresence): UserPresence => {
-    return {
-      userId: data.userId,
-      status: data.status,
-      cursor: data.currentResource ? {
-        line: 0,
-        column: 0,
-        fieldPath: data.currentResource.type,
-      } : undefined,
-      selection: undefined,
-      isTyping: data.isTyping,
-      lastActivity: data.lastActivity instanceof Timestamp 
-        ? data.lastActivity.toDate().getTime()
-        : Date.now(),
-    };
-  }, []);
+  const transformFirestorePresence = useCallback(
+    (data: FirestoreUserPresence): UserPresence => {
+      return {
+        userId: data.userId,
+        status: data.status,
+        cursor: data.currentResource
+          ? {
+              line: 0,
+              column: 0,
+              fieldPath: data.currentResource.type,
+            }
+          : undefined,
+        selection: undefined,
+        isTyping: data.isTyping,
+        lastActivity:
+          data.lastActivity instanceof Timestamp
+            ? data.lastActivity.toDate().getTime()
+            : Date.now(),
+      };
+    },
+    []
+  );
 
   // 현재 사용자 상태 업데이트
-  const updateUserPresence = useCallback(async (updates: Partial<FirestoreUserPresence>) => {
-    if (!user) return;
+  const updateUserPresence = useCallback(
+    async (updates: Partial<FirestoreUserPresence>) => {
+      if (!user) return;
 
-    try {
-      const presenceRef = doc(db, 'user_presence', user.id);
-      const currentTime = serverTimestamp();
-      
-      const presenceData: Partial<FirestoreUserPresence> = {
-        ...updates,
-        userId: user.id,
-        lastActivity: currentTime,
-        updatedAt: currentTime,
-      };
+      try {
+        const presenceRef = doc(db, 'user_presence', user.id);
+        const currentTime = serverTimestamp();
 
-      await setDoc(presenceRef, presenceData, { merge: true });
-      
-      // WebSocket으로도 전송
-      if (websocket.isConnected()) {
-        websocket.updatePresence(
-          updates.status || 'ONLINE',
-          updates.customStatus
-        );
+        const presenceData: Partial<FirestoreUserPresence> = {
+          ...updates,
+          userId: user.id,
+          lastActivity: currentTime,
+          updatedAt: currentTime,
+        };
+
+        await setDoc(presenceRef, presenceData, { merge: true });
+
+        // WebSocket으로도 전송
+        if (websocket.isConnected()) {
+          websocket.updatePresence(
+            updates.status || 'ONLINE',
+            updates.customStatus
+          );
+        }
+      } catch (error) {
+        console.error('Error updating user presence:', error);
       }
-
-    } catch (error) {
-      console.error('Error updating user presence:', error);
-    }
-  }, [user, websocket]);
+    },
+    [user, websocket]
+  );
 
   // 상태 업데이트
-  const updateStatus = useCallback(async (status: PresenceStatus, customStatus?: string) => {
-    await updateUserPresence({
-      status,
-      customStatus,
-    });
-    
-    setIsOnline(status === 'ONLINE');
-  }, [updateUserPresence]);
+  const updateStatus = useCallback(
+    async (status: PresenceStatus, customStatus?: string) => {
+      await updateUserPresence({
+        status,
+        customStatus,
+      });
+
+      setIsOnline(status === 'ONLINE');
+    },
+    [updateUserPresence]
+  );
 
   // 커서 위치 업데이트
-  const updateCursor = useCallback((position: { line: number; column: number; fieldPath?: string }) => {
-    if (!websocket.isConnected()) return;
-    
-    websocket.updateCursor(position);
-    lastActivityRef.current = Date.now();
-    
-    // 로컬 상태 업데이트
-    setCurrentUserPresence(prev => prev ? {
-      ...prev,
-      cursor: position,
-      lastActivity: Date.now(),
-    } : null);
-  }, [websocket]);
+  const updateCursor = useCallback(
+    (position: { line: number; column: number; fieldPath?: string }) => {
+      if (!websocket.isConnected()) return;
+
+      websocket.updateCursor(position);
+      lastActivityRef.current = Date.now();
+
+      // 로컬 상태 업데이트
+      setCurrentUserPresence(prev =>
+        prev
+          ? {
+              ...prev,
+              cursor: position,
+              lastActivity: Date.now(),
+            }
+          : null
+      );
+    },
+    [websocket]
+  );
 
   // 선택 영역 업데이트
-  const updateSelection = useCallback((selection: { 
-    start: { line: number; column: number; fieldPath?: string };
-    end: { line: number; column: number; fieldPath?: string };
-  }) => {
-    if (!websocket.isConnected()) return;
-    
-    websocket.updateSelection(selection);
-    lastActivityRef.current = Date.now();
-    
-    // 로컬 상태 업데이트
-    setCurrentUserPresence(prev => prev ? {
-      ...prev,
-      selection,
-      lastActivity: Date.now(),
-    } : null);
-  }, [websocket]);
+  const updateSelection = useCallback(
+    (selection: {
+      start: { line: number; column: number; fieldPath?: string };
+      end: { line: number; column: number; fieldPath?: string };
+    }) => {
+      if (!websocket.isConnected()) return;
+
+      websocket.updateSelection(selection);
+      lastActivityRef.current = Date.now();
+
+      // 로컬 상태 업데이트
+      setCurrentUserPresence(prev =>
+        prev
+          ? {
+              ...prev,
+              selection,
+              lastActivity: Date.now(),
+            }
+          : null
+      );
+    },
+    [websocket]
+  );
 
   // 타이핑 상태 설정
-  const setTyping = useCallback((isTyping: boolean, resourceId?: string) => {
-    if (!websocket.isConnected()) return;
-    
-    websocket.setTyping(isTyping, resourceId);
-    
-    // Firestore에도 업데이트
-    updateUserPresence({
-      isTyping,
-      typingInResource: isTyping ? resourceId : undefined,
-    });
-    
-    // 로컬 상태 업데이트
-    setCurrentUserPresence(prev => prev ? {
-      ...prev,
-      isTyping,
-      lastActivity: Date.now(),
-    } : null);
-  }, [websocket, updateUserPresence]);
+  const setTyping = useCallback(
+    (isTyping: boolean, resourceId?: string) => {
+      if (!websocket.isConnected()) return;
+
+      websocket.setTyping(isTyping, resourceId);
+
+      // Firestore에도 업데이트
+      updateUserPresence({
+        isTyping,
+        typingInResource: isTyping ? resourceId : undefined,
+      });
+
+      // 로컬 상태 업데이트
+      setCurrentUserPresence(prev =>
+        prev
+          ? {
+              ...prev,
+              isTyping,
+              lastActivity: Date.now(),
+            }
+          : null
+      );
+    },
+    [websocket, updateUserPresence]
+  );
 
   // 특정 사용자의 상태 조회
-  const getPresenceByUserId = useCallback((userId: string): UserPresence | null => {
-    return onlineUsers.find(user => user.userId === userId) || null;
-  }, [onlineUsers]);
+  const getPresenceByUserId = useCallback(
+    (userId: string): UserPresence | null => {
+      return onlineUsers.find(user => user.userId === userId) || null;
+    },
+    [onlineUsers]
+  );
 
   // 온라인 사용자 목록 로드
   const loadOnlineUsers = useCallback(async () => {
@@ -182,24 +228,25 @@ export const useUserPresence = ({
 
         const unsubscribe = onSnapshot(
           presenceQuery,
-          (snapshot) => {
+          snapshot => {
             const users: UserPresence[] = [];
-            
+
             snapshot.docs.forEach(doc => {
               const data = doc.data() as FirestoreUserPresence;
               // 5분 이내에 활동한 사용자만 온라인으로 간주
               const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-              const lastActivity = data.lastActivity instanceof Timestamp 
-                ? data.lastActivity.toDate() 
-                : new Date(data.lastActivity as any);
-              
+              const lastActivity =
+                data.lastActivity instanceof Timestamp
+                  ? data.lastActivity.toDate()
+                  : new Date(data.lastActivity as any);
+
               if (lastActivity > fiveMinutesAgo) {
                 users.push(transformFirestorePresence(data));
               }
             });
-            
+
             setOnlineUsers(users);
-            
+
             // 현재 사용자 상태 업데이트
             if (user) {
               const currentUser = users.find(u => u.userId === user.id);
@@ -207,7 +254,7 @@ export const useUserPresence = ({
               setIsOnline(currentUser?.status === 'ONLINE' || false);
             }
           },
-          (error) => {
+          error => {
             console.error('Error loading online users:', error);
           }
         );
@@ -223,19 +270,20 @@ export const useUserPresence = ({
 
         const snapshot = await getDocs(presenceQuery);
         const users: UserPresence[] = [];
-        
+
         snapshot.docs.forEach(doc => {
           const data = doc.data() as FirestoreUserPresence;
           const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-          const lastActivity = data.lastActivity instanceof Timestamp 
-            ? data.lastActivity.toDate() 
-            : new Date(data.lastActivity as any);
-          
+          const lastActivity =
+            data.lastActivity instanceof Timestamp
+              ? data.lastActivity.toDate()
+              : new Date(data.lastActivity as any);
+
           if (lastActivity > fiveMinutesAgo) {
             users.push(transformFirestorePresence(data));
           }
         });
-        
+
         setOnlineUsers(users);
       }
     } catch (error) {
@@ -251,10 +299,10 @@ export const useUserPresence = ({
       // 현재 상태 확인
       const presenceRef = doc(db, 'user_presence', user.id);
       const presenceDoc = await getDoc(presenceRef);
-      
+
       let currentStatus: PresenceStatus = 'ONLINE';
       let customStatus: string | undefined;
-      
+
       if (presenceDoc.exists()) {
         const data = presenceDoc.data() as FirestoreUserPresence;
         currentStatus = data.status;
@@ -270,7 +318,6 @@ export const useUserPresence = ({
       });
 
       setIsOnline(currentStatus === 'ONLINE');
-
     } catch (error) {
       console.error('Error initializing user presence:', error);
     }
@@ -282,12 +329,12 @@ export const useUserPresence = ({
       clearInterval(heartbeatIntervalRef.current);
     }
 
-    heartbeatIntervalRef.current = setInterval(async () => {
+    heartbeatIntervalRef.current = window.setInterval(async () => {
       if (!user) return;
 
       const now = Date.now();
       const timeSinceLastActivity = now - lastActivityRef.current;
-      
+
       // 5분 이상 비활성 상태면 AWAY로 변경
       let newStatus: PresenceStatus = 'ONLINE';
       if (timeSinceLastActivity > 5 * 60 * 1000) {
@@ -308,8 +355,15 @@ export const useUserPresence = ({
       lastActivityRef.current = Date.now();
     };
 
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    
+    const events = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+    ];
+
     events.forEach(event => {
       document.addEventListener(event, updateActivity, { passive: true });
     });
@@ -343,7 +397,7 @@ export const useUserPresence = ({
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -361,7 +415,7 @@ export const useUserPresence = ({
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
+
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
@@ -376,7 +430,7 @@ export const useUserPresence = ({
   useEffect(() => {
     const handlePresenceUpdated = (data: any) => {
       const updatedPresence = transformFirestorePresence(data);
-      
+
       setOnlineUsers(prev => {
         const index = prev.findIndex(u => u.userId === updatedPresence.userId);
         if (index >= 0) {
@@ -397,7 +451,7 @@ export const useUserPresence = ({
 
     const handleUserLeft = (data: any) => {
       setOnlineUsers(prev => prev.filter(u => u.userId !== data.userId));
-      
+
       if (user && data.userId === user.id) {
         setCurrentUserPresence(null);
         setIsOnline(false);
@@ -422,14 +476,14 @@ export const useUserPresence = ({
 
       // 사용자 상태 초기화
       await initializeUserPresence();
-      
+
       // 온라인 사용자 목록 로드
       await loadOnlineUsers();
 
       if (enableAutoUpdate) {
         // 하트비트 시작
         startHeartbeat();
-        
+
         // 활동 감지 설정
         cleanupFunctions.push(setupActivityListeners());
         cleanupFunctions.push(setupVisibilityListener());
@@ -444,11 +498,11 @@ export const useUserPresence = ({
       if (heartbeatIntervalRef.current) {
         clearInterval(heartbeatIntervalRef.current);
       }
-      
+
       if (presenceUnsubscribeRef.current) {
         presenceUnsubscribeRef.current();
       }
-      
+
       cleanupFunctions.forEach(cleanup => cleanup());
 
       // 오프라인 상태로 변경

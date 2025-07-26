@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Task, TaskStatus, TaskPriority, UpdateTaskInput } from '@almus/shared-types';
+import {
+  Task,
+  TaskStatus,
+  TaskPriority,
+  UpdateTaskInput,
+} from '@almus/shared-types';
 import { useNotification } from '../contexts/NotificationContext';
 
 interface EditTaskModalProps {
@@ -48,14 +53,14 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!task || !formData.title?.trim()) {
       showError('제목을 입력해주세요.');
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       await onSave(task.id, formData);
       success('태스크가 성공적으로 수정되었습니다.');
@@ -98,8 +103,18 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-dark-600 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -114,7 +129,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
+              onChange={e => handleInputChange('title', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-50 text-gray-900 dark:text-dark-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="태스크 제목을 입력하세요"
               required
@@ -128,7 +143,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              onChange={e => handleInputChange('description', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-50 text-gray-900 dark:text-dark-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               rows={3}
               placeholder="태스크 설명을 입력하세요"
@@ -143,7 +158,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
             <input
               type="text"
               value={formData.assigneeId}
-              onChange={(e) => handleInputChange('assigneeId', e.target.value)}
+              onChange={e => handleInputChange('assigneeId', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-50 text-gray-900 dark:text-dark-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="담당자를 입력하세요"
             />
@@ -157,7 +172,9 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
               </label>
               <select
                 value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value as TaskStatus)}
+                onChange={e =>
+                  handleInputChange('status', e.target.value as TaskStatus)
+                }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-50 text-gray-900 dark:text-dark-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value={TaskStatus.TODO}>시작 전</option>
@@ -173,7 +190,9 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
               </label>
               <select
                 value={formData.priority}
-                onChange={(e) => handleInputChange('priority', e.target.value as TaskPriority)}
+                onChange={e =>
+                  handleInputChange('priority', e.target.value as TaskPriority)
+                }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-50 text-gray-900 dark:text-dark-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value={TaskPriority.LOW}>낮음</option>
@@ -193,7 +212,12 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
               <input
                 type="date"
                 value={formatDateForInput(formData.startDate)}
-                onChange={(e) => handleInputChange('startDate', parseDateFromInput(e.target.value))}
+                onChange={e =>
+                  handleInputChange(
+                    'startDate',
+                    parseDateFromInput(e.target.value)
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-50 text-gray-900 dark:text-dark-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
@@ -205,7 +229,12 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
               <input
                 type="date"
                 value={formatDateForInput(formData.dueDate)}
-                onChange={(e) => handleInputChange('dueDate', parseDateFromInput(e.target.value))}
+                onChange={e =>
+                  handleInputChange(
+                    'dueDate',
+                    parseDateFromInput(e.target.value)
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-50 text-gray-900 dark:text-dark-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>

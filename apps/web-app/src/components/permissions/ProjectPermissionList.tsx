@@ -26,11 +26,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
-import { 
-  MoreVertical, 
-  UserX, 
-  Edit, 
-  Clock, 
+import {
+  MoreVertical,
+  UserX,
+  Edit,
+  Clock,
   AlertTriangle,
   Shield,
   Calendar,
@@ -59,8 +59,10 @@ export const ProjectPermissionList: React.FC<ProjectPermissionListProps> = ({
   loading,
   canManagePermissions,
 }) => {
-  const { revokePermission, updatePermission } = useProjectPermissions(projectId);
-  const [selectedPermission, setSelectedPermission] = useState<ProjectPermission | null>(null);
+  const { revokePermission, updatePermission } =
+    useProjectPermissions(projectId);
+  const [selectedPermission, setSelectedPermission] =
+    useState<ProjectPermission | null>(null);
   const [showRevokeDialog, setShowRevokeDialog] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
@@ -93,7 +95,10 @@ export const ProjectPermissionList: React.FC<ProjectPermissionListProps> = ({
     if (!permission.expiresAt) return false;
     const sevenDaysFromNow = new Date();
     sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-    return permission.expiresAt <= sevenDaysFromNow && permission.expiresAt > new Date();
+    return (
+      permission.expiresAt <= sevenDaysFromNow &&
+      permission.expiresAt > new Date()
+    );
   };
 
   const handleRevoke = async () => {
@@ -154,26 +159,29 @@ export const ProjectPermissionList: React.FC<ProjectPermissionListProps> = ({
               <TableHead>부여일</TableHead>
               <TableHead>만료일</TableHead>
               <TableHead>상태</TableHead>
-              {canManagePermissions && <TableHead className="w-[50px]"></TableHead>}
+              {canManagePermissions && (
+                <TableHead className="w-[50px]"></TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {permissions.map((permission) => (
+            {permissions.map(permission => (
               <TableRow
                 key={permission.id}
-                className={cn(
-                  isExpired(permission) && 'opacity-50 bg-red-50'
-                )}
+                className={cn(isExpired(permission) && 'opacity-50 bg-red-50')}
               >
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      {/* TODO: 실제 사용자 정보 표시 */}
-                      U
+                      {/* TODO: 실제 사용자 정보 표시 */}U
                     </div>
                     <div>
-                      <div className="font-medium">사용자 {permission.userId}</div>
-                      <div className="text-sm text-gray-500">user@example.com</div>
+                      <div className="font-medium">
+                        사용자 {permission.userId}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        user@example.com
+                      </div>
                     </div>
                   </div>
                 </TableCell>
@@ -193,11 +201,14 @@ export const ProjectPermissionList: React.FC<ProjectPermissionListProps> = ({
                       {isExpiringSoon(permission) && (
                         <AlertTriangle className="h-4 w-4 text-orange-500" />
                       )}
-                      <div className={cn(
-                        'text-sm',
-                        isExpired(permission) && 'text-red-600 font-medium',
-                        isExpiringSoon(permission) && 'text-orange-600 font-medium'
-                      )}>
+                      <div
+                        className={cn(
+                          'text-sm',
+                          isExpired(permission) && 'text-red-600 font-medium',
+                          isExpiringSoon(permission) &&
+                            'text-orange-600 font-medium'
+                        )}
+                      >
                         {format(permission.expiresAt, 'PPP', { locale: ko })}
                       </div>
                     </div>
@@ -210,11 +221,17 @@ export const ProjectPermissionList: React.FC<ProjectPermissionListProps> = ({
                     {isExpired(permission) ? (
                       <Badge variant="destructive">만료됨</Badge>
                     ) : isExpiringSoon(permission) ? (
-                      <Badge variant="outline" className="border-orange-200 text-orange-700">
+                      <Badge
+                        variant="outline"
+                        className="border-orange-200 text-orange-700"
+                      >
                         곧 만료
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="border-green-200 text-green-700">
+                      <Badge
+                        variant="outline"
+                        className="border-green-200 text-green-700"
+                      >
                         활성
                       </Badge>
                     )}
@@ -265,9 +282,9 @@ export const ProjectPermissionList: React.FC<ProjectPermissionListProps> = ({
             <AlertDialogDescription>
               {selectedPermission && (
                 <>
-                  사용자 <strong>{selectedPermission.userId}</strong>의 프로젝트 권한을 취소하시겠습니까?
-                  <br />
-                  이 작업은 되돌릴 수 없습니다.
+                  사용자 <strong>{selectedPermission.userId}</strong>의 프로젝트
+                  권한을 취소하시겠습니까?
+                  <br />이 작업은 되돌릴 수 없습니다.
                 </>
               )}
             </AlertDialogDescription>

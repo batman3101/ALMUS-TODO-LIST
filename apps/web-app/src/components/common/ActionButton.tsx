@@ -1,6 +1,11 @@
 import React from 'react';
 import { Button, ButtonProps } from '../ui/button';
-import { PermissionGate, TeamPermissionGate, ProjectPermissionGate, TaskPermissionGate } from './PermissionGate';
+import {
+  PermissionGate,
+  TeamPermissionGate,
+  ProjectPermissionGate,
+  TaskPermissionGate,
+} from './PermissionGate';
 import { PermissionAction, ResourceType } from '../../types/team';
 import { cn } from '../../lib/utils';
 
@@ -51,16 +56,18 @@ export const PermissionActionButton: React.FC<PermissionActionButtonProps> = ({
       resourceType={resourceType}
       resourceId={resourceId}
       action={action}
-      fallback={fallback || (
-        <Button
-          {...props}
-          disabled
-          className={cn("opacity-50", className)}
-          title="권한이 없습니다"
-        >
-          {children}
-        </Button>
-      )}
+      fallback={
+        fallback || (
+          <Button
+            {...props}
+            disabled
+            className={cn('opacity-50', className)}
+            title="권한이 없습니다"
+          >
+            {children}
+          </Button>
+        )
+      }
       showFallback={showFallback}
     >
       <Button {...props} className={className}>
@@ -86,16 +93,18 @@ export const TeamActionButton: React.FC<TeamActionButtonProps> = ({
     <TeamPermissionGate
       teamId={teamId}
       action={action}
-      fallback={fallback || (
-        <Button
-          {...props}
-          disabled
-          className={cn("opacity-50", className)}
-          title="권한이 없습니다"
-        >
-          {children}
-        </Button>
-      )}
+      fallback={
+        fallback || (
+          <Button
+            {...props}
+            disabled
+            className={cn('opacity-50', className)}
+            title="권한이 없습니다"
+          >
+            {children}
+          </Button>
+        )
+      }
       showFallback={showFallback}
     >
       <Button {...props} className={className}>
@@ -121,16 +130,18 @@ export const ProjectActionButton: React.FC<ProjectActionButtonProps> = ({
     <ProjectPermissionGate
       projectId={projectId}
       action={action}
-      fallback={fallback || (
-        <Button
-          {...props}
-          disabled
-          className={cn("opacity-50", className)}
-          title="권한이 없습니다"
-        >
-          {children}
-        </Button>
-      )}
+      fallback={
+        fallback || (
+          <Button
+            {...props}
+            disabled
+            className={cn('opacity-50', className)}
+            title="권한이 없습니다"
+          >
+            {children}
+          </Button>
+        )
+      }
       showFallback={showFallback}
     >
       <Button {...props} className={className}>
@@ -156,16 +167,18 @@ export const TaskActionButton: React.FC<TaskActionButtonProps> = ({
     <TaskPermissionGate
       taskId={taskId}
       action={action}
-      fallback={fallback || (
-        <Button
-          {...props}
-          disabled
-          className={cn("opacity-50", className)}
-          title="권한이 없습니다"
-        >
-          {children}
-        </Button>
-      )}
+      fallback={
+        fallback || (
+          <Button
+            {...props}
+            disabled
+            className={cn('opacity-50', className)}
+            title="권한이 없습니다"
+          >
+            {children}
+          </Button>
+        )
+      }
       showFallback={showFallback}
     >
       <Button {...props} className={className}>
@@ -189,7 +202,7 @@ export const DangerousActionButton: React.FC<DangerousActionButtonProps> = ({
   resourceType,
   resourceId,
   action,
-  confirmMessage = "이 작업을 실행하시겠습니까?",
+  confirmMessage = '이 작업을 실행하시겠습니까?',
   onConfirm,
   onClick,
   className,
@@ -197,7 +210,7 @@ export const DangerousActionButton: React.FC<DangerousActionButtonProps> = ({
 }) => {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    
+
     if (confirmMessage && window.confirm(confirmMessage)) {
       onConfirm?.();
       onClick?.(e);
@@ -213,7 +226,7 @@ export const DangerousActionButton: React.FC<DangerousActionButtonProps> = ({
       resourceId={resourceId}
       action={action}
       onClick={handleClick}
-      className={cn("bg-red-600 hover:bg-red-700 text-white", className)}
+      className={cn('bg-red-600 hover:bg-red-700 text-white', className)}
     >
       {children}
     </PermissionActionButton>
@@ -227,16 +240,12 @@ export const RestrictedActionButton: React.FC<{
   children: React.ReactNode;
   reason?: string;
   className?: string;
-}> = ({ 
-  children, 
-  reason = "권한이 없습니다",
-  className 
-}) => {
+}> = ({ children, reason = '권한이 없습니다', className }) => {
   return (
     <Button
       disabled
       variant="outline"
-      className={cn("opacity-50 cursor-not-allowed", className)}
+      className={cn('opacity-50 cursor-not-allowed', className)}
       title={reason}
     >
       {children}
@@ -263,12 +272,12 @@ export const ConditionalActionGroup: React.FC<ConditionalActionGroupProps> = ({
   children,
   conditions,
   operator = 'OR',
-  fallback = null
+  fallback = null,
 }) => {
   // MultiPermissionGate를 사용하여 구현할 수 있지만,
   // 여기서는 간단한 버전으로 첫 번째 조건만 확인
   const firstCondition = conditions[0];
-  
+
   if (!firstCondition) {
     return <>{fallback}</>;
   }

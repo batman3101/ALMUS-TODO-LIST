@@ -29,7 +29,11 @@
       "Bash(powershell:*)",
       "Bash(del .lintstagedrc.js)",
       "Bash(npm uninstall:*)",
-      "Bash(npx husky:*)"
+      "Bash(npx husky:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm test)",
+      "mcp__mcp-sequentialthinking-tools__sequentialthinking_tools",
+      "Bash(git rm:*)"
     ],
     "deny": []
   }

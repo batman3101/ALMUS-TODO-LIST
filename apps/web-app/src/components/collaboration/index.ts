@@ -6,7 +6,12 @@ export { MentionNotifications } from './MentionNotifications';
 export { CollaborationDemo } from './CollaborationDemo';
 
 // Types
-export type { WebSocketEvent, WebSocketMessage, EditOperation, UserPresence } from '../../services/websocket';
+export type {
+  WebSocketEvent,
+  WebSocketMessage,
+  EditOperation,
+  UserPresence,
+} from '../../services/websocket';
 
 // Hooks
 export { useCollaborativeSession } from '../../hooks/useCollaborativeSession';
@@ -18,5 +23,11 @@ export { useMentions } from '../../hooks/useMentions';
 export { useWebSocket, websocketService } from '../../services/websocket';
 
 // Utilities
-export { OperationalTransform, ConflictResolver } from '../../utils/operationalTransform';
-export type { Operation, TextOperation } from '../../utils/operationalTransform';
+export {
+  OperationalTransform,
+  ConflictResolver,
+} from '../../utils/operationalTransform';
+export type {
+  Operation,
+  TextOperation,
+} from '../../utils/operationalTransform';

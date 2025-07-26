@@ -6,7 +6,7 @@ export type OperationType = 'retain' | 'insert' | 'delete';
 export interface Operation {
   type: OperationType;
   length?: number; // retain, delete의 경우 길이
-  text?: string;   // insert의 경우 삽입할 텍스트
+  text?: string; // insert의 경우 삽입할 텍스트
   attributes?: Record<string, any>; // 서식 정보
 }
 
@@ -25,8 +25,8 @@ export class OperationalTransform {
    * @returns 변환된 두 작업
    */
   static transform(
-    op1: TextOperation, 
-    op2: TextOperation, 
+    op1: TextOperation,
+    op2: TextOperation,
     priority1: boolean = true
   ): [TextOperation, TextOperation] {
     if (op1.baseLength !== op2.baseLength) {
@@ -38,8 +38,10 @@ export class OperationalTransform {
     const newOps1: Operation[] = [];
     const newOps2: Operation[] = [];
 
-    let i1 = 0, i2 = 0; // 현재 처리 중인 operation 인덱스
-    let offset1 = 0, offset2 = 0; // 현재 처리 중인 위치
+    let i1 = 0,
+      i2 = 0; // 현재 처리 중인 operation 인덱스
+    let offset1 = 0,
+      offset2 = 0; // 현재 처리 중인 위치
 
     while (i1 < ops1.length || i2 < ops2.length) {
       // 첫 번째 작업이 끝난 경우
@@ -170,13 +172,13 @@ export class OperationalTransform {
       {
         ops: this.normalize(newOps1),
         baseLength: op1.baseLength,
-        targetLength: this.calculateTargetLength(op1.baseLength, newOps1)
+        targetLength: this.calculateTargetLength(op1.baseLength, newOps1),
       },
       {
         ops: this.normalize(newOps2),
         baseLength: op2.baseLength,
-        targetLength: this.calculateTargetLength(op2.baseLength, newOps2)
-      }
+        targetLength: this.calculateTargetLength(op2.baseLength, newOps2),
+      },
     ];
   }
 
@@ -219,14 +221,14 @@ export class OperationalTransform {
    */
   static normalize(ops: Operation[]): Operation[] {
     const normalized: Operation[] = [];
-    
+
     for (const op of ops) {
       if (op.type === 'retain' && op.length === 0) continue;
       if (op.type === 'delete' && op.length === 0) continue;
       if (op.type === 'insert' && op.text === '') continue;
 
       const last = normalized[normalized.length - 1];
-      
+
       if (last && last.type === op.type) {
         if (op.type === 'retain' || op.type === 'delete') {
           last.length = (last.length || 0) + (op.length || 0);
@@ -249,7 +251,7 @@ export class OperationalTransform {
    */
   static calculateTargetLength(baseLength: number, ops: Operation[]): number {
     let length = baseLength;
-    
+
     for (const op of ops) {
       switch (op.type) {
         case 'insert':
@@ -260,7 +262,7 @@ export class OperationalTransform {
           break;
       }
     }
-    
+
     return length;
   }
 
@@ -294,7 +296,7 @@ export class OperationalTransform {
     return {
       ops: this.normalize(inverted),
       baseLength: operation.targetLength,
-      targetLength: operation.baseLength
+      targetLength: operation.baseLength,
     };
   }
 
@@ -306,14 +308,17 @@ export class OperationalTransform {
    */
   static compose(op1: TextOperation, op2: TextOperation): TextOperation {
     if (op1.targetLength !== op2.baseLength) {
-      throw new Error('Cannot compose operations: target length of first operation must equal base length of second operation');
+      throw new Error(
+        'Cannot compose operations: target length of first operation must equal base length of second operation'
+      );
     }
 
     const ops1 = op1.ops.slice();
     const ops2 = op2.ops.slice();
     const composed: Operation[] = [];
 
-    let i1 = 0, i2 = 0;
+    let i1 = 0,
+      i2 = 0;
 
     while (i1 < ops1.length || i2 < ops2.length) {
       if (i1 >= ops1.length) {
@@ -362,15 +367,21 @@ export class OperationalTransform {
         if (insertLength <= retainLength) {
           composed.push(op1Current);
           i1++;
-          
+
           if (insertLength < retainLength) {
             ops2[i2] = { ...op2Current, length: retainLength - insertLength };
           } else {
             i2++;
           }
         } else {
-          composed.push({ type: 'insert', text: op1Current.text!.slice(0, retainLength) });
-          ops1[i1] = { ...op1Current, text: op1Current.text!.slice(retainLength) };
+          composed.push({
+            type: 'insert',
+            text: op1Current.text!.slice(0, retainLength),
+          });
+          ops1[i1] = {
+            ...op1Current,
+            text: op1Current.text!.slice(retainLength),
+          };
           i2++;
         }
       } else if (op1Current.type === 'insert' && op2Current.type === 'delete') {
@@ -385,7 +396,10 @@ export class OperationalTransform {
             i2++;
           }
         } else {
-          ops1[i1] = { ...op1Current, text: op1Current.text!.slice(deleteLength) };
+          ops1[i1] = {
+            ...op1Current,
+            text: op1Current.text!.slice(deleteLength),
+          };
           i2++;
         }
       } else if (op1Current.type === 'retain' && op2Current.type === 'delete') {
@@ -412,7 +426,7 @@ export class OperationalTransform {
     return {
       ops: this.normalize(composed),
       baseLength: op1.baseLength,
-      targetLength: op2.targetLength
+      targetLength: op2.targetLength,
     };
   }
 
@@ -429,24 +443,34 @@ export class OperationalTransform {
     let newIndex = 0;
 
     while (oldIndex < oldText.length || newIndex < newText.length) {
-      if (oldIndex < oldText.length && newIndex < newText.length && 
-          oldText[oldIndex] === newText[newIndex]) {
+      if (
+        oldIndex < oldText.length &&
+        newIndex < newText.length &&
+        oldText[oldIndex] === newText[newIndex]
+      ) {
         // 같은 문자 - retain
         let retainLength = 0;
-        while (oldIndex + retainLength < oldText.length && 
-               newIndex + retainLength < newText.length &&
-               oldText[oldIndex + retainLength] === newText[newIndex + retainLength]) {
+        while (
+          oldIndex + retainLength < oldText.length &&
+          newIndex + retainLength < newText.length &&
+          oldText[oldIndex + retainLength] === newText[newIndex + retainLength]
+        ) {
           retainLength++;
         }
         ops.push({ type: 'retain', length: retainLength });
         oldIndex += retainLength;
         newIndex += retainLength;
-      } else if (newIndex < newText.length && 
-                 (oldIndex >= oldText.length || oldText[oldIndex] !== newText[newIndex])) {
+      } else if (
+        newIndex < newText.length &&
+        (oldIndex >= oldText.length || oldText[oldIndex] !== newText[newIndex])
+      ) {
         // 새 문자 삽입
         let insertText = '';
-        while (newIndex < newText.length && 
-               (oldIndex >= oldText.length || oldText[oldIndex] !== newText[newIndex])) {
+        while (
+          newIndex < newText.length &&
+          (oldIndex >= oldText.length ||
+            oldText[oldIndex] !== newText[newIndex])
+        ) {
           insertText += newText[newIndex];
           newIndex++;
         }
@@ -454,8 +478,11 @@ export class OperationalTransform {
       } else {
         // 문자 삭제
         let deleteLength = 0;
-        while (oldIndex + deleteLength < oldText.length && 
-               (newIndex >= newText.length || oldText[oldIndex + deleteLength] !== newText[newIndex])) {
+        while (
+          oldIndex + deleteLength < oldText.length &&
+          (newIndex >= newText.length ||
+            oldText[oldIndex + deleteLength] !== newText[newIndex])
+        ) {
           deleteLength++;
         }
         ops.push({ type: 'delete', length: deleteLength });
@@ -466,7 +493,7 @@ export class OperationalTransform {
     return {
       ops: this.normalize(ops),
       baseLength: oldText.length,
-      targetLength: newText.length
+      targetLength: newText.length,
     };
   }
 }
@@ -507,10 +534,10 @@ export class ConflictResolver {
     userId2: string,
     userPriorities: Map<string, number>
   ): [TextOperation, TextOperation] {
-    const priority1 = (userPriorities.get(userId1) || 0);
-    const priority2 = (userPriorities.get(userId2) || 0);
+    const priority1 = userPriorities.get(userId1) || 0;
+    const priority2 = userPriorities.get(userId2) || 0;
     const firstHasPriority = priority1 >= priority2;
-    
+
     return OperationalTransform.transform(op1, op2, firstHasPriority);
   }
 
@@ -527,13 +554,13 @@ export class ConflictResolver {
     // Insert 작업이 Delete 작업보다 우선순위가 높음
     const hasInsert1 = op1.ops.some(op => op.type === 'insert');
     const hasInsert2 = op2.ops.some(op => op.type === 'insert');
-    
+
     if (hasInsert1 && !hasInsert2) {
       return OperationalTransform.transform(op1, op2, true);
     } else if (!hasInsert1 && hasInsert2) {
       return OperationalTransform.transform(op1, op2, false);
     }
-    
+
     // 같은 타입인 경우 첫 번째 작업 우선
     return OperationalTransform.transform(op1, op2, true);
   }

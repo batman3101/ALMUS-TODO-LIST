@@ -63,7 +63,7 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -105,7 +105,7 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...(prev[parent as keyof CreateTeamInput] as any || {}),
+          ...((prev[parent as keyof CreateTeamInput] as any) || {}),
           [child]: value,
         },
       }));
@@ -115,7 +115,7 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
         [field]: value,
       }));
     }
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
@@ -148,7 +148,7 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
               기본 정보
             </h3>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 팀 이름 *
@@ -156,9 +156,11 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
+                onChange={e => handleInputChange('name', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 ${
-                  errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  errors.name
+                    ? 'border-red-500'
+                    : 'border-gray-300 dark:border-gray-600'
                 }`}
                 placeholder="예: 마케팅팀, 개발팀"
                 disabled={isLoading}
@@ -174,16 +176,20 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
               </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
+                onChange={e => handleInputChange('description', e.target.value)}
                 rows={3}
                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 ${
-                  errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  errors.description
+                    ? 'border-red-500'
+                    : 'border-gray-300 dark:border-gray-600'
                 }`}
                 placeholder="팀에 대한 간단한 설명을 입력하세요"
                 disabled={isLoading}
               />
               {errors.description && (
-                <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.description}
+                </p>
               )}
             </div>
           </div>
@@ -191,8 +197,7 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
           {/* 팀 설정 */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <Settings size={18} />
-              팀 설정
+              <Settings size={18} />팀 설정
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -205,14 +210,23 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
                   min="1"
                   max="1000"
                   value={formData.settings?.maxMembers}
-                  onChange={(e) => handleInputChange('settings.maxMembers', parseInt(e.target.value))}
+                  onChange={e =>
+                    handleInputChange(
+                      'settings.maxMembers',
+                      parseInt(e.target.value)
+                    )
+                  }
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 ${
-                    errors.maxMembers ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    errors.maxMembers
+                      ? 'border-red-500'
+                      : 'border-gray-300 dark:border-gray-600'
                   }`}
                   disabled={isLoading}
                 />
                 {errors.maxMembers && (
-                  <p className="text-red-500 text-sm mt-1">{errors.maxMembers}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.maxMembers}
+                  </p>
                 )}
               </div>
 
@@ -222,7 +236,12 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
                 </label>
                 <select
                   value={formData.settings?.defaultMemberRole}
-                  onChange={(e) => handleInputChange('settings.defaultMemberRole', e.target.value as TeamRole)}
+                  onChange={e =>
+                    handleInputChange(
+                      'settings.defaultMemberRole',
+                      e.target.value as TeamRole
+                    )
+                  }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
                   disabled={isLoading}
                 >
@@ -245,7 +264,9 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
                   <input
                     type="checkbox"
                     checked={formData.settings?.isPublic}
-                    onChange={(e) => handleInputChange('settings.isPublic', e.target.checked)}
+                    onChange={e =>
+                      handleInputChange('settings.isPublic', e.target.checked)
+                    }
                     className="sr-only peer"
                     disabled={isLoading}
                   />
@@ -267,7 +288,12 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
                   <input
                     type="checkbox"
                     checked={formData.settings?.allowInvitations}
-                    onChange={(e) => handleInputChange('settings.allowInvitations', e.target.checked)}
+                    onChange={e =>
+                      handleInputChange(
+                        'settings.allowInvitations',
+                        e.target.checked
+                      )
+                    }
                     className="sr-only peer"
                     disabled={isLoading}
                   />
@@ -287,23 +313,58 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
-                { key: 'ganttView', label: '간트 차트', desc: '프로젝트 타임라인 관리' },
-                { key: 'timeTracking', label: '시간 추적', desc: '작업 시간 기록' },
-                { key: 'advancedReporting', label: '고급 보고서', desc: '상세한 분석 리포트' },
-                { key: 'customFields', label: '커스텀 필드', desc: '사용자 정의 작업 필드' },
-                { key: 'integrations', label: '외부 연동', desc: '슬랙, 지라 등 연동' },
-              ].map((feature) => (
-                <div key={feature.key} className="flex items-start gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                {
+                  key: 'ganttView',
+                  label: '간트 차트',
+                  desc: '프로젝트 타임라인 관리',
+                },
+                {
+                  key: 'timeTracking',
+                  label: '시간 추적',
+                  desc: '작업 시간 기록',
+                },
+                {
+                  key: 'advancedReporting',
+                  label: '고급 보고서',
+                  desc: '상세한 분석 리포트',
+                },
+                {
+                  key: 'customFields',
+                  label: '커스텀 필드',
+                  desc: '사용자 정의 작업 필드',
+                },
+                {
+                  key: 'integrations',
+                  label: '외부 연동',
+                  desc: '슬랙, 지라 등 연동',
+                },
+              ].map(feature => (
+                <div
+                  key={feature.key}
+                  className="flex items-start gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                >
                   <input
                     type="checkbox"
                     id={feature.key}
-                    checked={formData.settings?.features?.[feature.key as keyof typeof formData.settings.features]}
-                    onChange={(e) => handleInputChange(`settings.features.${feature.key}`, e.target.checked)}
+                    checked={
+                      formData.settings?.features?.[
+                        feature.key as keyof typeof formData.settings.features
+                      ]
+                    }
+                    onChange={e =>
+                      handleInputChange(
+                        `settings.features.${feature.key}`,
+                        e.target.checked
+                      )
+                    }
                     className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     disabled={isLoading}
                   />
                   <div className="flex-1">
-                    <label htmlFor={feature.key} className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <label
+                      htmlFor={feature.key}
+                      className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                    >
                       {feature.label}
                     </label>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -318,7 +379,9 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
           {/* 오류 메시지 */}
           {errors.submit && (
             <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
-              <p className="text-red-600 dark:text-red-400 text-sm">{errors.submit}</p>
+              <p className="text-red-600 dark:text-red-400 text-sm">
+                {errors.submit}
+              </p>
             </div>
           )}
 

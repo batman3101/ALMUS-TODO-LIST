@@ -8,7 +8,12 @@ export type UserRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
 
 export type TeamRole = 'OWNER' | 'ADMIN' | 'EDITOR' | 'VIEWER';
 
-export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'CANCELLED';
+export type InvitationStatus =
+  | 'PENDING'
+  | 'ACCEPTED'
+  | 'REJECTED'
+  | 'EXPIRED'
+  | 'CANCELLED';
 
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
 
@@ -238,9 +243,21 @@ export interface FirestoreTeamInvitation {
 }
 
 // Advanced Permission System - Firestore Interfaces
-export type ProjectRole = 'PROJECT_MANAGER' | 'PROJECT_LEAD' | 'CONTRIBUTOR' | 'OBSERVER';
+export type ProjectRole =
+  | 'PROJECT_MANAGER'
+  | 'PROJECT_LEAD'
+  | 'CONTRIBUTOR'
+  | 'OBSERVER';
 export type TaskRole = 'ASSIGNEE' | 'REVIEWER' | 'COLLABORATOR' | 'WATCHER';
-export type PermissionAction = 'CREATE' | 'READ' | 'UPDATE' | 'DELETE' | 'ASSIGN' | 'COMMENT' | 'COMPLETE' | 'MANAGE_PERMISSIONS';
+export type PermissionAction =
+  | 'CREATE'
+  | 'READ'
+  | 'UPDATE'
+  | 'DELETE'
+  | 'ASSIGN'
+  | 'COMMENT'
+  | 'COMPLETE'
+  | 'MANAGE_PERMISSIONS';
 export type ResourceType = 'TEAM' | 'PROJECT' | 'TASK';
 
 export interface FirestorePermission {

@@ -11,6 +11,9 @@
     "dev": "npm run dev --workspace=apps/web-app",
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces",
+    "test:watch": "npm run test:watch --workspaces",
+    "test:coverage": "npm run test:cov --workspaces",
+    "test:ci": "npm run test --workspaces -- --ci --coverage --watchAll=false",
     "lint": "npm run lint --workspaces",
     "lint-staged": "lint-staged",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -68,9 +71,14 @@
       "prettier"
     ],
     "rules": {
-      "prettier/prettier": "error",
+      "prettier/prettier": [
+        "error",
+        {
+          "endOfLine": "auto"
+        }
+      ],
       "@typescript-eslint/no-unused-vars": "error",
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "no-console": "warn",

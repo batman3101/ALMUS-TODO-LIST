@@ -126,6 +126,20 @@ export interface PermissionConditions {
     ipRange?: string[];
     deviceType?: string[];
     customConditions?: Record<string, unknown>;
+    timeRestriction?: {
+        allowedHours?: number[];
+        timezone?: string;
+        startTime?: string;
+        endTime?: string;
+        allowedDays?: string[];
+    };
+    ipRestriction?: {
+        allowedIps?: string[];
+        blockedIps?: string[];
+    };
+    userAttributeRequirements?: Record<string, any>;
+    resourceStateRequirements?: Record<string, any>;
+    expiresAt?: Date;
 }
 export interface ProjectPermission {
     id: string;
@@ -566,7 +580,7 @@ export interface TaskConflict {
     serverVersion: number;
     clientVersion: number;
     serverData: Task;
-    clientData: Task;
+    clientData: Task | null;
 }
 export interface TaskOperation {
     type: 'CREATE' | 'UPDATE' | 'DELETE';

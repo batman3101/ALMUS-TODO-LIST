@@ -69,7 +69,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -92,12 +92,15 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
     }
   };
 
-  const handleInputChange = (field: keyof InviteTeamMemberInput, value: any) => {
+  const handleInputChange = (
+    field: keyof InviteTeamMemberInput,
+    value: any
+  ) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
     }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
@@ -114,8 +117,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-            <UserPlus size={20} />
-            팀 멤버 초대
+            <UserPlus size={20} />팀 멤버 초대
           </h2>
           <button
             onClick={onClose}
@@ -142,13 +144,18 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
               초대할 이메일 주소 *
             </label>
             <div className="relative">
-              <Mail size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Mail
+                size={18}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              />
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
+                onChange={e => handleInputChange('email', e.target.value)}
                 className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 ${
-                  errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  errors.email
+                    ? 'border-red-500'
+                    : 'border-gray-300 dark:border-gray-600'
                 }`}
                 placeholder="example@company.com"
                 disabled={isLoading}
@@ -165,7 +172,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
               역할 선택
             </label>
             <div className="space-y-3">
-              {roleOptions.map((option) => {
+              {roleOptions.map(option => {
                 const Icon = option.icon;
                 return (
                   <label
@@ -181,7 +188,9 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
                       name="role"
                       value={option.value}
                       checked={formData.role === option.value}
-                      onChange={(e) => handleInputChange('role', e.target.value as TeamRole)}
+                      onChange={e =>
+                        handleInputChange('role', e.target.value as TeamRole)
+                      }
                       className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                       disabled={isLoading}
                     />
@@ -209,10 +218,12 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
             </label>
             <textarea
               value={formData.message}
-              onChange={(e) => handleInputChange('message', e.target.value)}
+              onChange={e => handleInputChange('message', e.target.value)}
               rows={3}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 ${
-                errors.message ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                errors.message
+                  ? 'border-red-500'
+                  : 'border-gray-300 dark:border-gray-600'
               }`}
               placeholder="팀에 함께하게 되어 기쁩니다! 궁금한 점이 있으면 언제든지 연락해주세요."
               disabled={isLoading}
@@ -229,7 +240,8 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
           {team.memberCount >= team.settings.maxMembers && (
             <div className="p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg">
               <p className="text-orange-800 dark:text-orange-200 text-sm">
-                ⚠️ 팀 멤버 수가 최대 제한에 도달했습니다. 새 멤버를 초대하려면 팀 설정에서 최대 멤버 수를 늘리거나 기존 멤버를 제거해주세요.
+                ⚠️ 팀 멤버 수가 최대 제한에 도달했습니다. 새 멤버를 초대하려면
+                팀 설정에서 최대 멤버 수를 늘리거나 기존 멤버를 제거해주세요.
               </p>
             </div>
           )}
@@ -237,7 +249,9 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
           {/* 오류 메시지 */}
           {errors.submit && (
             <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
-              <p className="text-red-600 dark:text-red-400 text-sm">{errors.submit}</p>
+              <p className="text-red-600 dark:text-red-400 text-sm">
+                {errors.submit}
+              </p>
             </div>
           )}
 
@@ -254,7 +268,9 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
             <button
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              disabled={isLoading || team.memberCount >= team.settings.maxMembers}
+              disabled={
+                isLoading || team.memberCount >= team.settings.maxMembers
+              }
             >
               {isLoading ? '초대 중...' : '초대 보내기'}
             </button>

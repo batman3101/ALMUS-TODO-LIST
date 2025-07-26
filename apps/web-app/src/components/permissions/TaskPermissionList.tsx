@@ -26,11 +26,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
-import { 
-  MoreVertical, 
-  UserX, 
-  Edit, 
-  Clock, 
+import {
+  MoreVertical,
+  UserX,
+  Edit,
+  Clock,
   AlertTriangle,
   UserCheck,
   Eye,
@@ -62,7 +62,8 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
   canManagePermissions,
 }) => {
   const { revokePermission, updatePermission } = useTaskPermissions(taskId);
-  const [selectedPermission, setSelectedPermission] = useState<TaskPermission | null>(null);
+  const [selectedPermission, setSelectedPermission] =
+    useState<TaskPermission | null>(null);
   const [showRevokeDialog, setShowRevokeDialog] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
@@ -102,7 +103,10 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
     if (!permission.expiresAt) return false;
     const sevenDaysFromNow = new Date();
     sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-    return permission.expiresAt <= sevenDaysFromNow && permission.expiresAt > new Date();
+    return (
+      permission.expiresAt <= sevenDaysFromNow &&
+      permission.expiresAt > new Date()
+    );
   };
 
   const handleRevoke = async () => {
@@ -171,11 +175,13 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
               <TableHead>부여일</TableHead>
               <TableHead>만료일</TableHead>
               <TableHead>상태</TableHead>
-              {canManagePermissions && <TableHead className="w-[50px]"></TableHead>}
+              {canManagePermissions && (
+                <TableHead className="w-[50px]"></TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {permissions.map((permission) => (
+            {permissions.map(permission => (
               <TableRow
                 key={permission.id}
                 className={cn(
@@ -185,16 +191,23 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
               >
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
-                    <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center",
-                      permission.role === TaskRole.ASSIGNEE ? 'bg-green-100' : 'bg-blue-100'
-                    )}>
-                      {/* TODO: 실제 사용자 정보 표시 */}
-                      U
+                    <div
+                      className={cn(
+                        'w-8 h-8 rounded-full flex items-center justify-center',
+                        permission.role === TaskRole.ASSIGNEE
+                          ? 'bg-green-100'
+                          : 'bg-blue-100'
+                      )}
+                    >
+                      {/* TODO: 실제 사용자 정보 표시 */}U
                     </div>
                     <div>
-                      <div className="font-medium">사용자 {permission.userId}</div>
-                      <div className="text-sm text-gray-500">user@example.com</div>
+                      <div className="font-medium">
+                        사용자 {permission.userId}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        user@example.com
+                      </div>
                     </div>
                   </div>
                 </TableCell>
@@ -207,7 +220,10 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
                       </div>
                     </Badge>
                     {permission.role === TaskRole.ASSIGNEE && (
-                      <Badge variant="outline" className="text-xs border-green-200 text-green-700">
+                      <Badge
+                        variant="outline"
+                        className="text-xs border-green-200 text-green-700"
+                      >
                         주담당
                       </Badge>
                     )}
@@ -224,11 +240,14 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
                       {isExpiringSoon(permission) && (
                         <AlertTriangle className="h-4 w-4 text-orange-500" />
                       )}
-                      <div className={cn(
-                        'text-sm',
-                        isExpired(permission) && 'text-red-600 font-medium',
-                        isExpiringSoon(permission) && 'text-orange-600 font-medium'
-                      )}>
+                      <div
+                        className={cn(
+                          'text-sm',
+                          isExpired(permission) && 'text-red-600 font-medium',
+                          isExpiringSoon(permission) &&
+                            'text-orange-600 font-medium'
+                        )}
+                      >
                         {format(permission.expiresAt, 'PPP', { locale: ko })}
                       </div>
                     </div>
@@ -241,11 +260,17 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
                     {isExpired(permission) ? (
                       <Badge variant="destructive">만료됨</Badge>
                     ) : isExpiringSoon(permission) ? (
-                      <Badge variant="outline" className="border-orange-200 text-orange-700">
+                      <Badge
+                        variant="outline"
+                        className="border-orange-200 text-orange-700"
+                      >
                         곧 만료
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="border-green-200 text-green-700">
+                      <Badge
+                        variant="outline"
+                        className="border-green-200 text-green-700"
+                      >
                         활성
                       </Badge>
                     )}
@@ -296,14 +321,14 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
             <AlertDialogDescription>
               {selectedPermission && (
                 <>
-                  사용자 <strong>{selectedPermission.userId}</strong>의 작업 권한을 취소하시겠습니까?
+                  사용자 <strong>{selectedPermission.userId}</strong>의 작업
+                  권한을 취소하시겠습니까?
                   {selectedPermission.role === TaskRole.ASSIGNEE && (
                     <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-sm">
                       ⚠️ 담당자 권한을 취소하면 이 작업에 담당자가 없게 됩니다.
                     </div>
                   )}
-                  <br />
-                  이 작업은 되돌릴 수 없습니다.
+                  <br />이 작업은 되돌릴 수 없습니다.
                 </>
               )}
             </AlertDialogDescription>

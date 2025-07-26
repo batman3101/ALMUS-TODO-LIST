@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, XCircle, Clock, Users, Mail, Crown, Shield, Edit, Eye } from 'lucide-react';
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  Users,
+  Mail,
+  Crown,
+  Shield,
+  Edit,
+  Eye,
+} from 'lucide-react';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../config/firebase';
 import { useAuth } from '../hooks/useAuth';
@@ -23,10 +33,14 @@ const roleIcons = {
 };
 
 const roleColors = {
-  [TeamRole.OWNER]: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  [TeamRole.ADMIN]: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-  [TeamRole.EDITOR]: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  [TeamRole.VIEWER]: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+  [TeamRole.OWNER]:
+    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  [TeamRole.ADMIN]:
+    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+  [TeamRole.EDITOR]:
+    'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  [TeamRole.VIEWER]:
+    'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
 };
 
 const roleLabels = {
@@ -47,7 +61,7 @@ export const TeamInvitationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  
+
   const [invitation, setInvitation] = useState<InvitationDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -76,11 +90,12 @@ export const TeamInvitationPage: React.FC = () => {
         teamName: '마케팅팀',
         inviterName: '김철수',
         role: TeamRole.EDITOR,
-        message: '마케팅팀에 함께하게 되어 기쁩니다! 궁금한 점이 있으면 언제든지 연락해주세요.',
+        message:
+          '마케팅팀에 함께하게 되어 기쁩니다! 궁금한 점이 있으면 언제든지 연락해주세요.',
         expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5일 후
         isExpired: false,
       };
-      
+
       setInvitation(mockInvitation);
       setLoading(false);
     }, 1000);
@@ -93,7 +108,7 @@ export const TeamInvitationPage: React.FC = () => {
     try {
       const acceptInvitation = httpsCallable(functions, 'acceptTeamInvitation');
       const result = await acceptInvitation({ token });
-      
+
       setResult({
         type: 'success',
         message: '팀 초대를 수락했습니다!',
@@ -104,10 +119,9 @@ export const TeamInvitationPage: React.FC = () => {
       setTimeout(() => {
         navigate('/');
       }, 3000);
-
     } catch (error: any) {
       console.error('초대 수락 실패:', error);
-      
+
       if (error.code === 'functions/deadline-exceeded') {
         setResult({
           type: 'expired',
@@ -133,7 +147,7 @@ export const TeamInvitationPage: React.FC = () => {
     try {
       const rejectInvitation = httpsCallable(functions, 'rejectTeamInvitation');
       await rejectInvitation({ token });
-      
+
       setResult({
         type: 'success',
         message: '팀 초대를 거절했습니다.',
@@ -143,7 +157,6 @@ export const TeamInvitationPage: React.FC = () => {
       setTimeout(() => {
         navigate('/');
       }, 3000);
-
     } catch (error: any) {
       console.error('초대 거절 실패:', error);
       setResult({
@@ -160,7 +173,9 @@ export const TeamInvitationPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 dark:text-gray-400 mt-4">초대장을 확인하는 중...</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-4">
+            초대장을 확인하는 중...
+          </p>
         </div>
       </div>
     );
@@ -210,9 +225,13 @@ export const TeamInvitationPage: React.FC = () => {
         <div className="max-w-md mx-auto text-center">
           <Icon size={64} className={`mx-auto mb-4 ${colors[result.type]}`} />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            {result.type === 'success' ? '완료!' : 
-             result.type === 'expired' ? '만료됨' : 
-             result.type === 'invalid' ? '유효하지 않음' : '오류'}
+            {result.type === 'success'
+              ? '완료!'
+              : result.type === 'expired'
+                ? '만료됨'
+                : result.type === 'invalid'
+                  ? '유효하지 않음'
+                  : '오류'}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             {result.message}
@@ -258,7 +277,8 @@ export const TeamInvitationPage: React.FC = () => {
   }
 
   const RoleIcon = roleIcons[invitation.role];
-  const isExpiringSoon = invitation.expiresAt.getTime() - Date.now() < 24 * 60 * 60 * 1000; // 24시간 미만
+  const isExpiringSoon =
+    invitation.expiresAt.getTime() - Date.now() < 24 * 60 * 60 * 1000; // 24시간 미만
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
@@ -283,7 +303,9 @@ export const TeamInvitationPage: React.FC = () => {
               {invitation.teamName}
             </h2>
             <div className="flex items-center justify-center gap-2">
-              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${roleColors[invitation.role]}`}>
+              <span
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${roleColors[invitation.role]}`}
+              >
                 <RoleIcon size={16} />
                 {roleLabels[invitation.role]}
               </span>
@@ -315,12 +337,14 @@ export const TeamInvitationPage: React.FC = () => {
                 </span>
               </div>
               <p className="text-orange-700 dark:text-orange-300 text-sm mt-1">
-                이 초대장은 {invitation.expiresAt.toLocaleDateString('ko-KR', {
+                이 초대장은{' '}
+                {invitation.expiresAt.toLocaleDateString('ko-KR', {
                   month: 'long',
                   day: 'numeric',
                   hour: '2-digit',
                   minute: '2-digit',
-                })}에 만료됩니다.
+                })}
+                에 만료됩니다.
               </p>
             </div>
           )}
@@ -367,7 +391,14 @@ export const TeamInvitationPage: React.FC = () => {
         {/* 추가 정보 */}
         <div className="text-center text-sm text-gray-500 dark:text-gray-400">
           <p>
-            문제가 있나요? <a href="mailto:support@almus.com" className="text-blue-600 hover:underline">고객지원</a>에 문의하세요.
+            문제가 있나요?{' '}
+            <a
+              href="mailto:support@almus.com"
+              className="text-blue-600 hover:underline"
+            >
+              고객지원
+            </a>
+            에 문의하세요.
           </p>
         </div>
       </div>

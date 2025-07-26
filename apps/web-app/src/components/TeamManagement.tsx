@@ -62,8 +62,7 @@ export const TeamManagement: React.FC = () => {
           onClick={() => setIsCreateModalOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          <Plus size={20} />
-          새 팀 만들기
+          <Plus size={20} />새 팀 만들기
         </button>
       </div>
 
@@ -110,16 +109,16 @@ export const TeamManagement: React.FC = () => {
 
       {/* 팀 목록 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {teams.map((team) => {
+        {teams.map(team => {
           const userRole = getUserRole(team);
           const isCurrentTeam = currentTeam?.id === team.id;
-          
+
           return (
             <div
               key={team.id}
               className={`bg-white dark:bg-gray-800 rounded-lg shadow-md border transition-all hover:shadow-lg ${
-                isCurrentTeam 
-                  ? 'border-blue-500 ring-2 ring-blue-500/20' 
+                isCurrentTeam
+                  ? 'border-blue-500 ring-2 ring-blue-500/20'
                   : 'border-gray-200 dark:border-gray-700'
               }`}
             >
@@ -148,9 +147,11 @@ export const TeamManagement: React.FC = () => {
                         {team.memberCount}명
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className={`w-2 h-2 rounded-full ${
-                          team.isActive ? 'bg-green-500' : 'bg-gray-400'
-                        }`} />
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            team.isActive ? 'bg-green-500' : 'bg-gray-400'
+                          }`}
+                        />
                         {team.isActive ? '활성' : '비활성'}
                       </div>
                     </div>
@@ -182,15 +183,16 @@ export const TeamManagement: React.FC = () => {
                       >
                         <Users size={16} />
                       </button>
-                      {userRole === TeamRole.OWNER && team.id !== currentTeam?.id && (
-                        <button
-                          onClick={() => handleDeleteTeam(team)}
-                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                          title="팀 삭제"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
+                      {userRole === TeamRole.OWNER &&
+                        team.id !== currentTeam?.id && (
+                          <button
+                            onClick={() => handleDeleteTeam(team)}
+                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                            title="팀 삭제"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                     </div>
                   )}
                 </div>
@@ -213,8 +215,7 @@ export const TeamManagement: React.FC = () => {
             onClick={() => setIsCreateModalOpen(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <Plus size={20} />
-            팀 만들기
+            <Plus size={20} />팀 만들기
           </button>
         </div>
       )}
@@ -224,7 +225,7 @@ export const TeamManagement: React.FC = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
-      
+
       {selectedTeam && (
         <>
           <EditTeamModal
@@ -235,7 +236,7 @@ export const TeamManagement: React.FC = () => {
             }}
             team={selectedTeam}
           />
-          
+
           <ManageTeamMembersModal
             isOpen={isMembersModalOpen}
             onClose={() => {

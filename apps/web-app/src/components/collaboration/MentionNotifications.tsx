@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMentions } from '../../hooks/useMentions';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 import { ko } from 'date-fns/locale';
 
 interface MentionNotificationsProps {
@@ -14,21 +14,19 @@ export const MentionNotifications: React.FC<MentionNotificationsProps> = ({
   maxHeight = '400px',
   showMarkAllAsRead = true,
 }) => {
-  const { 
-    mentions, 
-    unreadCount, 
-    isLoading, 
-    error, 
-    markAsRead, 
-    markAllAsRead 
-  } = useMentions({ enableRealtime: true });
+  const { mentions, unreadCount, isLoading, error, markAsRead, markAllAsRead } =
+    useMentions({ enableRealtime: true });
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleMentionClick = async (mentionId: string, resourceType: string, resourceId: string) => {
+  const handleMentionClick = async (
+    mentionId: string,
+    resourceType: string,
+    resourceId: string
+  ) => {
     try {
       await markAsRead(mentionId);
-      
+
       // 해당 리소스로 이동
       const baseUrl = getResourceUrl(resourceType, resourceId);
       if (baseUrl) {
@@ -39,7 +37,10 @@ export const MentionNotifications: React.FC<MentionNotificationsProps> = ({
     }
   };
 
-  const getResourceUrl = (resourceType: string, resourceId: string): string | null => {
+  const getResourceUrl = (
+    resourceType: string,
+    resourceId: string
+  ): string | null => {
     switch (resourceType) {
       case 'TASK':
         return `/tasks/${resourceId}`;
@@ -65,7 +66,10 @@ export const MentionNotifications: React.FC<MentionNotificationsProps> = ({
     }
   };
 
-  const truncateContent = (content: string, maxLength: number = 100): string => {
+  const truncateContent = (
+    content: string,
+    maxLength: number = 100
+  ): string => {
     if (content.length <= maxLength) return content;
     return content.slice(0, maxLength) + '...';
   };
@@ -124,10 +128,7 @@ export const MentionNotifications: React.FC<MentionNotificationsProps> = ({
             )}
           </div>
 
-          <div
-            className="mention-list"
-            style={{ maxHeight }}
-          >
+          <div className="mention-list" style={{ maxHeight }}>
             {isLoading ? (
               <div className="loading-state">
                 <div className="loading-spinner"></div>
@@ -152,18 +153,20 @@ export const MentionNotifications: React.FC<MentionNotificationsProps> = ({
                 <span>누군가 당신을 멘션하면 여기에 표시됩니다.</span>
               </div>
             ) : (
-              mentions.map((mention) => (
+              mentions.map(mention => (
                 <div
                   key={mention.id}
                   className={`mention-item ${!mention.isRead ? 'unread' : ''}`}
-                  onClick={() => handleMentionClick(
-                    mention.id,
-                    mention.comment?.resourceType || '',
-                    mention.comment?.resourceId || ''
-                  )}
+                  onClick={() =>
+                    handleMentionClick(
+                      mention.id,
+                      mention.comment?.resourceType || '',
+                      mention.comment?.resourceId || ''
+                    )
+                  }
                 >
                   {!mention.isRead && <div className="unread-indicator"></div>}
-                  
+
                   <div className="mention-avatar">
                     {mention.mentionedByUser?.avatar ? (
                       <img
@@ -173,7 +176,9 @@ export const MentionNotifications: React.FC<MentionNotificationsProps> = ({
                       />
                     ) : (
                       <div className="avatar-placeholder">
-                        {mention.mentionedByUser?.name?.charAt(0).toUpperCase() || '?'}
+                        {mention.mentionedByUser?.name
+                          ?.charAt(0)
+                          .toUpperCase() || '?'}
                       </div>
                     )}
                   </div>
@@ -185,7 +190,9 @@ export const MentionNotifications: React.FC<MentionNotificationsProps> = ({
                       </span>
                       <span className="mention-action">님이</span>
                       <span className="resource-type">
-                        {getResourceTypeName(mention.comment?.resourceType || '')}
+                        {getResourceTypeName(
+                          mention.comment?.resourceType || ''
+                        )}
                       </span>
                       <span className="mention-action">에서 멘션했습니다</span>
                     </div>
@@ -210,7 +217,7 @@ export const MentionNotifications: React.FC<MentionNotificationsProps> = ({
                   <div className="mention-actions">
                     <button
                       className="action-btn"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         markAsRead(mention.id);
                       }}
@@ -254,10 +261,7 @@ export const MentionNotifications: React.FC<MentionNotificationsProps> = ({
 
       {/* 오버레이 */}
       {isOpen && (
-        <div
-          className="mention-overlay"
-          onClick={() => setIsOpen(false)}
-        />
+        <div className="mention-overlay" onClick={() => setIsOpen(false)} />
       )}
     </div>
   );

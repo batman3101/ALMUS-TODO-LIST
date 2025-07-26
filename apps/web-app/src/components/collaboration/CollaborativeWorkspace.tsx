@@ -60,9 +60,7 @@ const PresenceIndicator: React.FC<PresenceIndicatorProps> = ({
           {userName}
         </div>
         {isTyping && currentField && (
-          <div className="presence-activity">
-            {currentField}에서 입력 중...
-          </div>
+          <div className="presence-activity">{currentField}에서 입력 중...</div>
         )}
       </div>
     </div>
@@ -80,7 +78,7 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
 }) => {
   const { user } = useAuth();
   const websocket = useWebSocket();
-  
+
   const [localData, setLocalData] = useState(data);
   const [activeTab, setActiveTab] = useState<'edit' | 'comments'>('edit');
   const [isConnecting, setIsConnecting] = useState(true);
@@ -125,15 +123,23 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
   // 사용자별 색상 매핑
   const userColors = React.useMemo(() => {
     const colors = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-      '#DDA0DD', '#98D8C8', '#F7DC6F', '#AED6F1', '#A9DFBF'
+      '#FF6B6B',
+      '#4ECDC4',
+      '#45B7D1',
+      '#96CEB4',
+      '#FFEAA7',
+      '#DDA0DD',
+      '#98D8C8',
+      '#F7DC6F',
+      '#AED6F1',
+      '#A9DFBF',
     ];
     const colorMap = new Map<string, string>();
-    
+
     participants.forEach((participant, index) => {
       colorMap.set(participant.userId, colors[index % colors.length]);
     });
-    
+
     return colorMap;
   }, [participants]);
 
@@ -149,14 +155,16 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
         if (!websocket.isConnected()) {
           await websocket.connect();
         }
-        
+
         // 상태를 온라인으로 설정
         await updateStatus('ONLINE');
-        
+
         setIsConnecting(false);
       } catch (error) {
         console.error('Failed to initialize collaboration:', error);
-        setConnectionError(error instanceof Error ? error.message : 'Connection failed');
+        setConnectionError(
+          error instanceof Error ? error.message : 'Connection failed'
+        );
         setIsConnecting(false);
       }
     };
@@ -173,11 +181,14 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
   // 편집 작업 처리
   function handleEditOperation(operation: any) {
     console.log('Received edit operation:', operation);
-    
+
     // 실제 데이터 업데이트 로직
-    if (operation.position.fieldPath && localData[operation.position.fieldPath] !== undefined) {
+    if (
+      operation.position.fieldPath &&
+      localData[operation.position.fieldPath] !== undefined
+    ) {
       const updatedData = { ...localData };
-      
+
       // 작업 타입에 따른 처리
       switch (operation.type) {
         case 'INSERT':
@@ -190,7 +201,7 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
           // 텍스트 교체 로직
           break;
       }
-      
+
       setLocalData(updatedData);
       onDataChange?.(updatedData);
     }
@@ -199,32 +210,37 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
   // 충돌 처리
   function handleConflictDetected(operations: any[]) {
     console.log('Conflict detected:', operations);
-    
+
     // 충돌 해결 UI 표시 또는 자동 해결
     // 여기서는 간단히 타임스탬프 기반으로 해결
-    const resolvedOperations = operations.sort((a, b) => a.timestamp - b.timestamp);
-    
+    const resolvedOperations = operations.sort(
+      (a, b) => a.timestamp - b.timestamp
+    );
+
     resolvedOperations.forEach(op => {
       handleEditOperation(op);
     });
   }
 
   // 데이터 변경 핸들러
-  const handleDataChange = useCallback((field: string, value: any) => {
-    const updatedData = { ...localData, [field]: value };
-    setLocalData(updatedData);
-    onDataChange?.(updatedData);
-    
-    // 타이핑 상태 업데이트
-    setTyping(true, field);
-    setPresenceTyping(true, field);
-  }, [localData, onDataChange, setTyping, setPresenceTyping]);
+  const handleDataChange = useCallback(
+    (field: string, value: any) => {
+      const updatedData = { ...localData, [field]: value };
+      setLocalData(updatedData);
+      onDataChange?.(updatedData);
+
+      // 타이핑 상태 업데이트
+      setTyping(true, field);
+      setPresenceTyping(true, field);
+    },
+    [localData, onDataChange, setTyping, setPresenceTyping]
+  );
 
   // 저장 핸들러
   const handleSave = useCallback(async () => {
     try {
       await onSave?.(localData);
-      
+
       // 성공 피드백 (토스트 메시지 등)
       console.log('Data saved successfully');
     } catch (error) {
@@ -254,7 +270,7 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
           <div className="error-icon">⚠️</div>
           <h3>연결 오류</h3>
           <p>{connectionError}</p>
-          <button 
+          <button
             className="retry-btn"
             onClick={() => {
               setConnectionError(null);
@@ -275,7 +291,9 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
         <div className="header-left">
           <h2 className="workspace-title">{title}</h2>
           <div className="collaboration-status">
-            <div className={`connection-indicator ${isOnline ? 'online' : 'offline'}`}>
+            <div
+              className={`connection-indicator ${isOnline ? 'online' : 'offline'}`}
+            >
               <span className="status-dot"></span>
               <span className="status-text">
                 {isOnline ? '온라인' : '오프라인'}
@@ -291,10 +309,10 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
             )}
           </div>
         </div>
-        
+
         <div className="header-right">
           <MentionNotifications />
-          <button 
+          <button
             className="save-btn"
             onClick={handleSave}
             disabled={isSessionConnecting}
@@ -321,10 +339,11 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
               />
             ))}
           </div>
-          
+
           {typingParticipants.length > 0 && (
             <div className="typing-indicator">
-              {typingParticipants.map(p => `User ${p.userId}`).join(', ')}님이 입력 중...
+              {typingParticipants.map(p => `User ${p.userId}`).join(', ')}님이
+              입력 중...
             </div>
           )}
         </div>
@@ -360,8 +379,8 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
                   fieldPath="title"
                   initialValue={localData.title || ''}
                   placeholder="제목을 입력하세요..."
-                  onValueChange={(value) => handleDataChange('title', value)}
-                  onSave={(value) => handleDataChange('title', value)}
+                  onValueChange={value => handleDataChange('title', value)}
+                  onSave={value => handleDataChange('title', value)}
                   className="title-editor"
                 />
               </div>
@@ -377,8 +396,10 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
                   fieldPath="description"
                   initialValue={localData.description || ''}
                   placeholder="설명을 입력하세요..."
-                  onValueChange={(value) => handleDataChange('description', value)}
-                  onSave={(value) => handleDataChange('description', value)}
+                  onValueChange={value =>
+                    handleDataChange('description', value)
+                  }
+                  onSave={value => handleDataChange('description', value)}
                   className="description-editor"
                 />
               </div>
@@ -400,8 +421,8 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
                     fieldPath={key}
                     initialValue={value}
                     placeholder={`${key}을(를) 입력하세요...`}
-                    onValueChange={(newValue) => handleDataChange(key, newValue)}
-                    onSave={(newValue) => handleDataChange(key, newValue)}
+                    onValueChange={newValue => handleDataChange(key, newValue)}
+                    onSave={newValue => handleDataChange(key, newValue)}
                     className="field-editor"
                   />
                 </div>
@@ -423,12 +444,10 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
       <div className="workspace-footer">
         <div className="footer-left">
           {sessionError && (
-            <div className="error-message">
-              세션 오류: {sessionError}
-            </div>
+            <div className="error-message">세션 오류: {sessionError}</div>
           )}
         </div>
-        
+
         <div className="footer-right">
           <div className="workspace-stats">
             <span>온라인: {onlineUsers.length}명</span>

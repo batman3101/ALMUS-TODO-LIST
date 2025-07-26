@@ -30,24 +30,29 @@ const roleDescriptions = {
 };
 
 // 팀 초대 이메일 발송
-export async function sendTeamInvitationEmail(data: TeamInvitationEmailData): Promise<void> {
+export async function sendTeamInvitationEmail(
+  data: TeamInvitationEmailData
+): Promise<void> {
   try {
     // 실제 환경에서는 SendGrid, AWS SES, 또는 다른 이메일 서비스를 사용
     // 여기서는 로깅으로 대체하고, 프론트엔드에서 테스트용 알림을 표시
 
     const invitationUrl = `${getBaseUrl()}/invitation?token=${data.invitationToken}`;
-    
+
     const emailContent = generateInvitationEmailHTML(data, invitationUrl);
-    
+
     // 개발 환경에서는 콘솔에 이메일 내용 출력
-    if (process.env.NODE_ENV === 'development' || process.env.FUNCTIONS_EMULATOR === 'true') {
+    if (
+      process.env.NODE_ENV === 'development' ||
+      process.env.FUNCTIONS_EMULATOR === 'true'
+    ) {
       logger.info('🚀 Team Invitation Email (Development Mode)', {
         to: data.recipientEmail,
         subject: `[ALMUS] ${data.teamName} 팀 초대`,
         invitationUrl,
         content: emailContent,
       });
-      
+
       // 개발 모드에서는 바로 성공 처리
       return;
     }
@@ -64,7 +69,6 @@ export async function sendTeamInvitationEmail(data: TeamInvitationEmailData): Pr
       teamName: data.teamName,
       role: data.role,
     });
-
   } catch (error) {
     logger.error('Failed to send team invitation email:', error);
     throw new Error('이메일 발송에 실패했습니다.');
@@ -84,7 +88,10 @@ function getBaseUrl(): string {
 }
 
 // 초대 이메일 HTML 생성
-function generateInvitationEmailHTML(data: TeamInvitationEmailData, invitationUrl: string): string {
+function generateInvitationEmailHTML(
+  data: TeamInvitationEmailData,
+  invitationUrl: string
+): string {
   const expiryDate = data.expiresAt.toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
@@ -269,12 +276,16 @@ function generateInvitationEmailHTML(data: TeamInvitationEmailData, invitationUr
             <div class="role-description">${roleDescriptions[data.role]}</div>
           </div>
 
-          ${data.message ? `
+          ${
+            data.message
+              ? `
           <div class="message">
             <div class="message-title">${data.inviterName}님의 메시지:</div>
             <div class="message-content">${data.message}</div>
           </div>
-          ` : ''}
+          `
+              : ''
+          }
 
           <div class="cta-section">
             <a href="${invitationUrl}" class="cta-button">
@@ -317,14 +328,14 @@ function generateInvitationEmailHTML(data: TeamInvitationEmailData, invitationUr
 //   // SendGrid 예시
 //   // const sgMail = require('@sendgrid/mail');
 //   // sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-//   // 
+//   //
 //   // const msg = {
 //   //   to: emailData.to,
 //   //   from: 'noreply@almus.com',
 //   //   subject: emailData.subject,
 //   //   html: emailData.html,
 //   // };
-//   // 
+//   //
 //   // await sgMail.send(msg);
 //
 //   // 현재는 로깅으로 대체
@@ -345,7 +356,10 @@ export async function sendInvitationConfirmationEmail(data: {
     `;
 
     // 실제 이메일 발송 또는 로깅
-    if (process.env.NODE_ENV === 'development' || process.env.FUNCTIONS_EMULATOR === 'true') {
+    if (
+      process.env.NODE_ENV === 'development' ||
+      process.env.FUNCTIONS_EMULATOR === 'true'
+    ) {
       logger.info('🎉 Team Join Confirmation Email (Development Mode)', {
         to: data.recipientEmail,
         subject: `[ALMUS] ${data.teamName} 팀 가입 완료`,
@@ -358,7 +372,6 @@ export async function sendInvitationConfirmationEmail(data: {
       teamName: data.teamName,
       role: data.role,
     });
-
   } catch (error) {
     logger.error('Failed to send confirmation email:', error);
     // 확인 이메일은 실패해도 메인 프로세스를 중단하지 않음

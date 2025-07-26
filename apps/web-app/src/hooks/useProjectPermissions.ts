@@ -47,8 +47,8 @@ export const useProjectPermissions = (projectId: string) => {
 
     const unsubscribe = onSnapshot(
       permissionsQuery,
-      (snapshot) => {
-        const permissionsData = snapshot.docs.map((doc) => {
+      snapshot => {
+        const permissionsData = snapshot.docs.map(doc => {
           const data = doc.data() as any;
           return {
             id: doc.id,
@@ -68,7 +68,7 @@ export const useProjectPermissions = (projectId: string) => {
         setLoading(false);
         setError(null);
       },
-      (error) => {
+      error => {
         console.error('프로젝트 권한 로드 실패:', error);
         setError('프로젝트 권한을 불러오는데 실패했습니다.');
         setLoading(false);
@@ -79,19 +79,25 @@ export const useProjectPermissions = (projectId: string) => {
   }, [projectId]);
 
   // 프로젝트 권한 부여
-  const grantPermission = async (input: CreateProjectPermissionInput): Promise<ProjectPermission> => {
+  const grantPermission = async (
+    input: CreateProjectPermissionInput
+  ): Promise<ProjectPermission> => {
     if (!user) throw new Error('사용자가 로그인되어 있지 않습니다');
 
     try {
       // 기존 권한이 있는지 확인
-      const existingPermission = permissions.find(p => p.userId === input.userId);
+      const existingPermission = permissions.find(
+        p => p.userId === input.userId
+      );
       if (existingPermission) {
         throw new Error('해당 사용자에게 이미 권한이 부여되어 있습니다.');
       }
 
       const now = Timestamp.now();
-      const permissionRef = doc(collection(db, FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS));
-      
+      const permissionRef = doc(
+        collection(db, FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS)
+      );
+
       const permissionData = {
         id: permissionRef.id,
         projectId: input.projectId,
@@ -106,7 +112,10 @@ export const useProjectPermissions = (projectId: string) => {
         updatedAt: now,
       };
 
-      await addDoc(collection(db, FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS), permissionData);
+      await addDoc(
+        collection(db, FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS),
+        permissionData
+      );
 
       const createdPermission: ProjectPermission = {
         id: permissionRef.id,
@@ -129,17 +138,27 @@ export const useProjectPermissions = (projectId: string) => {
       return createdPermission;
     } catch (error) {
       console.error('프로젝트 권한 부여 실패:', error);
-      toast.error(error instanceof Error ? error.message : '프로젝트 권한 부여에 실패했습니다.');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : '프로젝트 권한 부여에 실패했습니다.'
+      );
       throw error;
     }
   };
 
   // 프로젝트 권한 업데이트
-  const updatePermission = async (input: UpdateProjectPermissionInput): Promise<void> => {
+  const updatePermission = async (
+    input: UpdateProjectPermissionInput
+  ): Promise<void> => {
     if (!user) throw new Error('사용자가 로그인되어 있지 않습니다');
 
     try {
-      const permissionRef = doc(db, FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS, input.id);
+      const permissionRef = doc(
+        db,
+        FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS,
+        input.id
+      );
       const updateData: any = {
         updatedAt: Timestamp.now(),
       };
@@ -150,9 +169,12 @@ export const useProjectPermissions = (projectId: string) => {
       }
 
       if (input.role !== undefined) updateData.role = input.role;
-      if (input.permissions !== undefined) updateData.permissions = input.permissions;
+      if (input.permissions !== undefined)
+        updateData.permissions = input.permissions;
       if (input.expiresAt !== undefined) {
-        updateData.expiresAt = input.expiresAt ? Timestamp.fromDate(input.expiresAt) : null;
+        updateData.expiresAt = input.expiresAt
+          ? Timestamp.fromDate(input.expiresAt)
+          : null;
       }
       if (input.isActive !== undefined) updateData.isActive = input.isActive;
 
@@ -179,7 +201,11 @@ export const useProjectPermissions = (projectId: string) => {
         throw new Error('권한을 찾을 수 없습니다.');
       }
 
-      const permissionRef = doc(db, FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS, permissionId);
+      const permissionRef = doc(
+        db,
+        FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS,
+        permissionId
+      );
       await updateDoc(permissionRef, {
         isActive: false,
         updatedAt: Timestamp.now(),
@@ -215,7 +241,10 @@ export const useProjectPermissions = (projectId: string) => {
         createdAt: Timestamp.now(),
       };
 
-      await addDoc(collection(db, FIRESTORE_COLLECTIONS.PERMISSION_AUDIT_LOG), logData);
+      await addDoc(
+        collection(db, FIRESTORE_COLLECTIONS.PERMISSION_AUDIT_LOG),
+        logData
+      );
     } catch (error) {
       console.error('권한 변경 로그 작성 실패:', error);
       // 로그 작성 실패는 주요 작업을 방해하지 않음
@@ -235,10 +264,8 @@ export const useProjectPermissions = (projectId: string) => {
   // 만료된 권한 조회
   const getExpiredPermissions = (): ProjectPermission[] => {
     const now = new Date();
-    return permissions.filter(p => 
-      p.isActive && 
-      p.expiresAt && 
-      p.expiresAt < now
+    return permissions.filter(
+      p => p.isActive && p.expiresAt && p.expiresAt < now
     );
   };
 
@@ -246,12 +273,13 @@ export const useProjectPermissions = (projectId: string) => {
   const getExpiringPermissions = (): ProjectPermission[] => {
     const now = new Date();
     const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    
-    return permissions.filter(p => 
-      p.isActive && 
-      p.expiresAt && 
-      p.expiresAt > now && 
-      p.expiresAt <= sevenDaysFromNow
+
+    return permissions.filter(
+      p =>
+        p.isActive &&
+        p.expiresAt &&
+        p.expiresAt > now &&
+        p.expiresAt <= sevenDaysFromNow
     );
   };
 
@@ -259,9 +287,13 @@ export const useProjectPermissions = (projectId: string) => {
   const getPermissionStats = () => {
     const totalPermissions = permissions.filter(p => p.isActive).length;
     const roleStats = {
-      [ProjectRole.PROJECT_MANAGER]: getPermissionsByRole(ProjectRole.PROJECT_MANAGER).length,
-      [ProjectRole.PROJECT_LEAD]: getPermissionsByRole(ProjectRole.PROJECT_LEAD).length,
-      [ProjectRole.CONTRIBUTOR]: getPermissionsByRole(ProjectRole.CONTRIBUTOR).length,
+      [ProjectRole.PROJECT_MANAGER]: getPermissionsByRole(
+        ProjectRole.PROJECT_MANAGER
+      ).length,
+      [ProjectRole.PROJECT_LEAD]: getPermissionsByRole(ProjectRole.PROJECT_LEAD)
+        .length,
+      [ProjectRole.CONTRIBUTOR]: getPermissionsByRole(ProjectRole.CONTRIBUTOR)
+        .length,
       [ProjectRole.OBSERVER]: getPermissionsByRole(ProjectRole.OBSERVER).length,
     };
     const expiredCount = getExpiredPermissions().length;
@@ -286,7 +318,9 @@ export const useProjectPermissions = (projectId: string) => {
       const now = Timestamp.now();
 
       inputs.forEach(input => {
-        const permissionRef = doc(collection(db, FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS));
+        const permissionRef = doc(
+          collection(db, FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS)
+        );
         const permissionData = {
           id: permissionRef.id,
           projectId: input.projectId,
@@ -295,7 +329,9 @@ export const useProjectPermissions = (projectId: string) => {
           permissions: input.permissions || [],
           grantedBy: user.id,
           grantedAt: now,
-          expiresAt: input.expiresAt ? Timestamp.fromDate(input.expiresAt) : null,
+          expiresAt: input.expiresAt
+            ? Timestamp.fromDate(input.expiresAt)
+            : null,
           isActive: true,
           createdAt: now,
           updatedAt: now,

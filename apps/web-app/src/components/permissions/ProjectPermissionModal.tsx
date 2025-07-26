@@ -46,7 +46,9 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
 }) => {
   const { grantPermission } = useProjectPermissions(projectId);
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
-  const [selectedRole, setSelectedRole] = useState<ProjectRole>(ProjectRole.CONTRIBUTOR);
+  const [selectedRole, setSelectedRole] = useState<ProjectRole>(
+    ProjectRole.CONTRIBUTOR
+  );
   const [expiresAt, setExpiresAt] = useState<Date | undefined>();
   const [userSearch, setUserSearch] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
@@ -141,7 +143,9 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
         await grantPermission(input);
       }
 
-      toast.success(`${selectedUsers.length}명에게 프로젝트 권한이 부여되었습니다.`);
+      toast.success(
+        `${selectedUsers.length}명에게 프로젝트 권한이 부여되었습니다.`
+      );
       onClose();
       resetForm();
     } catch (error) {
@@ -178,12 +182,12 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
               <Input
                 placeholder="팀 멤버 검색 (이름 또는 이메일)"
                 value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
+                onChange={e => setUserSearch(e.target.value)}
                 className="pl-9"
               />
               {searchResults.length > 0 && (
                 <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-white border rounded-md shadow-lg max-h-48 overflow-y-auto">
-                  {searchResults.map((user) => (
+                  {searchResults.map(user => (
                     <button
                       key={user.id}
                       onClick={() => handleAddUser(user)}
@@ -193,8 +197,12 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
                         {user.displayName?.[0] || user.email[0]}
                       </div>
                       <div>
-                        <div className="font-medium">{user.displayName || user.email}</div>
-                        <div className="text-sm text-gray-500">{user.email}</div>
+                        <div className="font-medium">
+                          {user.displayName || user.email}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {user.email}
+                        </div>
                       </div>
                     </button>
                   ))}
@@ -205,7 +213,7 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
             {/* 선택된 사용자들 */}
             {selectedUsers.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
-                {selectedUsers.map((user) => (
+                {selectedUsers.map(user => (
                   <Badge key={user.id} variant="secondary" className="gap-1">
                     {user.displayName || user.email}
                     <button
@@ -223,7 +231,10 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
           {/* 역할 선택 */}
           <div className="space-y-2">
             <Label>역할</Label>
-            <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as ProjectRole)}>
+            <Select
+              value={selectedRole}
+              onValueChange={value => setSelectedRole(value as ProjectRole)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -255,7 +266,9 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {expiresAt ? format(expiresAt, 'PPP', { locale: ko }) : '만료일 없음'}
+                  {expiresAt
+                    ? format(expiresAt, 'PPP', { locale: ko })
+                    : '만료일 없음'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -263,7 +276,7 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
                   mode="single"
                   selected={expiresAt}
                   onSelect={setExpiresAt}
-                  disabled={(date) => date < new Date()}
+                  disabled={date => date < new Date()}
                   initialFocus
                 />
                 {expiresAt && (

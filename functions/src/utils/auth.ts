@@ -5,7 +5,9 @@ import { ApiRequest, PermissionCheck } from '../types';
 /**
  * Cloud Functions v2 CallableRequest의 auth 객체를 검증
  */
-export async function verifyAuth(authContext: any): Promise<{ userId: string; email: string }> {
+export async function verifyAuth(
+  authContext: any
+): Promise<{ userId: string; email: string }> {
   if (!authContext) {
     throw new Error('인증이 필요합니다.');
   }
@@ -26,7 +28,7 @@ export async function verifyAuth(authContext: any): Promise<{ userId: string; em
 
   // 사용자 정보 조회
   const user = await auth().getUser(uid);
-  
+
   return {
     userId: uid,
     email: user.email || '',

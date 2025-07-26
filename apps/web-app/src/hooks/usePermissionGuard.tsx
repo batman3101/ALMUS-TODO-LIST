@@ -16,10 +16,14 @@ interface PermissionGuardOptions {
 interface UsePermissionGuardReturn {
   hasPermission: boolean;
   loading: boolean;
-  checkPermission: (options: Omit<PermissionGuardOptions, 'resourceId'>) => boolean;
+  checkPermission: (
+    options: Omit<PermissionGuardOptions, 'resourceId'>
+  ) => boolean;
 }
 
-export const usePermissionGuard = (options?: PermissionGuardOptions): UsePermissionGuardReturn => {
+export const usePermissionGuard = (
+  options?: PermissionGuardOptions
+): UsePermissionGuardReturn => {
   const { hasPermission: checkPermission, loading } = usePermissions();
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,11 +72,11 @@ export const usePermissionGuard = (options?: PermissionGuardOptions): UsePermiss
 
       // 리다이렉트 처리
       if (options.redirectTo) {
-        navigate(options.redirectTo, { 
-          state: { 
+        navigate(options.redirectTo, {
+          state: {
             from: location.pathname,
-            reason: 'insufficient_permissions'
-          }
+            reason: 'insufficient_permissions',
+          },
         });
       }
     }
@@ -86,10 +90,12 @@ export const usePermissionGuard = (options?: PermissionGuardOptions): UsePermiss
     location.pathname,
     options?.redirectTo,
     options?.showToast,
-    options?.onUnauthorized
+    options?.onUnauthorized,
   ]);
 
-  const checkPermissionDynamic = (dynamicOptions: Omit<PermissionGuardOptions, 'resourceId'>) => {
+  const checkPermissionDynamic = (
+    dynamicOptions: Omit<PermissionGuardOptions, 'resourceId'>
+  ) => {
     if (!options?.resourceId) return false;
     return checkPermission(
       dynamicOptions.resourceType,
@@ -127,7 +133,8 @@ export const withPermissionGuard = <T extends object>(
           <div className="text-6xl mb-4">🔒</div>
           <h3 className="text-lg font-medium mb-2">접근 권한이 없습니다</h3>
           <p className="text-sm text-center">
-            이 리소스에 접근할 수 있는 권한이 없습니다.<br />
+            이 리소스에 접근할 수 있는 권한이 없습니다.
+            <br />
             관리자에게 권한 부여를 요청해주세요.
           </p>
         </div>
@@ -159,17 +166,29 @@ export const useRoutePermissionGuard = (
       if (canGoBack && location.key !== 'default') {
         navigate(-1);
       } else {
-        navigate('/dashboard', { 
-          state: { 
+        navigate('/dashboard', {
+          state: {
             reason: 'insufficient_permissions',
-            attempted: location.pathname 
-          }
+            attempted: location.pathname,
+          },
         });
       }
-      
+
       toast.error('접근 권한이 없는 페이지입니다.');
     }
-  }, [hasPermission, resourceType, resourceId, requiredAction, loading, navigate, location]);
+  }, [
+    hasPermission,
+    resourceType,
+    resourceId,
+    requiredAction,
+    loading,
+    navigate,
+    location,
+  ]);
 
-  return { hasPermission: !loading && hasPermission(resourceType, resourceId, requiredAction), loading };
+  return {
+    hasPermission:
+      !loading && hasPermission(resourceType, resourceId, requiredAction),
+    loading,
+  };
 };

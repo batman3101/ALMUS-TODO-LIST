@@ -24,8 +24,16 @@ import {
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
-import { Project, ProjectStatus, PermissionAction, ResourceType } from '../../types/team';
-import { ProjectPermissionGate, PermissionGate } from '../common/PermissionGate';
+import {
+  Project,
+  ProjectStatus,
+  PermissionAction,
+  ResourceType,
+} from '../../types/team';
+import {
+  ProjectPermissionGate,
+  PermissionGate,
+} from '../common/PermissionGate';
 
 interface ProjectCardProps {
   project: Project;
@@ -79,10 +87,18 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   };
 
   const progressPercentage = Math.round(project.progress || 0);
-  const isOverdue = project.endDate && project.endDate < new Date() && project.status !== ProjectStatus.COMPLETED;
+  const isOverdue =
+    project.endDate &&
+    project.endDate < new Date() &&
+    project.status !== ProjectStatus.COMPLETED;
 
   return (
-    <Card className={cn("h-full transition-all hover:shadow-md", isOverdue && "border-red-200")}>
+    <Card
+      className={cn(
+        'h-full transition-all hover:shadow-md',
+        isOverdue && 'border-red-200'
+      )}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
@@ -100,7 +116,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               )}
             </div>
           </div>
-          
+
           {/* 권한 기반 액션 메뉴 */}
           <PermissionGate
             resourceType={ResourceType.PROJECT}
@@ -184,10 +200,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         {/* 프로젝트 설명 */}
         {project.description && (
           <div className="mb-4">
-            <p className={cn(
-              "text-sm text-gray-600",
-              !showFullDescription && "line-clamp-2"
-            )}>
+            <p
+              className={cn(
+                'text-sm text-gray-600',
+                !showFullDescription && 'line-clamp-2'
+              )}
+            >
               {project.description}
             </p>
             {project.description.length > 100 && (
@@ -210,9 +228,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className={cn(
-                "h-2 rounded-full transition-all",
-                progressPercentage < 30 ? 'bg-red-500' :
-                progressPercentage < 70 ? 'bg-yellow-500' : 'bg-green-500'
+                'h-2 rounded-full transition-all',
+                progressPercentage < 30
+                  ? 'bg-red-500'
+                  : progressPercentage < 70
+                    ? 'bg-yellow-500'
+                    : 'bg-green-500'
               )}
               style={{ width: `${progressPercentage}%` }}
             />
@@ -223,7 +244,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
           <div className="flex items-center gap-1">
             <CheckCircle className="h-4 w-4" />
-            <span>{project.completedTaskCount}/{project.taskCount}</span>
+            <span>
+              {project.completedTaskCount}/{project.taskCount}
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
@@ -236,16 +259,22 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           {project.startDate && (
             <div className="flex items-center gap-2 text-gray-600">
               <Calendar className="h-4 w-4" />
-              <span>시작: {format(project.startDate, 'PPP', { locale: ko })}</span>
+              <span>
+                시작: {format(project.startDate, 'PPP', { locale: ko })}
+              </span>
             </div>
           )}
           {project.endDate && (
-            <div className={cn(
-              "flex items-center gap-2",
-              isOverdue ? "text-red-600" : "text-gray-600"
-            )}>
+            <div
+              className={cn(
+                'flex items-center gap-2',
+                isOverdue ? 'text-red-600' : 'text-gray-600'
+              )}
+            >
               <Calendar className="h-4 w-4" />
-              <span>종료: {format(project.endDate, 'PPP', { locale: ko })}</span>
+              <span>
+                종료: {format(project.endDate, 'PPP', { locale: ko })}
+              </span>
               {isOverdue && <span className="text-xs">(지연)</span>}
             </div>
           )}
@@ -284,7 +313,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             projectId={project.id}
             action={PermissionAction.UPDATE}
             fallback={
-              <Button variant="ghost" size="sm" disabled className="text-gray-400">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled
+                className="text-gray-400"
+              >
                 편집 권한 없음
               </Button>
             }
@@ -310,11 +344,15 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
               <div className="flex items-center gap-2 text-gray-600">
                 <Circle className="h-4 w-4" />
-                <span className="text-sm">이 프로젝트에 대한 접근 권한이 제한되어 있습니다.</span>
+                <span className="text-sm">
+                  이 프로젝트에 대한 접근 권한이 제한되어 있습니다.
+                </span>
               </div>
             </div>
           }
-        />
+        >
+          <div></div>
+        </PermissionGate>
       </CardContent>
     </Card>
   );

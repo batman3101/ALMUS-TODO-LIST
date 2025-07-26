@@ -10,15 +10,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { 
-  Users, 
-  MessageCircle, 
-  Edit3, 
-  Bell, 
-  Wifi, 
+import {
+  Users,
+  MessageCircle,
+  Edit3,
+  Bell,
+  Wifi,
   WifiOff,
   Play,
-  Square
+  Square,
 } from 'lucide-react';
 
 interface DemoData {
@@ -31,13 +31,16 @@ export const CollaborationDemo: React.FC = () => {
   const { user } = useAuth();
   const websocket = useWebSocket();
   const { isOnline, onlineUsers, updateStatus } = useUserPresence();
-  
+
   const [isConnected, setIsConnected] = useState(false);
-  const [currentDemo, setCurrentDemo] = useState<'task' | 'project' | 'document'>('task');
+  const [currentDemo, setCurrentDemo] = useState<
+    'task' | 'project' | 'document'
+  >('task');
   const [demoData, setDemoData] = useState<DemoData>({
     title: '실시간 협업 데모 작업',
     description: '이 작업은 실시간 협업 기능을 시연하기 위한 샘플 작업입니다.',
-    content: '여기에 작업의 상세 내용을 입력하세요. 다른 사용자와 실시간으로 동시 편집이 가능합니다.'
+    content:
+      '여기에 작업의 상세 내용을 입력하세요. 다른 사용자와 실시간으로 동시 편집이 가능합니다.',
   });
 
   // WebSocket 연결 초기화
@@ -71,7 +74,7 @@ export const CollaborationDemo: React.FC = () => {
   const handleSave = async (data: Record<string, any>) => {
     // 실제 저장 로직 (API 호출 등)
     console.log('Saving demo data:', data);
-    
+
     // 시뮬레이션: 저장 완료 후 피드백
     return new Promise(resolve => {
       setTimeout(() => {
@@ -87,19 +90,27 @@ export const CollaborationDemo: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ONLINE': return 'bg-green-100 text-green-800';
-      case 'AWAY': return 'bg-yellow-100 text-yellow-800';
-      case 'BUSY': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'ONLINE':
+        return 'bg-green-100 text-green-800';
+      case 'AWAY':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'BUSY':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'ONLINE': return '🟢';
-      case 'AWAY': return '🟡'; 
-      case 'BUSY': return '🔴';
-      default: return '⚫';
+      case 'ONLINE':
+        return '🟢';
+      case 'AWAY':
+        return '🟡';
+      case 'BUSY':
+        return '🔴';
+      default:
+        return '⚫';
     }
   };
 
@@ -109,8 +120,12 @@ export const CollaborationDemo: React.FC = () => {
         <Card className="w-96">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">로그인이 필요합니다</h3>
-              <p className="text-gray-600">실시간 협업 기능을 사용하려면 먼저 로그인해주세요.</p>
+              <h3 className="text-lg font-semibold mb-2">
+                로그인이 필요합니다
+              </h3>
+              <p className="text-gray-600">
+                실시간 협업 기능을 사용하려면 먼저 로그인해주세요.
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -137,7 +152,9 @@ export const CollaborationDemo: React.FC = () => {
             ) : (
               <WifiOff className="h-5 w-5 text-red-600" />
             )}
-            <span className={`text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+            <span
+              className={`text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}
+            >
               {isConnected ? '연결됨' : '연결 안됨'}
             </span>
           </div>
@@ -152,7 +169,11 @@ export const CollaborationDemo: React.FC = () => {
               size="sm"
               onClick={() => updateStatus(isOnline ? 'AWAY' : 'ONLINE')}
             >
-              {isOnline ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {isOnline ? (
+                <Square className="h-4 w-4" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
               {isOnline ? 'AWAY로 변경' : 'ONLINE으로 변경'}
             </Button>
           </div>
@@ -222,13 +243,15 @@ export const CollaborationDemo: React.FC = () => {
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {onlineUsers.map(user => (
-                <Badge 
-                  key={user.userId} 
+                <Badge
+                  key={user.userId}
                   className={getStatusColor(user.status)}
                 >
                   <span className="mr-1">{getStatusIcon(user.status)}</span>
                   User {user.userId}
-                  {user.isTyping && <span className="ml-1 animate-pulse">...</span>}
+                  {user.isTyping && (
+                    <span className="ml-1 animate-pulse">...</span>
+                  )}
                 </Badge>
               ))}
             </div>
@@ -243,7 +266,7 @@ export const CollaborationDemo: React.FC = () => {
           {[
             { key: 'task', label: '작업', icon: '📋' },
             { key: 'project', label: '프로젝트', icon: '📁' },
-            { key: 'document', label: '문서', icon: '📄' }
+            { key: 'document', label: '문서', icon: '📄' },
           ].map(({ key, label, icon }) => (
             <Button
               key={key}
@@ -292,28 +315,32 @@ export const CollaborationDemo: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">제목 편집</label>
+                <label className="block text-sm font-medium mb-2">
+                  제목 편집
+                </label>
                 <CollaborativeTextEditor
                   resourceType={currentDemo.toUpperCase() as any}
                   resourceId={getDemoResourceId()}
                   fieldPath="title"
                   initialValue={demoData.title}
                   placeholder="제목을 입력하세요..."
-                  onValueChange={(value) => handleDataChange({ title: value })}
-                  onSave={(value) => handleDataChange({ title: value })}
+                  onValueChange={value => handleDataChange({ title: value })}
+                  onSave={value => handleDataChange({ title: value })}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">내용 편집</label>
+                <label className="block text-sm font-medium mb-2">
+                  내용 편집
+                </label>
                 <CollaborativeTextEditor
                   resourceType={currentDemo.toUpperCase() as any}
                   resourceId={getDemoResourceId()}
                   fieldPath="content"
                   initialValue={demoData.content}
                   placeholder="내용을 입력하세요..."
-                  onValueChange={(value) => handleDataChange({ content: value })}
-                  onSave={(value) => handleDataChange({ content: value })}
+                  onValueChange={value => handleDataChange({ content: value })}
+                  onSave={value => handleDataChange({ content: value })}
                 />
               </div>
             </CardContent>
@@ -350,31 +377,66 @@ export const CollaborationDemo: React.FC = () => {
               <TabsTrigger value="comments">댓글 시스템</TabsTrigger>
               <TabsTrigger value="mentions">멘션 기능</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="editing" className="mt-4">
               <div className="space-y-3 text-sm">
-                <p><strong>동시 편집:</strong> 여러 사용자가 동시에 같은 문서를 편집할 수 있습니다.</p>
-                <p><strong>실시간 동기화:</strong> 변경사항이 실시간으로 다른 사용자들에게 반영됩니다.</p>
-                <p><strong>충돌 해결:</strong> Operational Transform 알고리즘으로 편집 충돌을 자동 해결합니다.</p>
-                <p><strong>커서 표시:</strong> 다른 사용자의 커서 위치와 선택 영역을 볼 수 있습니다.</p>
+                <p>
+                  <strong>동시 편집:</strong> 여러 사용자가 동시에 같은 문서를
+                  편집할 수 있습니다.
+                </p>
+                <p>
+                  <strong>실시간 동기화:</strong> 변경사항이 실시간으로 다른
+                  사용자들에게 반영됩니다.
+                </p>
+                <p>
+                  <strong>충돌 해결:</strong> Operational Transform 알고리즘으로
+                  편집 충돌을 자동 해결합니다.
+                </p>
+                <p>
+                  <strong>커서 표시:</strong> 다른 사용자의 커서 위치와 선택
+                  영역을 볼 수 있습니다.
+                </p>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="comments" className="mt-4">
               <div className="space-y-3 text-sm">
-                <p><strong>실시간 댓글:</strong> 댓글이 실시간으로 업데이트됩니다.</p>
-                <p><strong>답글 기능:</strong> 댓글에 답글을 달 수 있습니다.</p>
-                <p><strong>반응 기능:</strong> 댓글에 이모지 반응을 추가할 수 있습니다.</p>
-                <p><strong>편집/삭제:</strong> 자신이 작성한 댓글을 편집하거나 삭제할 수 있습니다.</p>
+                <p>
+                  <strong>실시간 댓글:</strong> 댓글이 실시간으로
+                  업데이트됩니다.
+                </p>
+                <p>
+                  <strong>답글 기능:</strong> 댓글에 답글을 달 수 있습니다.
+                </p>
+                <p>
+                  <strong>반응 기능:</strong> 댓글에 이모지 반응을 추가할 수
+                  있습니다.
+                </p>
+                <p>
+                  <strong>편집/삭제:</strong> 자신이 작성한 댓글을 편집하거나
+                  삭제할 수 있습니다.
+                </p>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="mentions" className="mt-4">
               <div className="space-y-3 text-sm">
-                <p><strong>멘션 생성:</strong> @사용자명을 입력하여 다른 사용자를 멘션할 수 있습니다.</p>
-                <p><strong>실시간 알림:</strong> 멘션된 사용자에게 실시간 알림이 전송됩니다.</p>
-                <p><strong>알림 관리:</strong> 우측 상단의 벨 아이콘으로 멘션 알림을 확인할 수 있습니다.</p>
-                <p><strong>자동 완성:</strong> @ 입력 시 사용자 목록이 자동으로 표시됩니다.</p>
+                <p>
+                  <strong>멘션 생성:</strong> @사용자명을 입력하여 다른 사용자를
+                  멘션할 수 있습니다.
+                </p>
+                <p>
+                  <strong>실시간 알림:</strong> 멘션된 사용자에게 실시간 알림이
+                  전송됩니다.
+                </p>
+                <p>
+                  <strong>알림 관리:</strong> 우측 상단의 벨 아이콘으로 멘션
+                  알림을 확인할 수 있습니다.
+                </p>
+                <p>
+                  <strong>자동 완성:</strong> @ 입력 시 사용자 목록이 자동으로
+                  표시됩니다.
+                </p>
               </div>
             </TabsContent>
           </Tabs>

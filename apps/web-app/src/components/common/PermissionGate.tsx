@@ -14,11 +14,11 @@ interface PermissionGateProps {
 
 /**
  * 권한 기반 컴포넌트 렌더링을 위한 게이트
- * 
+ *
  * 사용 예시:
- * <PermissionGate 
- *   resourceType={ResourceType.PROJECT} 
- *   resourceId={projectId} 
+ * <PermissionGate
+ *   resourceType={ResourceType.PROJECT}
+ *   resourceId={projectId}
  *   action={PermissionAction.UPDATE}
  * >
  *   <EditButton />
@@ -80,9 +80,10 @@ export const MultiPermissionGate: React.FC<MultiPermissionGateProps> = ({
     hasPermission(resourceType, resourceId, action)
   );
 
-  const shouldRender = operator === 'AND' 
-    ? results.every(result => result)
-    : results.some(result => result);
+  const shouldRender =
+    operator === 'AND'
+      ? results.every(result => result)
+      : results.some(result => result);
 
   if (shouldRender) {
     return <>{children}</>;
@@ -109,7 +110,8 @@ export const RoleGate: React.FC<RoleGateProps> = ({
   fallback = null,
   showFallback = true,
 }) => {
-  const { getUserTeamRole, getUserProjectRole, getUserTaskRole, loading } = usePermissions();
+  const { getUserTeamRole, getUserProjectRole, getUserTaskRole, loading } =
+    usePermissions();
 
   if (loading) {
     return null;

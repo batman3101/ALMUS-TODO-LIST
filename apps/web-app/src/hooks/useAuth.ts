@@ -269,7 +269,7 @@ export const useAuth = () => {
       await setDoc(userRef, firestoreUpdates, { merge: true });
 
       // 로컬 상태 업데이트
-      setUser(prev => prev ? { ...prev, ...updates } : null);
+      setUser(prev => (prev ? { ...prev, ...updates } : null));
     } catch (error) {
       console.error('사용자 정보 업데이트 실패:', error);
       throw new Error('사용자 정보 업데이트에 실패했습니다.');

@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { logger } from './utils/logger';
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     // CORS 설정
@@ -13,6 +14,6 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
     const port = process.env.PORT || 3002;
     await app.listen(port);
-    console.log(`Task service is running on: http://localhost:${port}`);
+    logger.info(`Task service is running on: http://localhost:${port}`);
 }
 bootstrap();

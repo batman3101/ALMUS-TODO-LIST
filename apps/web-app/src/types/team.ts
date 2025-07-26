@@ -1,5 +1,15 @@
 // 팀 관련 타입 정의 (shared-types import 문제 해결을 위한 임시 파일)
 
+export interface User {
+  id: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  createdAt: Date;
+  lastLoginAt?: Date;
+  isActive: boolean;
+}
+
 export enum TeamRole {
   OWNER = 'OWNER',
   ADMIN = 'ADMIN',
@@ -78,6 +88,48 @@ export const FIRESTORE_COLLECTIONS = {
   TEAM_INVITATIONS: 'team_invitations',
   PERMISSION_AUDIT_LOG: 'permission_audit_log',
 } as const;
+
+// Task types
+export enum TaskStatus {
+  TODO = 'TODO',
+  IN_PROGRESS = 'IN_PROGRESS',
+  REVIEW = 'REVIEW',
+  IN_REVIEW = 'REVIEW', // alias for REVIEW
+  DONE = 'DONE',
+  COMPLETED = 'DONE', // alias for DONE
+  CANCELLED = 'CANCELLED',
+}
+
+export enum TaskPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  URGENT = 'URGENT',
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  assigneeId: string;
+  assignee?: User;
+  status: TaskStatus;
+  priority: TaskPriority;
+  dueDate?: Date;
+  createdBy: string;
+  createdByUser?: User;
+  version: number;
+  teamId: string;
+  projectId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  startDate?: Date;
+  endDate?: Date;
+  dependencies?: string[];
+  progress?: number;
+  collaborators?: User[];
+  commentCount?: number;
+}
 
 // Re-export other types from shared-types for convenience
 export type {

@@ -31,15 +31,19 @@ import {
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
-import { 
-  Task, 
-  TaskStatus, 
-  TaskPriority, 
-  PermissionAction, 
+import {
+  Task,
+  TaskStatus,
+  TaskPriority,
+  PermissionAction,
   ResourceType,
-  TaskRole 
+  TaskRole,
 } from '../../types/team';
-import { TaskPermissionGate, PermissionGate, RoleGate } from '../common/PermissionGate';
+import {
+  TaskPermissionGate,
+  PermissionGate,
+  RoleGate,
+} from '../common/PermissionGate';
 
 interface TaskItemProps {
   task: Task;
@@ -104,37 +108,51 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 
   const getPriorityLabel = (priority: TaskPriority) => {
     switch (priority) {
-      case TaskPriority.URGENT: return '긴급';
-      case TaskPriority.HIGH: return '높음';
-      case TaskPriority.MEDIUM: return '보통';
-      case TaskPriority.LOW: return '낮음';
-      default: return priority;
+      case TaskPriority.URGENT:
+        return '긴급';
+      case TaskPriority.HIGH:
+        return '높음';
+      case TaskPriority.MEDIUM:
+        return '보통';
+      case TaskPriority.LOW:
+        return '낮음';
+      default:
+        return priority;
     }
   };
 
   const getStatusLabel = (status: TaskStatus) => {
     switch (status) {
-      case TaskStatus.TODO: return '할 일';
-      case TaskStatus.IN_PROGRESS: return '진행중';
-      case TaskStatus.IN_REVIEW: return '검토중';
-      case TaskStatus.COMPLETED: return '완료';
-      case TaskStatus.CANCELLED: return '취소';
-      default: return status;
+      case TaskStatus.TODO:
+        return '할 일';
+      case TaskStatus.IN_PROGRESS:
+        return '진행중';
+      case TaskStatus.IN_REVIEW:
+        return '검토중';
+      case TaskStatus.COMPLETED:
+        return '완료';
+      case TaskStatus.CANCELLED:
+        return '취소';
+      default:
+        return status;
     }
   };
 
   const isCompleted = task.status === TaskStatus.COMPLETED;
   const isOverdue = task.dueDate && task.dueDate < new Date() && !isCompleted;
-  const isDueSoon = task.dueDate && 
-    task.dueDate > new Date() && 
+  const isDueSoon =
+    task.dueDate &&
+    task.dueDate > new Date() &&
     task.dueDate <= new Date(Date.now() + 24 * 60 * 60 * 1000); // 24시간 내
 
   return (
-    <Card className={cn(
-      "transition-all hover:shadow-sm",
-      isCompleted && "opacity-75",
-      isOverdue && "border-red-200 bg-red-50/30"
-    )}>
+    <Card
+      className={cn(
+        'transition-all hover:shadow-sm',
+        isCompleted && 'opacity-75',
+        isOverdue && 'border-red-200 bg-red-50/30'
+      )}
+    >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           {/* 완료 체크박스 - COMPLETE 권한 또는 담당자만 가능 */}
@@ -153,7 +171,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 >
                   <Checkbox
                     checked={isCompleted}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={checked =>
                       onToggleComplete?.(task.id, Boolean(checked))
                     }
                     className="w-5 h-5"
@@ -163,7 +181,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             >
               <Checkbox
                 checked={isCompleted}
-                onCheckedChange={(checked) => 
+                onCheckedChange={checked =>
                   onToggleComplete?.(task.id, Boolean(checked))
                 }
                 className="w-5 h-5"
@@ -175,10 +193,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           <div className="flex-1 min-w-0">
             {/* 제목과 액션 버튼 */}
             <div className="flex items-start justify-between gap-2 mb-2">
-              <h4 className={cn(
-                "font-medium text-sm leading-5",
-                isCompleted && "line-through text-gray-500"
-              )}>
+              <h4
+                className={cn(
+                  'font-medium text-sm leading-5',
+                  isCompleted && 'line-through text-gray-500'
+                )}
+              >
                 {task.title}
               </h4>
 
@@ -262,11 +282,13 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 
             {/* 설명 */}
             {task.description && (
-              <p className={cn(
-                "text-xs text-gray-600 mb-2",
-                !isExpanded && "line-clamp-2",
-                isCompleted && "line-through"
-              )}>
+              <p
+                className={cn(
+                  'text-xs text-gray-600 mb-2',
+                  !isExpanded && 'line-clamp-2',
+                  isCompleted && 'line-through'
+                )}
+              >
                 {task.description}
               </p>
             )}
@@ -274,12 +296,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             {/* 메타 정보 */}
             <div className="flex items-center gap-2 flex-wrap mb-2">
               {/* 상태 */}
-              <Badge className={cn("text-xs", getStatusColor(task.status))}>
+              <Badge className={cn('text-xs', getStatusColor(task.status))}>
                 {getStatusLabel(task.status)}
               </Badge>
 
               {/* 우선순위 */}
-              <Badge className={cn("text-xs", getPriorityColor(task.priority))}>
+              <Badge className={cn('text-xs', getPriorityColor(task.priority))}>
                 <Flag className="h-3 w-3 mr-1" />
                 {getPriorityLabel(task.priority)}
               </Badge>
@@ -292,7 +314,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 </Badge>
               )}
               {isDueSoon && !isOverdue && (
-                <Badge variant="outline" className="text-xs border-orange-200 text-orange-700">
+                <Badge
+                  variant="outline"
+                  className="text-xs border-orange-200 text-orange-700"
+                >
                   <Clock className="h-3 w-3 mr-1" />
                   마감임박
                 </Badge>
@@ -303,10 +328,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             <div className="flex items-center gap-4 text-xs text-gray-500">
               {/* 마감일 */}
               {task.dueDate && (
-                <div className={cn(
-                  "flex items-center gap-1",
-                  isOverdue && "text-red-600"
-                )}>
+                <div
+                  className={cn(
+                    'flex items-center gap-1',
+                    isOverdue && 'text-red-600'
+                  )}
+                >
                   <Calendar className="h-3 w-3" />
                   <span>{format(task.dueDate, 'MM/dd', { locale: ko })}</span>
                 </div>
@@ -363,9 +390,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                   action={PermissionAction.UPDATE}
                 >
                   <Button
-                    variant={showCollaborativeView ? "default" : "outline"}
+                    variant={showCollaborativeView ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setShowCollaborativeView(!showCollaborativeView)}
+                    onClick={() =>
+                      setShowCollaborativeView(!showCollaborativeView)
+                    }
                     className="text-xs"
                   >
                     <Users className="h-3 w-3 mr-1" />
@@ -434,7 +463,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                   이 작업에 대한 세부 정보를 볼 권한이 없습니다.
                 </div>
               }
-            />
+            >
+              <div></div>
+            </PermissionGate>
 
             {/* 실시간 협업 뷰 */}
             {showCollaborativeView && enableCollaboration && (
@@ -449,11 +480,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                     status: task.status,
                     priority: task.priority,
                   }}
-                  onDataChange={(data) => {
+                  onDataChange={data => {
                     // 작업 데이터 업데이트 로직
                     console.log('Task data updated:', data);
                   }}
-                  onSave={(data) => {
+                  onSave={data => {
                     // 작업 저장 로직
                     console.log('Task saved:', data);
                   }}

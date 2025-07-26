@@ -48,13 +48,17 @@ export const useTeamMembers = (teamId: string) => {
       orderBy('joinedAt', 'asc')
     );
 
-    const unsubscribeMembers = onSnapshot(membersQuery, async (snapshot) => {
-      const memberPromises = snapshot.docs.map(async (memberDoc) => {
+    const unsubscribeMembers = onSnapshot(membersQuery, async snapshot => {
+      const memberPromises = snapshot.docs.map(async memberDoc => {
         const memberData = memberDoc.data() as FirestoreTeamMember;
-        
+
         // Fetch user data
-        const userDoc = await getDoc(doc(db, FIRESTORE_COLLECTIONS.USERS, memberData.userId));
-        const userData = userDoc.exists() ? userDoc.data() as FirestoreUser : null;
+        const userDoc = await getDoc(
+          doc(db, FIRESTORE_COLLECTIONS.USERS, memberData.userId)
+        );
+        const userData = userDoc.exists()
+          ? (userDoc.data() as FirestoreUser)
+          : null;
 
         return {
           id: memberDoc.id,
@@ -64,18 +68,20 @@ export const useTeamMembers = (teamId: string) => {
           joinedAt: memberData.joinedAt.toDate(),
           invitedBy: memberData.invitedBy,
           isActive: memberData.isActive,
-          user: userData ? {
-            id: userData.id,
-            email: userData.email,
-            name: userData.name,
-            role: userData.role,
-            avatar: userData.avatar,
-            currentTeamId: userData.currentTeamId,
-            isActive: userData.isActive,
-            lastLoginAt: userData.lastLoginAt?.toDate(),
-            createdAt: userData.createdAt.toDate(),
-            updatedAt: userData.updatedAt.toDate(),
-          } : undefined,
+          user: userData
+            ? {
+                id: userData.id,
+                email: userData.email,
+                name: userData.name,
+                role: userData.role,
+                avatar: userData.avatar,
+                currentTeamId: userData.currentTeamId,
+                isActive: userData.isActive,
+                lastLoginAt: userData.lastLoginAt?.toDate(),
+                createdAt: userData.createdAt.toDate(),
+                updatedAt: userData.updatedAt.toDate(),
+              }
+            : undefined,
         } as TeamMember;
       });
 
@@ -94,46 +100,56 @@ export const useTeamMembers = (teamId: string) => {
       orderBy('createdAt', 'desc')
     );
 
-    const unsubscribeInvitations = onSnapshot(invitationsQuery, async (snapshot) => {
-      const invitationPromises = snapshot.docs.map(async (invitationDoc) => {
-        const invitationData = invitationDoc.data() as FirestoreTeamInvitation;
-        
-        // Fetch inviter user data
-        const inviterDoc = await getDoc(doc(db, FIRESTORE_COLLECTIONS.USERS, invitationData.invitedBy));
-        const inviterData = inviterDoc.exists() ? inviterDoc.data() as FirestoreUser : null;
+    const unsubscribeInvitations = onSnapshot(
+      invitationsQuery,
+      async snapshot => {
+        const invitationPromises = snapshot.docs.map(async invitationDoc => {
+          const invitationData =
+            invitationDoc.data() as FirestoreTeamInvitation;
 
-        return {
-          id: invitationDoc.id,
-          teamId: invitationData.teamId,
-          email: invitationData.email,
-          role: invitationData.role,
-          token: invitationData.token,
-          invitedBy: invitationData.invitedBy,
-          message: invitationData.message,
-          expiresAt: invitationData.expiresAt.toDate(),
-          acceptedAt: invitationData.acceptedAt?.toDate(),
-          rejectedAt: invitationData.rejectedAt?.toDate(),
-          status: invitationData.status as InvitationStatus,
-          createdAt: invitationData.createdAt.toDate(),
-          updatedAt: invitationData.updatedAt.toDate(),
-          invitedByUser: inviterData ? {
-            id: inviterData.id,
-            email: inviterData.email,
-            name: inviterData.name,
-            role: inviterData.role,
-            avatar: inviterData.avatar,
-            currentTeamId: inviterData.currentTeamId,
-            isActive: inviterData.isActive,
-            lastLoginAt: inviterData.lastLoginAt?.toDate(),
-            createdAt: inviterData.createdAt.toDate(),
-            updatedAt: inviterData.updatedAt.toDate(),
-          } : undefined,
-        } as TeamInvitation;
-      });
+          // Fetch inviter user data
+          const inviterDoc = await getDoc(
+            doc(db, FIRESTORE_COLLECTIONS.USERS, invitationData.invitedBy)
+          );
+          const inviterData = inviterDoc.exists()
+            ? (inviterDoc.data() as FirestoreUser)
+            : null;
 
-      const resolvedInvitations = await Promise.all(invitationPromises);
-      setInvitations(resolvedInvitations);
-    });
+          return {
+            id: invitationDoc.id,
+            teamId: invitationData.teamId,
+            email: invitationData.email,
+            role: invitationData.role,
+            token: invitationData.token,
+            invitedBy: invitationData.invitedBy,
+            message: invitationData.message,
+            expiresAt: invitationData.expiresAt.toDate(),
+            acceptedAt: invitationData.acceptedAt?.toDate(),
+            rejectedAt: invitationData.rejectedAt?.toDate(),
+            status: invitationData.status as InvitationStatus,
+            createdAt: invitationData.createdAt.toDate(),
+            updatedAt: invitationData.updatedAt.toDate(),
+            invitedByUser: inviterData
+              ? {
+                  id: inviterData.id,
+                  email: inviterData.email,
+                  name: inviterData.name,
+                  role: inviterData.role,
+                  avatar: inviterData.avatar,
+                  currentTeamId: inviterData.currentTeamId,
+                  isActive: inviterData.isActive,
+                  lastLoginAt: inviterData.lastLoginAt?.toDate(),
+                  createdAt: inviterData.createdAt.toDate(),
+                  updatedAt: inviterData.updatedAt.toDate(),
+                }
+              : undefined,
+          } as TeamInvitation;
+        });
+
+        const resolvedInvitations = await Promise.all(invitationPromises);
+        setInvitations(resolvedInvitations);
+      }
+    );
 
     unsubscribes.push(unsubscribeInvitations);
 
@@ -142,14 +158,17 @@ export const useTeamMembers = (teamId: string) => {
     };
   }, [teamId]);
 
-  const updateMemberRole = async (memberId: string, newRole: TeamRole): Promise<void> => {
+  const updateMemberRole = async (
+    memberId: string,
+    newRole: TeamRole
+  ): Promise<void> => {
     try {
       const memberRef = doc(db, FIRESTORE_COLLECTIONS.TEAM_MEMBERS, memberId);
       await updateDoc(memberRef, {
         role: newRole,
         updatedAt: Timestamp.now(),
       });
-      
+
       toast.success('멤버 역할이 변경되었습니다.');
     } catch (error) {
       console.error('멤버 역할 변경 실패:', error);
@@ -165,7 +184,7 @@ export const useTeamMembers = (teamId: string) => {
         isActive: false,
         updatedAt: Timestamp.now(),
       });
-      
+
       // Also need to update team member count
       // This would be better handled by Cloud Functions in production
       const teamRef = doc(db, FIRESTORE_COLLECTIONS.TEAMS, teamId);
@@ -177,7 +196,7 @@ export const useTeamMembers = (teamId: string) => {
           updatedAt: Timestamp.now(),
         });
       }
-      
+
       toast.success('멤버가 팀에서 제거되었습니다.');
     } catch (error) {
       console.error('멤버 제거 실패:', error);
@@ -188,12 +207,16 @@ export const useTeamMembers = (teamId: string) => {
 
   const cancelInvitation = async (invitationId: string): Promise<void> => {
     try {
-      const invitationRef = doc(db, FIRESTORE_COLLECTIONS.TEAM_INVITATIONS, invitationId);
+      const invitationRef = doc(
+        db,
+        FIRESTORE_COLLECTIONS.TEAM_INVITATIONS,
+        invitationId
+      );
       await updateDoc(invitationRef, {
         status: InvitationStatus.CANCELLED,
         updatedAt: Timestamp.now(),
       });
-      
+
       toast.success('초대가 취소되었습니다.');
     } catch (error) {
       console.error('초대 취소 실패:', error);
@@ -207,13 +230,17 @@ export const useTeamMembers = (teamId: string) => {
       // Extend expiration date by 7 days
       const newExpirationDate = new Date();
       newExpirationDate.setDate(newExpirationDate.getDate() + 7);
-      
-      const invitationRef = doc(db, FIRESTORE_COLLECTIONS.TEAM_INVITATIONS, invitationId);
+
+      const invitationRef = doc(
+        db,
+        FIRESTORE_COLLECTIONS.TEAM_INVITATIONS,
+        invitationId
+      );
       await updateDoc(invitationRef, {
         expiresAt: Timestamp.fromDate(newExpirationDate),
         updatedAt: Timestamp.now(),
       });
-      
+
       // TODO: Send invitation email again
       toast.success('초대장이 다시 전송되었습니다.');
     } catch (error) {
@@ -245,7 +272,8 @@ export const useTeamMembers = (teamId: string) => {
   };
 
   const getPendingInvitationsCount = (): number => {
-    return invitations.filter(inv => inv.status === InvitationStatus.PENDING).length;
+    return invitations.filter(inv => inv.status === InvitationStatus.PENDING)
+      .length;
   };
 
   return {

@@ -34,14 +34,15 @@ interface ProjectPermissionEditModalProps {
   onSave: (input: UpdateProjectPermissionInput) => Promise<void>;
 }
 
-export const ProjectPermissionEditModal: React.FC<ProjectPermissionEditModalProps> = ({
-  isOpen,
-  onClose,
-  permission,
-  onSave,
-}) => {
-  const [selectedRole, setSelectedRole] = useState<ProjectRole>(permission.role);
-  const [expiresAt, setExpiresAt] = useState<Date | undefined>(permission.expiresAt || undefined);
+export const ProjectPermissionEditModal: React.FC<
+  ProjectPermissionEditModalProps
+> = ({ isOpen, onClose, permission, onSave }) => {
+  const [selectedRole, setSelectedRole] = useState<ProjectRole>(
+    permission.role
+  );
+  const [expiresAt, setExpiresAt] = useState<Date | undefined>(
+    permission.expiresAt || undefined
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const roleLabels: Record<ProjectRole, string> = {
@@ -67,9 +68,8 @@ export const ProjectPermissionEditModal: React.FC<ProjectPermissionEditModalProp
   }, [isOpen, permission]);
 
   const handleSubmit = async () => {
-    const hasChanges = 
-      selectedRole !== permission.role || 
-      expiresAt !== permission.expiresAt;
+    const hasChanges =
+      selectedRole !== permission.role || expiresAt !== permission.expiresAt;
 
     if (!hasChanges) {
       onClose();
@@ -92,7 +92,8 @@ export const ProjectPermissionEditModal: React.FC<ProjectPermissionEditModalProp
   };
 
   const isExpired = permission.expiresAt && permission.expiresAt < new Date();
-  const isExpiringSoon = permission.expiresAt && 
+  const isExpiringSoon =
+    permission.expiresAt &&
     permission.expiresAt <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) &&
     permission.expiresAt > new Date();
 
@@ -123,21 +124,31 @@ export const ProjectPermissionEditModal: React.FC<ProjectPermissionEditModalProp
 
           {/* 현재 상태 표시 */}
           {(isExpired || isExpiringSoon) && (
-            <div className={cn(
-              'p-3 rounded-md border',
-              isExpired ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'
-            )}>
-              <div className={cn(
-                'text-sm font-medium',
-                isExpired ? 'text-red-800' : 'text-orange-800'
-              )}>
-                {isExpired ? '⚠️ 이 권한은 만료되었습니다' : '🔔 이 권한이 곧 만료됩니다'}
+            <div
+              className={cn(
+                'p-3 rounded-md border',
+                isExpired
+                  ? 'bg-red-50 border-red-200'
+                  : 'bg-orange-50 border-orange-200'
+              )}
+            >
+              <div
+                className={cn(
+                  'text-sm font-medium',
+                  isExpired ? 'text-red-800' : 'text-orange-800'
+                )}
+              >
+                {isExpired
+                  ? '⚠️ 이 권한은 만료되었습니다'
+                  : '🔔 이 권한이 곧 만료됩니다'}
               </div>
               {permission.expiresAt && (
-                <div className={cn(
-                  'text-sm mt-1',
-                  isExpired ? 'text-red-600' : 'text-orange-600'
-                )}>
+                <div
+                  className={cn(
+                    'text-sm mt-1',
+                    isExpired ? 'text-red-600' : 'text-orange-600'
+                  )}
+                >
                   만료일: {format(permission.expiresAt, 'PPP', { locale: ko })}
                 </div>
               )}
@@ -147,7 +158,10 @@ export const ProjectPermissionEditModal: React.FC<ProjectPermissionEditModalProp
           {/* 역할 선택 */}
           <div className="space-y-2">
             <Label>역할</Label>
-            <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as ProjectRole)}>
+            <Select
+              value={selectedRole}
+              onValueChange={value => setSelectedRole(value as ProjectRole)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -179,7 +193,9 @@ export const ProjectPermissionEditModal: React.FC<ProjectPermissionEditModalProp
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {expiresAt ? format(expiresAt, 'PPP', { locale: ko }) : '만료일 없음'}
+                  {expiresAt
+                    ? format(expiresAt, 'PPP', { locale: ko })
+                    : '만료일 없음'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -187,7 +203,7 @@ export const ProjectPermissionEditModal: React.FC<ProjectPermissionEditModalProp
                   mode="single"
                   selected={expiresAt}
                   onSelect={setExpiresAt}
-                  disabled={(date) => date < new Date()}
+                  disabled={date => date < new Date()}
                   initialFocus
                 />
                 <div className="p-3 border-t space-y-2">
@@ -207,7 +223,9 @@ export const ProjectPermissionEditModal: React.FC<ProjectPermissionEditModalProp
                       size="sm"
                       onClick={() => {
                         const oneMonthFromNow = new Date();
-                        oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+                        oneMonthFromNow.setMonth(
+                          oneMonthFromNow.getMonth() + 1
+                        );
                         setExpiresAt(oneMonthFromNow);
                       }}
                       className="w-full"
@@ -222,21 +240,32 @@ export const ProjectPermissionEditModal: React.FC<ProjectPermissionEditModalProp
 
           {/* 변경 사항 요약 */}
           <div className="bg-blue-50 p-3 rounded-md">
-            <div className="text-sm font-medium text-blue-800 mb-1">변경 사항</div>
+            <div className="text-sm font-medium text-blue-800 mb-1">
+              변경 사항
+            </div>
             <div className="text-sm text-blue-700 space-y-1">
               {selectedRole !== permission.role && (
                 <div>
-                  역할: {roleLabels[permission.role]} → {roleLabels[selectedRole]}
+                  역할: {roleLabels[permission.role]} →{' '}
+                  {roleLabels[selectedRole]}
                 </div>
               )}
               {expiresAt !== permission.expiresAt && (
                 <div>
-                  만료일: {permission.expiresAt ? format(permission.expiresAt, 'PPP', { locale: ko }) : '없음'} → {expiresAt ? format(expiresAt, 'PPP', { locale: ko }) : '없음'}
+                  만료일:{' '}
+                  {permission.expiresAt
+                    ? format(permission.expiresAt, 'PPP', { locale: ko })
+                    : '없음'}{' '}
+                  →{' '}
+                  {expiresAt
+                    ? format(expiresAt, 'PPP', { locale: ko })
+                    : '없음'}
                 </div>
               )}
-              {selectedRole === permission.role && expiresAt === permission.expiresAt && (
-                <div className="text-gray-500">변경 사항이 없습니다</div>
-              )}
+              {selectedRole === permission.role &&
+                expiresAt === permission.expiresAt && (
+                  <div className="text-gray-500">변경 사항이 없습니다</div>
+                )}
             </div>
           </div>
         </div>
@@ -245,10 +274,7 @@ export const ProjectPermissionEditModal: React.FC<ProjectPermissionEditModalProp
           <Button variant="outline" onClick={onClose}>
             취소
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isLoading}
-          >
+          <Button onClick={handleSubmit} disabled={isLoading}>
             {isLoading ? '저장 중...' : '저장'}
           </Button>
         </DialogFooter>

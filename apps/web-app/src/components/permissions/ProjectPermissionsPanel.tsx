@@ -23,13 +23,12 @@ interface ProjectPermissionsPanelProps {
   projectName: string;
 }
 
-export const ProjectPermissionsPanel: React.FC<ProjectPermissionsPanelProps> = ({
-  projectId,
-  projectName,
-}) => {
-  const { 
-    permissions, 
-    loading, 
+export const ProjectPermissionsPanel: React.FC<
+  ProjectPermissionsPanelProps
+> = ({ projectId, projectName }) => {
+  const {
+    permissions,
+    loading,
     getPermissionsByRole,
     getExpiredPermissions,
     getExpiringPermissions,
@@ -60,9 +59,7 @@ export const ProjectPermissionsPanel: React.FC<ProjectPermissionsPanelProps> = (
     <Card>
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
-          <div className={`${color} p-2 rounded-lg bg-opacity-10`}>
-            {icon}
-          </div>
+          <div className={`${color} p-2 rounded-lg bg-opacity-10`}>{icon}</div>
           <div>
             <div className="text-2xl font-bold">{value}</div>
             <div className="text-sm text-gray-600">{title}</div>
@@ -107,14 +104,14 @@ export const ProjectPermissionsPanel: React.FC<ProjectPermissionsPanelProps> = (
           value={stats.expiringCount}
           icon={<Clock className="h-5 w-5" />}
           color="text-orange-600"
-          description={stats.expiringCount > 0 ? "7일 내 만료" : undefined}
+          description={stats.expiringCount > 0 ? '7일 내 만료' : undefined}
         />
         <StatCard
           title="만료됨"
           value={stats.expiredCount}
           icon={<AlertTriangle className="h-5 w-5" />}
           color="text-red-600"
-          description={stats.expiredCount > 0 ? "즉시 갱신 필요" : undefined}
+          description={stats.expiredCount > 0 ? '즉시 갱신 필요' : undefined}
         />
         <StatCard
           title="매니저"
@@ -140,7 +137,7 @@ export const ProjectPermissionsPanel: React.FC<ProjectPermissionsPanelProps> = (
               </p>
             </div>
           )}
-          
+
           {expiringPermissions.length > 0 && (
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
               <div className="flex items-center gap-2 text-orange-800">

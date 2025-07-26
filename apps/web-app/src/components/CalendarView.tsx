@@ -59,7 +59,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
   };
 
   // 태스크 업데이트 핸들러
-  const handleTaskSave = async (taskId: string, updateData: UpdateTaskInput) => {
+  const handleTaskSave = async (
+    taskId: string,
+    updateData: UpdateTaskInput
+  ) => {
     try {
       await updateTask.mutateAsync({ id: taskId, updates: updateData });
     } catch (error) {
@@ -69,10 +72,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
   };
 
   // 드래그 시작 핸들러
-  const handleDragStart = (e: React.MouseEvent, task: Task, dragType: 'move' | 'resize-left' | 'resize-right') => {
+  const handleDragStart = (
+    e: React.MouseEvent,
+    task: Task,
+    dragType: 'move' | 'resize-left' | 'resize-right'
+  ) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     setDragState({
       isDragging: dragType === 'move',
       isResizing: dragType.startsWith('resize'),
@@ -90,20 +97,21 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
 
   // 마우스 이동 핸들러
   const handleMouseMove = (e: MouseEvent) => {
-    if (!dragState.isDragging && !dragState.isResizing || !dragState.taskId) return;
+    if ((!dragState.isDragging && !dragState.isResizing) || !dragState.taskId)
+      return;
 
     // 마우스 이동 거리 계산
     const deltaX = e.clientX - dragState.startX;
-    
+
     // 캘린더 컨테이너의 너비를 기준으로 일(day) 단위 계산
     // 일반적으로 캘린더는 주 단위(7일)로 표시되므로, 전체 너비를 7로 나누면 하루의 너비
     const calendarContainer = document.querySelector('[data-calendar-content]');
     if (!calendarContainer) return;
-    
+
     const containerWidth = calendarContainer.clientWidth;
     const dayWidth = containerWidth / 7; // 한 주가 7일이므로
     const daysDelta = Math.round(deltaX / dayWidth);
-    
+
     if (daysDelta === 0) return; // 변화가 없으면 리턴
 
     // 현재 편집 중인 태스크 찾기
@@ -120,7 +128,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
         newStartDate.setDate(newStartDate.getDate() + daysDelta);
         newEndDate.setDate(newEndDate.getDate() + daysDelta);
         break;
-      
+
       case 'resize-left':
         // 시작일 조정 (종료일은 고정)
         newStartDate.setDate(newStartDate.getDate() + daysDelta);
@@ -130,7 +138,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
           newStartDate.setDate(newStartDate.getDate() - 1);
         }
         break;
-      
+
       case 'resize-right':
         // 종료일 조정 (시작일은 고정)
         newEndDate.setDate(newEndDate.getDate() + daysDelta);
@@ -151,25 +159,29 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
   const handleMouseUp = async () => {
     if (dragState.taskId && (dragState.isDragging || dragState.isResizing)) {
       // 마우스 이동 거리 계산
-      const calendarContainer = document.querySelector('[data-calendar-content]');
+      const calendarContainer = document.querySelector(
+        '[data-calendar-content]'
+      );
       if (calendarContainer) {
         const containerWidth = calendarContainer.clientWidth;
         const dayWidth = containerWidth / 7;
-        const currentMouseX = event ? (event as MouseEvent).clientX : dragState.startX;
+        const currentMouseX = event
+          ? (event as MouseEvent).clientX
+          : dragState.startX;
         const deltaX = currentMouseX - dragState.startX;
         const daysDelta = Math.round(deltaX / dayWidth);
-        
+
         if (daysDelta !== 0) {
           // 최종 날짜 계산
           let newStartDate = new Date(dragState.originalStartDate!);
           let newEndDate = new Date(dragState.originalEndDate!);
-          
+
           switch (dragState.dragType) {
             case 'move':
               newStartDate.setDate(newStartDate.getDate() + daysDelta);
               newEndDate.setDate(newEndDate.getDate() + daysDelta);
               break;
-            
+
             case 'resize-left':
               newStartDate.setDate(newStartDate.getDate() + daysDelta);
               if (newStartDate >= newEndDate) {
@@ -177,7 +189,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
                 newStartDate.setDate(newStartDate.getDate() - 1);
               }
               break;
-            
+
             case 'resize-right':
               newEndDate.setDate(newEndDate.getDate() + daysDelta);
               if (newEndDate <= newStartDate) {
@@ -186,7 +198,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
               }
               break;
           }
-          
+
           // API 호출하여 태스크 업데이트
           try {
             await handleTaskSave(dragState.taskId, {
@@ -199,7 +211,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
         }
       }
     }
-    
+
     // 드래그 상태 리셋
     setDragState({
       isDragging: false,
@@ -257,8 +269,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
       taskBars: Array<{
         task: Task;
         startDay: number; // 주 내에서 시작하는 요일 (0-6)
-        endDay: number;   // 주 내에서 끝나는 요일 (0-6)
-        row: number;      // 표시될 행 번호
+        endDay: number; // 주 내에서 끝나는 요일 (0-6)
+        row: number; // 표시될 행 번호
       }>;
     }> = [];
 
@@ -282,12 +294,18 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
 
             // 태스크 시작일이 이번 주 내에 있으면 정확한 요일 계산
             if (taskStart >= weekStartDate) {
-              startDay = Math.floor((taskStart.getTime() - weekStartDate.getTime()) / (1000 * 60 * 60 * 24));
+              startDay = Math.floor(
+                (taskStart.getTime() - weekStartDate.getTime()) /
+                  (1000 * 60 * 60 * 24)
+              );
             }
 
             // 태스크 끝일이 이번 주 내에 있으면 정확한 요일 계산
             if (taskEnd <= weekEndDate) {
-              endDay = Math.floor((taskEnd.getTime() - weekStartDate.getTime()) / (1000 * 60 * 60 * 24));
+              endDay = Math.floor(
+                (taskEnd.getTime() - weekStartDate.getTime()) /
+                  (1000 * 60 * 60 * 24)
+              );
             }
 
             taskBars.push({
@@ -308,7 +326,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
 
     return weekBars;
   }, [tasks, calendarData]);
-
 
   // 우선순위에 따른 색상 반환
   const getPriorityColor = (priority: TaskPriority) => {
@@ -420,17 +437,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
       <div className="relative" data-calendar-content>
         {/* 주별로 그리기 */}
         {calendarData.weeks.map((week, weekIndex) => {
-          const weekTaskBars = weeklyTaskBars.find(wb => wb.weekIndex === weekIndex)?.taskBars || [];
+          const weekTaskBars =
+            weeklyTaskBars.find(wb => wb.weekIndex === weekIndex)?.taskBars ||
+            [];
           const maxRows = Math.max(3, weekTaskBars.length); // 최소 3행 보장
           const weekHeight = 120 + maxRows * 28; // 날짜 표시 공간 + 태스크 행들
 
           return (
-            <div key={weekIndex} className="relative" style={{ height: `${weekHeight}px` }}>
+            <div
+              key={weekIndex}
+              className="relative"
+              style={{ height: `${weekHeight}px` }}
+            >
               {/* 각 날짜 셀들 */}
               <div className="grid grid-cols-7 h-full">
                 {week.map((date, dayIndex) => {
-                  const isCurrentMonth = date.getMonth() === currentDate.getMonth();
-                  const isToday = date.toDateString() === new Date().toDateString();
+                  const isCurrentMonth =
+                    date.getMonth() === currentDate.getMonth();
+                  const isToday =
+                    date.toDateString() === new Date().toDateString();
 
                   return (
                     <div
@@ -484,28 +509,32 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
                       {/* 왼쪽 리사이즈 핸들 */}
                       <div
                         className="absolute left-0 top-0 w-2 h-full bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 cursor-w-resize transition-opacity duration-200 rounded-l"
-                        onMouseDown={(e) => handleDragStart(e, task, 'resize-left')}
-                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={e =>
+                          handleDragStart(e, task, 'resize-left')
+                        }
+                        onClick={e => e.stopPropagation()}
                         title="시작일 조정"
                       />
-                      
+
                       {/* 태스크 내용 (중앙 클릭 영역) */}
                       <div
                         className="absolute inset-x-2 inset-y-0 flex items-center cursor-grab hover:cursor-grab active:cursor-grabbing"
-                        onMouseDown={(e) => handleDragStart(e, task, 'move')}
-                        onClick={(e) => {
+                        onMouseDown={e => handleDragStart(e, task, 'move')}
+                        onClick={e => {
                           e.stopPropagation();
                           handleTaskClick(task);
                         }}
                       >
                         <span className="truncate block">{task.title}</span>
                       </div>
-                      
+
                       {/* 오른쪽 리사이즈 핸들 */}
                       <div
                         className="absolute right-0 top-0 w-2 h-full bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 cursor-e-resize transition-opacity duration-200 rounded-r"
-                        onMouseDown={(e) => handleDragStart(e, task, 'resize-right')}
-                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={e =>
+                          handleDragStart(e, task, 'resize-right')
+                        }
+                        onClick={e => e.stopPropagation()}
                         title="종료일 조정"
                       />
                     </div>

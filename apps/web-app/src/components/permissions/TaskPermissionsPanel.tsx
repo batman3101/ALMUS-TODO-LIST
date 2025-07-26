@@ -27,9 +27,9 @@ export const TaskPermissionsPanel: React.FC<TaskPermissionsPanelProps> = ({
   taskId,
   taskTitle,
 }) => {
-  const { 
-    permissions, 
-    loading, 
+  const {
+    permissions,
+    loading,
     getPermissionsByRole,
     getExpiredPermissions,
     getExpiringPermissions,
@@ -84,9 +84,7 @@ export const TaskPermissionsPanel: React.FC<TaskPermissionsPanelProps> = ({
     <Card>
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
-          <div className={`${color} p-2 rounded-lg bg-opacity-10`}>
-            {icon}
-          </div>
+          <div className={`${color} p-2 rounded-lg bg-opacity-10`}>{icon}</div>
           <div>
             <div className="text-2xl font-bold">{value}</div>
             <div className="text-sm text-gray-600">{title}</div>
@@ -131,11 +129,15 @@ export const TaskPermissionsPanel: React.FC<TaskPermissionsPanelProps> = ({
           <div className="flex gap-2">
             <QuickActionButton
               role={TaskRole.ASSIGNEE}
-              onClick={() => {/* TODO: 담당자 변경 모달 */}}
+              onClick={() => {
+                /* TODO: 담당자 변경 모달 */
+              }}
             />
             <QuickActionButton
               role={TaskRole.REVIEWER}
-              onClick={() => {/* TODO: 리뷰어 추가 모달 */}}
+              onClick={() => {
+                /* TODO: 리뷰어 추가 모달 */
+              }}
             />
             <Button onClick={() => setShowGrantModal(true)} className="gap-2">
               <UserPlus className="h-4 w-4" />
@@ -158,7 +160,9 @@ export const TaskPermissionsPanel: React.FC<TaskPermissionsPanelProps> = ({
           value={stats.roleStats[TaskRole.ASSIGNEE]}
           icon={<UserCheck className="h-5 w-5" />}
           color="text-green-600"
-          description={stats.roleStats[TaskRole.ASSIGNEE] === 0 ? "담당자 없음" : undefined}
+          description={
+            stats.roleStats[TaskRole.ASSIGNEE] === 0 ? '담당자 없음' : undefined
+          }
         />
         <StatCard
           title="리뷰어"
@@ -204,7 +208,7 @@ export const TaskPermissionsPanel: React.FC<TaskPermissionsPanelProps> = ({
               </p>
             </div>
           )}
-          
+
           {expiringPermissions.length > 0 && (
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
               <div className="flex items-center gap-2 text-orange-800">
@@ -226,9 +230,16 @@ export const TaskPermissionsPanel: React.FC<TaskPermissionsPanelProps> = ({
         {Object.entries(TaskRole).map(([key, role]) => {
           const rolePermissions = getPermissionsByRole(role);
           const isAssignee = role === TaskRole.ASSIGNEE;
-          
+
           return (
-            <Card key={role} className={rolePermissions.length === 0 && isAssignee ? 'border-yellow-200' : ''}>
+            <Card
+              key={role}
+              className={
+                rolePermissions.length === 0 && isAssignee
+                  ? 'border-yellow-200'
+                  : ''
+              }
+            >
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
                   {roleIcons[role]}
@@ -245,7 +256,7 @@ export const TaskPermissionsPanel: React.FC<TaskPermissionsPanelProps> = ({
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {rolePermissions.slice(0, 2).map((permission) => (
+                    {rolePermissions.slice(0, 2).map(permission => (
                       <div key={permission.id} className="text-sm">
                         사용자 {permission.userId}
                       </div>

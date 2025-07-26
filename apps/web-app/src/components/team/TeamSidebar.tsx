@@ -14,16 +14,16 @@ import {
   Home,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { 
-  Team, 
-  PermissionAction, 
+import {
+  Team,
+  PermissionAction,
   ResourceType,
-  TeamRole 
+  TeamRole,
 } from '../../types/team';
-import { 
-  TeamPermissionGate, 
-  PermissionGate, 
-  RoleGate 
+import {
+  TeamPermissionGate,
+  PermissionGate,
+  RoleGate,
 } from '../common/PermissionGate';
 
 interface TeamSidebarProps {
@@ -110,7 +110,7 @@ export const TeamSidebar: React.FC<TeamSidebarProps> = ({
   };
 
   const NavItem: React.FC<{
-    item: typeof navigationItems[0];
+    item: (typeof navigationItems)[0];
     isActive: boolean;
   }> = ({ item, isActive }) => (
     <TeamPermissionGate
@@ -120,10 +120,10 @@ export const TeamSidebar: React.FC<TeamSidebarProps> = ({
       showFallback={false}
     >
       <Button
-        variant={isActive ? "secondary" : "ghost"}
+        variant={isActive ? 'secondary' : 'ghost'}
         className={cn(
-          "w-full justify-start gap-3 h-10",
-          isActive && "bg-blue-50 text-blue-700 border-blue-200"
+          'w-full justify-start gap-3 h-10',
+          isActive && 'bg-blue-50 text-blue-700 border-blue-200'
         )}
         onClick={() => handleSectionClick(item.id)}
       >
@@ -139,7 +139,7 @@ export const TeamSidebar: React.FC<TeamSidebarProps> = ({
   );
 
   const AdminNavItem: React.FC<{
-    item: typeof adminItems[0];
+    item: (typeof adminItems)[0];
     isActive: boolean;
   }> = ({ item, isActive }) => (
     <RoleGate
@@ -156,10 +156,10 @@ export const TeamSidebar: React.FC<TeamSidebarProps> = ({
         showFallback={false}
       >
         <Button
-          variant={isActive ? "secondary" : "ghost"}
+          variant={isActive ? 'secondary' : 'ghost'}
           className={cn(
-            "w-full justify-start gap-3 h-10",
-            isActive && "bg-blue-50 text-blue-700 border-blue-200"
+            'w-full justify-start gap-3 h-10',
+            isActive && 'bg-blue-50 text-blue-700 border-blue-200'
           )}
           onClick={() => handleSectionClick(item.id)}
         >
@@ -202,8 +202,7 @@ export const TeamSidebar: React.FC<TeamSidebarProps> = ({
               className="w-full gap-2"
               onClick={() => handleSectionClick('create-project')}
             >
-              <Plus className="h-4 w-4" />
-              새 프로젝트
+              <Plus className="h-4 w-4" />새 프로젝트
             </Button>
           </TeamPermissionGate>
 
@@ -234,8 +233,8 @@ export const TeamSidebar: React.FC<TeamSidebarProps> = ({
           <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
             메인 메뉴
           </div>
-          
-          {navigationItems.map((item) => (
+
+          {navigationItems.map(item => (
             <NavItem
               key={item.id}
               item={item}
@@ -247,7 +246,7 @@ export const TeamSidebar: React.FC<TeamSidebarProps> = ({
         {/* 관리 메뉴 */}
         <div className="px-4">
           <Separator className="my-2" />
-          
+
           {/* 관리 메뉴는 권한이 있는 사용자에게만 표시 */}
           <RoleGate
             resourceType={ResourceType.TEAM}
@@ -260,8 +259,8 @@ export const TeamSidebar: React.FC<TeamSidebarProps> = ({
               <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
                 관리
               </div>
-              
-              {adminItems.map((item) => (
+
+              {adminItems.map(item => (
                 <AdminNavItem
                   key={item.id}
                   item={item}
@@ -307,12 +306,18 @@ export const TeamSidebar: React.FC<TeamSidebarProps> = ({
                     resourceId={team.id}
                     allowedRoles={[TeamRole.EDITOR]}
                     fallback={
-                      <Badge variant="outline" className="text-xs w-full justify-center">
+                      <Badge
+                        variant="outline"
+                        className="text-xs w-full justify-center"
+                      >
                         조회자
                       </Badge>
                     }
                   >
-                    <Badge variant="secondary" className="text-xs w-full justify-center">
+                    <Badge
+                      variant="secondary"
+                      className="text-xs w-full justify-center"
+                    >
                       편집자
                     </Badge>
                   </RoleGate>
@@ -341,7 +346,9 @@ export const TeamSidebar: React.FC<TeamSidebarProps> = ({
               ⚠️ 일부 기능에 대한 접근이 제한되어 있습니다.
             </div>
           }
-        />
+        >
+          <div></div>
+        </PermissionGate>
       </div>
     </div>
   );

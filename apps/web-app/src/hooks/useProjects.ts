@@ -47,8 +47,8 @@ export const useProjects = (teamId?: string) => {
 
     const unsubscribe = onSnapshot(
       projectsQuery,
-      (snapshot) => {
-        const projectsData = snapshot.docs.map((doc) => {
+      snapshot => {
+        const projectsData = snapshot.docs.map(doc => {
           const data = doc.data() as any;
           return {
             id: doc.id,
@@ -75,7 +75,7 @@ export const useProjects = (teamId?: string) => {
         setLoading(false);
         setError(null);
       },
-      (error) => {
+      error => {
         console.error('프로젝트 로드 실패:', error);
         setError('프로젝트를 불러오는데 실패했습니다.');
         setLoading(false);
@@ -92,7 +92,7 @@ export const useProjects = (teamId?: string) => {
     try {
       const now = Timestamp.now();
       const projectRef = doc(collection(db, FIRESTORE_COLLECTIONS.PROJECTS));
-      
+
       const projectData = {
         id: projectRef.id,
         name: input.name,
@@ -157,14 +157,19 @@ export const useProjects = (teamId?: string) => {
       };
 
       if (input.name !== undefined) updateData.name = input.name;
-      if (input.description !== undefined) updateData.description = input.description;
+      if (input.description !== undefined)
+        updateData.description = input.description;
       if (input.status !== undefined) updateData.status = input.status;
       if (input.priority !== undefined) updateData.priority = input.priority;
       if (input.startDate !== undefined) {
-        updateData.startDate = input.startDate ? Timestamp.fromDate(input.startDate) : null;
+        updateData.startDate = input.startDate
+          ? Timestamp.fromDate(input.startDate)
+          : null;
       }
       if (input.endDate !== undefined) {
-        updateData.endDate = input.endDate ? Timestamp.fromDate(input.endDate) : null;
+        updateData.endDate = input.endDate
+          ? Timestamp.fromDate(input.endDate)
+          : null;
       }
       if (input.budget !== undefined) updateData.budget = input.budget;
       if (input.tags !== undefined) updateData.tags = input.tags;
@@ -199,7 +204,10 @@ export const useProjects = (teamId?: string) => {
   };
 
   // 프로젝트 진행률 업데이트
-  const updateProjectProgress = async (projectId: string, progress: number): Promise<void> => {
+  const updateProjectProgress = async (
+    projectId: string,
+    progress: number
+  ): Promise<void> => {
     if (!user) throw new Error('사용자가 로그인되어 있지 않습니다');
 
     try {
@@ -227,10 +235,11 @@ export const useProjects = (teamId?: string) => {
   // 프로젝트 검색
   const searchProjects = (searchTerm: string): Project[] => {
     const term = searchTerm.toLowerCase();
-    return projects.filter(project => 
-      project.name.toLowerCase().includes(term) ||
-      project.description?.toLowerCase().includes(term) ||
-      project.tags.some(tag => tag.toLowerCase().includes(term))
+    return projects.filter(
+      project =>
+        project.name.toLowerCase().includes(term) ||
+        project.description?.toLowerCase().includes(term) ||
+        project.tags.some(tag => tag.toLowerCase().includes(term))
     );
   };
 
@@ -243,12 +252,19 @@ export const useProjects = (teamId?: string) => {
   // 프로젝트 통계
   const getProjectStats = () => {
     const totalProjects = projects.length;
-    const activeProjects = projects.filter(p => p.status === ProjectStatus.ACTIVE).length;
-    const completedProjects = projects.filter(p => p.status === ProjectStatus.COMPLETED).length;
-    const onHoldProjects = projects.filter(p => p.status === ProjectStatus.ON_HOLD).length;
-    const averageProgress = totalProjects > 0 
-      ? projects.reduce((sum, p) => sum + p.progress, 0) / totalProjects 
-      : 0;
+    const activeProjects = projects.filter(
+      p => p.status === ProjectStatus.ACTIVE
+    ).length;
+    const completedProjects = projects.filter(
+      p => p.status === ProjectStatus.COMPLETED
+    ).length;
+    const onHoldProjects = projects.filter(
+      p => p.status === ProjectStatus.ON_HOLD
+    ).length;
+    const averageProgress =
+      totalProjects > 0
+        ? projects.reduce((sum, p) => sum + p.progress, 0) / totalProjects
+        : 0;
 
     return {
       totalProjects,

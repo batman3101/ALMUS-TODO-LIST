@@ -24,7 +24,7 @@ export class TaskController {
   @Post()
   async create(
     @Body() createTaskInput: CreateTaskInput,
-    @Request() req: any
+    @Request() req: { user: { userId: string } }
   ): Promise<TaskType> {
     return this.taskService.createTask(createTaskInput, req.user.userId);
   }
@@ -43,7 +43,7 @@ export class TaskController {
   async update(
     @Param('id') id: string,
     @Body() updateTaskInput: UpdateTaskInput,
-    @Request() req: any
+    @Request() req: { user: { userId: string } }
   ): Promise<TaskType> {
     return this.taskService.updateTask(id, updateTaskInput, req.user.userId);
   }
@@ -51,7 +51,7 @@ export class TaskController {
   @Delete(':id')
   async remove(
     @Param('id') id: string,
-    @Request() req: any
+    @Request() req: { user: { userId: string } }
   ): Promise<{ success: boolean }> {
     const result = await this.taskService.removeTask(id, req.user.userId);
     return { success: result };

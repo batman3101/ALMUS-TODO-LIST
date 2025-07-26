@@ -1,7 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../hooks/useAuth';
 
-export type WebSocketEvent = 
+export type WebSocketEvent =
   | 'user-joined'
   | 'user-left'
   | 'user-typing'
@@ -63,12 +63,16 @@ export interface UserPresence {
 class WebSocketService {
   private socket: Socket | null = null;
   private eventListeners: Map<WebSocketEvent, Set<Function>> = new Map();
-  private connectionState: 'DISCONNECTED' | 'CONNECTING' | 'CONNECTED' | 'ERROR' = 'DISCONNECTED';
+  private connectionState:
+    | 'DISCONNECTED'
+    | 'CONNECTING'
+    | 'CONNECTED'
+    | 'ERROR' = 'DISCONNECTED';
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private currentSession: string | null = null;
-  private heartbeatInterval: NodeJS.Timeout | null = null;
+  private heartbeatInterval: number | null = null;
 
   constructor() {
     this.initializeEventListeners();
@@ -77,11 +81,22 @@ class WebSocketService {
   private initializeEventListeners() {
     // 각 이벤트 타입별로 빈 Set 초기화
     const events: WebSocketEvent[] = [
-      'user-joined', 'user-left', 'user-typing', 'user-stopped-typing',
-      'edit-operation', 'cursor-moved', 'selection-changed',
-      'comment-added', 'comment-updated', 'comment-deleted',
-      'mention-created', 'presence-updated', 'session-started', 'session-ended',
-      'conflict-detected', 'conflict-resolved'
+      'user-joined',
+      'user-left',
+      'user-typing',
+      'user-stopped-typing',
+      'edit-operation',
+      'cursor-moved',
+      'selection-changed',
+      'comment-added',
+      'comment-updated',
+      'comment-deleted',
+      'mention-created',
+      'presence-updated',
+      'session-started',
+      'session-ended',
+      'conflict-detected',
+      'conflict-resolved',
     ];
 
     events.forEach(event => {
@@ -98,20 +113,23 @@ class WebSocketService {
     this.connectionState = 'CONNECTING';
 
     try {
-      this.socket = io(process.env.REACT_APP_WEBSOCKET_URL || 'ws://localhost:3001', {
-        auth: {
-          userId,
-          token
-        },
-        transports: ['websocket', 'polling'],
-        timeout: 10000,
-        reconnection: true,
-        reconnectionAttempts: this.maxReconnectAttempts,
-        reconnectionDelay: this.reconnectDelay,
-      });
+      this.socket = io(
+        process.env.REACT_APP_WEBSOCKET_URL || 'ws://localhost:3001',
+        {
+          auth: {
+            userId,
+            token,
+          },
+          transports: ['websocket', 'polling'],
+          timeout: 10000,
+          reconnection: true,
+          reconnectionAttempts: this.maxReconnectAttempts,
+          reconnectionDelay: this.reconnectDelay,
+        }
+      );
 
       this.setupSocketEventHandlers();
-      
+
       return new Promise((resolve, reject) => {
         this.socket!.on('connect', () => {
           console.log('Connected to WebSocket server');
@@ -121,7 +139,7 @@ class WebSocketService {
           resolve();
         });
 
-        this.socket!.on('connect_error', (error) => {
+        this.socket!.on('connect_error', error => {
           console.error('WebSocket connection error:', error);
           this.connectionState = 'ERROR';
           reject(error);
@@ -138,24 +156,24 @@ class WebSocketService {
     if (!this.socket) return;
 
     // 연결 관련 이벤트
-    this.socket.on('disconnect', (reason) => {
+    this.socket.on('disconnect', reason => {
       console.log('Disconnected from WebSocket:', reason);
       this.connectionState = 'DISCONNECTED';
       this.stopHeartbeat();
-      
+
       if (reason === 'io server disconnect') {
         // 서버에서 연결을 끊은 경우 재연결 시도
         this.reconnect();
       }
     });
 
-    this.socket.on('reconnect', (attemptNumber) => {
+    this.socket.on('reconnect', attemptNumber => {
       console.log(`Reconnected to WebSocket (attempt ${attemptNumber})`);
       this.connectionState = 'CONNECTED';
       this.reconnectAttempts = 0;
     });
 
-    this.socket.on('reconnect_error', (error) => {
+    this.socket.on('reconnect_error', error => {
       console.error('WebSocket reconnection error:', error);
       this.reconnectAttempts++;
     });
@@ -195,7 +213,7 @@ class WebSocketService {
   }
 
   private startHeartbeat() {
-    this.heartbeatInterval = setInterval(() => {
+    this.heartbeatInterval = window.setInterval(() => {
       if (this.socket?.connected) {
         this.socket.emit('ping');
       }
@@ -216,7 +234,9 @@ class WebSocketService {
     }
 
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
-    console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts + 1})`);
+    console.log(
+      `Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts + 1})`
+    );
 
     setTimeout(() => {
       if (this.socket && !this.socket.connected) {
@@ -236,14 +256,20 @@ class WebSocketService {
   }
 
   // 이벤트 리스너 관리
-  on(event: WebSocketEvent, listener: (message: WebSocketMessage) => void): void {
+  on(
+    event: WebSocketEvent,
+    listener: (message: WebSocketMessage) => void
+  ): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
       listeners.add(listener);
     }
   }
 
-  off(event: WebSocketEvent, listener: (message: WebSocketMessage) => void): void {
+  off(
+    event: WebSocketEvent,
+    listener: (message: WebSocketMessage) => void
+  ): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
       listeners.delete(listener);
@@ -264,7 +290,10 @@ class WebSocketService {
   }
 
   // 협업 세션 관리
-  async joinSession(resourceType: 'TASK' | 'PROJECT' | 'DOCUMENT', resourceId: string): Promise<string> {
+  async joinSession(
+    resourceType: 'TASK' | 'PROJECT' | 'DOCUMENT',
+    resourceId: string
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
       if (!this.socket?.connected) {
         reject(new Error('WebSocket not connected'));
@@ -277,12 +306,15 @@ class WebSocketService {
       };
 
       this.socket.emit('join-session', sessionData);
-      
-      this.socket.once('session-joined', (response: { sessionId: string; participants: UserPresence[] }) => {
-        this.currentSession = response.sessionId;
-        console.log(`Joined collaboration session: ${response.sessionId}`);
-        resolve(response.sessionId);
-      });
+
+      this.socket.once(
+        'session-joined',
+        (response: { sessionId: string; participants: UserPresence[] }) => {
+          this.currentSession = response.sessionId;
+          console.log(`Joined collaboration session: ${response.sessionId}`);
+          resolve(response.sessionId);
+        }
+      );
 
       this.socket.once('session-error', (error: any) => {
         console.error('Failed to join session:', error);
@@ -296,9 +328,9 @@ class WebSocketService {
       return;
     }
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.socket!.emit('leave-session', { sessionId: this.currentSession });
-      
+
       this.socket!.once('session-left', () => {
         console.log(`Left collaboration session: ${this.currentSession}`);
         this.currentSession = null;
@@ -321,7 +353,11 @@ class WebSocketService {
   }
 
   // 커서 위치 업데이트
-  updateCursor(position: { line: number; column: number; fieldPath?: string }): void {
+  updateCursor(position: {
+    line: number;
+    column: number;
+    fieldPath?: string;
+  }): void {
     if (!this.currentSession) return;
 
     this.emit('cursor-moved', {
@@ -331,7 +367,7 @@ class WebSocketService {
   }
 
   // 선택 영역 업데이트
-  updateSelection(selection: { 
+  updateSelection(selection: {
     start: { line: number; column: number; fieldPath?: string };
     end: { line: number; column: number; fieldPath?: string };
   }): void {
@@ -348,7 +384,7 @@ class WebSocketService {
     if (!this.currentSession) return;
 
     const event = isTyping ? 'user-typing' : 'user-stopped-typing';
-    
+
     this.emit(event, {
       sessionId: this.currentSession,
       fieldPath,
@@ -356,7 +392,10 @@ class WebSocketService {
   }
 
   // 사용자 상태 업데이트
-  updatePresence(status: 'ONLINE' | 'AWAY' | 'BUSY' | 'OFFLINE', customStatus?: string): void {
+  updatePresence(
+    status: 'ONLINE' | 'AWAY' | 'BUSY' | 'OFFLINE',
+    customStatus?: string
+  ): void {
     this.emit('presence-updated', {
       status,
       customStatus,
@@ -366,7 +405,9 @@ class WebSocketService {
 
   // 연결 상태 확인
   isConnected(): boolean {
-    return this.connectionState === 'CONNECTED' && this.socket?.connected === true;
+    return (
+      this.connectionState === 'CONNECTED' && this.socket?.connected === true
+    );
   }
 
   getConnectionState(): string {
@@ -427,7 +468,8 @@ export const useWebSocket = () => {
     emit: websocketService.emit.bind(websocketService),
     joinSession: websocketService.joinSession.bind(websocketService),
     leaveSession: websocketService.leaveSession.bind(websocketService),
-    sendEditOperation: websocketService.sendEditOperation.bind(websocketService),
+    sendEditOperation:
+      websocketService.sendEditOperation.bind(websocketService),
     updateCursor: websocketService.updateCursor.bind(websocketService),
     updateSelection: websocketService.updateSelection.bind(websocketService),
     setTyping: websocketService.setTyping.bind(websocketService),
@@ -436,7 +478,9 @@ export const useWebSocket = () => {
     updateComment: websocketService.updateComment.bind(websocketService),
     deleteComment: websocketService.deleteComment.bind(websocketService),
     isConnected: websocketService.isConnected.bind(websocketService),
-    getConnectionState: websocketService.getConnectionState.bind(websocketService),
-    getCurrentSession: websocketService.getCurrentSession.bind(websocketService),
+    getConnectionState:
+      websocketService.getConnectionState.bind(websocketService),
+    getCurrentSession:
+      websocketService.getCurrentSession.bind(websocketService),
   };
 };
