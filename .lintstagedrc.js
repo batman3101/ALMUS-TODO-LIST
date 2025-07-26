@@ -1,11 +1,9 @@
-const path = require('path');
-
 module.exports = {
-  '*.{js,jsx,ts,tsx}': (filenames) => [
-    `eslint --fix ${filenames.map(f => path.relative(process.cwd(), f)).join(' ')}`,
-    `prettier --write ${filenames.map(f => path.relative(process.cwd(), f)).join(' ')}`
+  '*.{js,jsx,ts,tsx}': [
+    'eslint --fix',
+    'prettier --write'
   ],
-  '*.{json,md}': (filenames) => [
-    `prettier --write ${filenames.map(f => path.relative(process.cwd(), f)).join(' ')}`
+  '*.{json,md,yml,yaml}': [
+    'prettier --write'
   ]
 };

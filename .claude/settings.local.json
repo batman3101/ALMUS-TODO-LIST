@@ -28,7 +28,8 @@
       "Bash(set HUSKY=0)",
       "Bash(powershell:*)",
       "Bash(del .lintstagedrc.js)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(npx husky:*)"
     ],
     "deny": []
   }
