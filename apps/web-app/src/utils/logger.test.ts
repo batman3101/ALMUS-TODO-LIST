@@ -23,14 +23,18 @@ describe('Logger', () => {
   describe('error', () => {
     it('should always log errors', () => {
       logger.error('Test error', { data: 'test' });
-      expect(mockConsoleError).toHaveBeenCalledWith('[ERROR] Test error', { data: 'test' });
+      expect(mockConsoleError).toHaveBeenCalledWith('[ERROR] Test error', {
+        data: 'test',
+      });
     });
   });
 
   describe('warn', () => {
     it('should always log warnings', () => {
       logger.warn('Test warning', { data: 'test' });
-      expect(mockConsoleWarn).toHaveBeenCalledWith('[WARN] Test warning', { data: 'test' });
+      expect(mockConsoleWarn).toHaveBeenCalledWith('[WARN] Test warning', {
+        data: 'test',
+      });
     });
   });
 
@@ -47,17 +51,23 @@ describe('Logger', () => {
 
     it('should log info in development', () => {
       logger.info('Test info', { data: 'test' });
-      expect(mockConsoleInfo).toHaveBeenCalledWith('[INFO] Test info', { data: 'test' });
+      expect(mockConsoleInfo).toHaveBeenCalledWith('[INFO] Test info', {
+        data: 'test',
+      });
     });
 
     it('should log debug in development', () => {
       logger.debug('Test debug', { data: 'test' });
-      expect(mockConsoleDebug).toHaveBeenCalledWith('[DEBUG] Test debug', { data: 'test' });
+      expect(mockConsoleDebug).toHaveBeenCalledWith('[DEBUG] Test debug', {
+        data: 'test',
+      });
     });
 
     it('should log general logs in development', () => {
       logger.log('Test log', { data: 'test' });
-      expect(mockConsoleLog).toHaveBeenCalledWith('[LOG] Test log', { data: 'test' });
+      expect(mockConsoleLog).toHaveBeenCalledWith('[LOG] Test log', {
+        data: 'test',
+      });
     });
   });
 

@@ -5,7 +5,7 @@ import { FileMetadata } from '@almus/shared-types';
 interface FileUploadProps {
   path: string;
   metadata?: Partial<FileMetadata>;
-  onUploadComplete?: (result: any) => void;
+  onUploadComplete?: (result: { metadata: FileMetadata }) => void;
   onUploadError?: (error: string) => void;
   multiple?: boolean;
   accept?: string;

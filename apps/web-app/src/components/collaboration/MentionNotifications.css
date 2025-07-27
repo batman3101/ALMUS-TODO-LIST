@@ -152,8 +152,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .empty-state {
@@ -373,17 +377,17 @@
     width: 350px;
     right: -20px;
   }
-  
+
   .mention-item {
     padding: 12px 16px;
     gap: 10px;
   }
-  
+
   .mention-avatar {
     width: 32px;
     height: 32px;
   }
-  
+
   .mention-header,
   .mention-footer {
     padding: 12px 16px;
@@ -395,11 +399,11 @@
     width: 320px;
     right: -40px;
   }
-  
+
   .mention-header-info {
     font-size: 13px;
   }
-  
+
   .mention-comment {
     font-size: 13px;
     padding: 6px 10px;
@@ -412,53 +416,53 @@
     background: #21262d;
     border-color: #30363d;
   }
-  
+
   .mention-header {
     background: #161b22;
     border-color: #30363d;
   }
-  
+
   .mention-header h3 {
     color: #f0f6fc;
   }
-  
+
   .mention-item {
     border-color: #21262d;
   }
-  
+
   .mention-item:hover {
     background: #30363d;
   }
-  
+
   .mention-item.unread {
     background: #0d2d4a;
     border-left-color: #1f6feb;
   }
-  
+
   .mention-item.unread:hover {
     background: #1a4a6b;
   }
-  
+
   .mentioned-by {
     color: #f0f6fc;
   }
-  
+
   .mention-comment {
     background: #161b22;
     border-color: #30363d;
     color: #e6edf3;
   }
-  
+
   .mention-footer {
     background: #161b22;
     border-color: #30363d;
   }
-  
+
   .action-btn:hover {
     background: #30363d;
     color: #f0f6fc;
   }
-  
+
   .error-message {
     background: #2d1517;
     border-color: #6e2c2c;

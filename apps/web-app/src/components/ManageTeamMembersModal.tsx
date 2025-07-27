@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   X,
   UserPlus,
@@ -11,12 +11,7 @@ import {
   Search,
   Filter,
 } from 'lucide-react';
-import {
-  Team,
-  TeamMember,
-  TeamRole,
-  InviteTeamMemberInput,
-} from '../types/team';
+import { Team, TeamMember, TeamRole } from '../types/team';
 import { useTeams } from '../hooks/useTeams';
 import { useTeamMembers } from '../hooks/useTeamMembers';
 import { useAuth } from '../hooks/useAuth';
@@ -73,11 +68,10 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<TeamRole | 'ALL'>('ALL');
-  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [isChangingRole, setIsChangingRole] = useState(false);
 
   const canManage = canManageTeam(team.id);
-  const isOwner = team.ownerId === user?.id;
+  // const isOwner = team.ownerId === user?.id;
 
   const filteredMembers = members.filter(member => {
     const matchesSearch =
@@ -94,7 +88,7 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
     try {
       await updateMemberRole(member.id, newRole);
     } catch (error) {
-      console.error('역할 변경 실패:', error);
+      // Error handling should be done by the hook
     } finally {
       setIsChangingRole(false);
     }
@@ -109,7 +103,7 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
     try {
       await removeMember(member.id);
     } catch (error) {
-      console.error('멤버 제거 실패:', error);
+      // Error handling should be done by the hook
     }
   };
 

@@ -270,9 +270,7 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {expiresAt
-                    ? format(expiresAt, 'PPP')
-                    : '만료일 없음'}
+                  {expiresAt ? format(expiresAt, 'PPP') : '만료일 없음'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">

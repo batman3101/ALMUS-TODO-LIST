@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, UserPlus, Crown, Shield, Edit, Eye } from 'lucide-react';
+import { X, Mail, UserPlus, Shield, Edit, Eye } from 'lucide-react';
 import { Team, TeamRole, InviteTeamMemberInput } from '../types/team';
 import { useTeams } from '../hooks/useTeams';
 
@@ -85,7 +85,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
       });
       setErrors({});
     } catch (error) {
-      console.error('멤버 초대 실패:', error);
+      // Error is shown to user in the UI
       setErrors({ submit: '멤버 초대에 실패했습니다. 다시 시도해주세요.' });
     } finally {
       setIsLoading(false);
@@ -94,7 +94,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 
   const handleInputChange = (
     field: keyof InviteTeamMemberInput,
-    value: any
+    value: string | TeamRole
   ) => {
     setFormData(prev => ({
       ...prev,

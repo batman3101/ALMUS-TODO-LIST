@@ -112,17 +112,17 @@ export const TeamInvitationPage: React.FC = () => {
       setResult({
         type: 'success',
         message: '팀 초대를 수락했습니다!',
-        teamName: (result.data as any).teamName,
+        teamName: (result.data as { teamName: string }).teamName,
       });
 
       // 3초 후 홈으로 리다이렉트
       setTimeout(() => {
         navigate('/');
       }, 3000);
-    } catch (error: any) {
-      console.error('초대 수락 실패:', error);
+    } catch (error) {
+      // Error handling below
 
-      if (error.code === 'functions/deadline-exceeded') {
+      if ((error as { code?: string }).code === 'functions/deadline-exceeded') {
         setResult({
           type: 'expired',
           message: '초대장이 만료되었습니다.',
@@ -130,7 +130,8 @@ export const TeamInvitationPage: React.FC = () => {
       } else {
         setResult({
           type: 'error',
-          message: error.message || '초대 수락 중 오류가 발생했습니다.',
+          message:
+            (error as Error).message || '초대 수락 중 오류가 발생했습니다.',
         });
       }
     } finally {
@@ -157,11 +158,12 @@ export const TeamInvitationPage: React.FC = () => {
       setTimeout(() => {
         navigate('/');
       }, 3000);
-    } catch (error: any) {
-      console.error('초대 거절 실패:', error);
+    } catch (error) {
+      // Error handling below
       setResult({
         type: 'error',
-        message: error.message || '초대 거절 중 오류가 발생했습니다.',
+        message:
+          (error as Error).message || '초대 거절 중 오류가 발생했습니다.',
       });
     } finally {
       setProcessing(false);

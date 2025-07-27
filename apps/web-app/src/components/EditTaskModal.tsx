@@ -72,7 +72,10 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
     }
   };
 
-  const handleInputChange = (field: keyof UpdateTaskInput, value: any) => {
+  const handleInputChange = (
+    field: keyof UpdateTaskInput,
+    value: string | Date | undefined | TaskStatus | TaskPriority
+  ) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,

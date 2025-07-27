@@ -79,7 +79,11 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
 
   // WebSocket 이벤트 리스너
   useEffect(() => {
-    const handleCommentAdded = (data: { resourceType: string; resourceId: string; comment: FirestoreComment }) => {
+    const handleCommentAdded = (data: {
+      resourceType: string;
+      resourceId: string;
+      comment: FirestoreComment;
+    }) => {
       if (
         data.resourceType === resourceType &&
         data.resourceId === resourceId
@@ -89,7 +93,11 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
       }
     };
 
-    const handleCommentUpdated = (data: { resourceType: string; resourceId: string; comment: FirestoreComment }) => {
+    const handleCommentUpdated = (data: {
+      resourceType: string;
+      resourceId: string;
+      comment: FirestoreComment;
+    }) => {
       if (
         data.resourceType === resourceType &&
         data.resourceId === resourceId
@@ -99,7 +107,11 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
       }
     };
 
-    const handleCommentDeleted = (data: { resourceType: string; resourceId: string; commentId: string }) => {
+    const handleCommentDeleted = (data: {
+      resourceType: string;
+      resourceId: string;
+      commentId: string;
+    }) => {
       if (
         data.resourceType === resourceType &&
         data.resourceId === resourceId
@@ -154,7 +166,20 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
           mentions: ['user1'],
           isEdited: false,
           isDeleted: false,
-          reactions: [{ userId: 'user1', emoji: '👍', createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0, toDate: () => new Date(), toMillis: () => Date.now(), isEqual: () => false, toJSON: () => new Date().toISOString() } }],
+          reactions: [
+            {
+              userId: 'user1',
+              emoji: '👍',
+              createdAt: {
+                seconds: Math.floor(Date.now() / 1000),
+                nanoseconds: 0,
+                toDate: () => new Date(),
+                toMillis: () => Date.now(),
+                isEqual: () => false,
+                toJSON: () => new Date().toISOString(),
+              },
+            },
+          ],
           attachments: [],
           createdAt: new Date(Date.now() - 1800000),
           updatedAt: new Date(Date.now() - 1800000),

@@ -7,7 +7,7 @@ export interface Operation {
   type: OperationType;
   length?: number; // retain, delete의 경우 길이
   text?: string; // insert의 경우 삽입할 텍스트
-  attributes?: Record<string, any>; // 서식 정보
+  attributes?: Record<string, unknown>; // 서식 정보
 }
 
 export interface TextOperation {
@@ -40,8 +40,6 @@ export class OperationalTransform {
 
     let i1 = 0,
       i2 = 0; // 현재 처리 중인 operation 인덱스
-    let offset1 = 0,
-      offset2 = 0; // 현재 처리 중인 위치
 
     while (i1 < ops1.length || i2 < ops2.length) {
       // 첫 번째 작업이 끝난 경우
@@ -285,11 +283,12 @@ export class OperationalTransform {
         case 'insert':
           inverted.push({ type: 'delete', length: op.text!.length });
           break;
-        case 'delete':
+        case 'delete': {
           const deletedText = text.slice(textIndex, textIndex + op.length!);
           inverted.push({ type: 'insert', text: deletedText });
           textIndex += op.length!;
           break;
+        }
       }
     }
 

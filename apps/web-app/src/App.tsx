@@ -25,7 +25,6 @@ import { TeamRole } from './types/team';
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('list');
   const [showCreateTask, setShowCreateTask] = useState(false);
-  const { t } = useTranslation();
   const { loading, isAuthenticated, user } = useAuth();
 
   // 사용자가 로그인했을 때 샘플 데이터 초기화

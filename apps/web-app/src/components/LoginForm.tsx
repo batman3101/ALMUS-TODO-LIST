@@ -22,7 +22,7 @@ const LoginForm: React.FC = () => {
     try {
       await signIn(email, password);
     } catch (err) {
-      console.error('로그인 실패:', err);
+      // Login error is handled by useAuth hook
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +39,7 @@ const LoginForm: React.FC = () => {
       await signUp(email, password);
       success('회원가입이 완료되었습니다!');
     } catch (err) {
-      console.error('회원가입 실패:', err);
+      // Sign up error is handled by useAuth hook
     } finally {
       setIsLoading(false);
     }

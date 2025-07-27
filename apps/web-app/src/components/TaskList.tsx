@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTasks, useDeleteTask, useUpdateTask } from '../hooks/useTasks';
-import { useAuth } from '../hooks/useAuth';
+import { useTasks, useDeleteTask } from '../hooks/useTasks';
 import { useTeams } from '../hooks/useTeams';
 import { useTaskAuth } from '../hooks/useTaskAuth';
 import { useTheme } from '../contexts/ThemeContext';
@@ -12,7 +11,6 @@ import { useNotification } from '../contexts/NotificationContext';
 import CreateTaskForm from './CreateTaskForm';
 
 const TaskList: React.FC = function TaskList() {
-  const { user } = useAuth();
   const { currentTeam } = useTeams();
   const { canUpdateTask, canDeleteTask } = useTaskAuth();
   const { theme } = useTheme();
@@ -26,7 +24,6 @@ const TaskList: React.FC = function TaskList() {
     teamId: currentTeam?.id || '',
   });
   const deleteTaskMutation = useDeleteTask();
-  const updateTaskMutation = useUpdateTask();
   const { t } = useTranslation();
 
   // 필터링 및 검색 상태
@@ -66,7 +63,8 @@ const TaskList: React.FC = function TaskList() {
 
     // 정렬
     filtered.sort((a, b) => {
-      let aValue: any, bValue: any;
+      let aValue: string | Date | number;
+      let bValue: string | Date | number;
 
       switch (sortBy) {
         case 'title':
@@ -77,7 +75,7 @@ const TaskList: React.FC = function TaskList() {
           aValue = a.dueDate || new Date(0);
           bValue = b.dueDate || new Date(0);
           break;
-        case 'priority':
+        case 'priority': {
           const priorityOrder = {
             [TaskPriority.LOW]: 1,
             [TaskPriority.MEDIUM]: 2,
@@ -87,7 +85,8 @@ const TaskList: React.FC = function TaskList() {
           aValue = priorityOrder[a.priority] || 0;
           bValue = priorityOrder[b.priority] || 0;
           break;
-        case 'status':
+        }
+        case 'status': {
           const statusOrder = {
             [TaskStatus.TODO]: 1,
             [TaskStatus.IN_PROGRESS]: 2,
@@ -97,6 +96,7 @@ const TaskList: React.FC = function TaskList() {
           aValue = statusOrder[a.status] || 0;
           bValue = statusOrder[b.status] || 0;
           break;
+        }
         case 'createdAt':
         default:
           aValue = a.createdAt || new Date(0);
@@ -133,7 +133,7 @@ const TaskList: React.FC = function TaskList() {
         await deleteTaskMutation.mutateAsync(taskId);
         toast.success('태스크가 성공적으로 삭제되었습니다.');
       } catch (error) {
-        console.error('태스크 삭제 실패:', error);
+        // Error is shown to user via toast
         toast.error(t('task.taskDeleteFailed'));
       }
     }

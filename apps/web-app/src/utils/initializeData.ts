@@ -10,7 +10,7 @@ export const initializeSampleTasks = async (teamId: string, userId: string) => {
     );
 
     if (existingTasks.docs.length > 0) {
-      console.log('Sample tasks already exist');
+      // Sample tasks already exist
       return;
     }
 
@@ -63,8 +63,8 @@ export const initializeSampleTasks = async (teamId: string, userId: string) => {
     );
 
     await Promise.all(promises);
-    console.log('Sample tasks initialized successfully');
+    // Sample tasks initialized successfully
   } catch (error) {
-    console.error('Error initializing sample tasks:', error);
+    // Error initializing sample tasks
   }
 };

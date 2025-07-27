@@ -259,9 +259,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           {project.startDate && (
             <div className="flex items-center gap-2 text-gray-600">
               <Calendar className="h-4 w-4" />
-              <span>
-                시작: {format(project.startDate, 'PPP')}
-              </span>
+              <span>시작: {format(project.startDate, 'PPP')}</span>
             </div>
           )}
           {project.endDate && (
@@ -272,9 +270,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               )}
             >
               <Calendar className="h-4 w-4" />
-              <span>
-                종료: {format(project.endDate, 'PPP')}
-              </span>
+              <span>종료: {format(project.endDate, 'PPP')}</span>
               {isOverdue && <span className="text-xs">(지연)</span>}
             </div>
           )}

@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+// Frontend permission utilities - no Express dependencies needed
 import { PermissionAction, ResourceType } from '../types/team';
 
 // Express 미들웨어는 백엔드용이므로, 프론트엔드에서는 React 컴포넌트 미들웨어를 구현
@@ -263,20 +263,19 @@ export const validatePermissionWithCache = (
  */
 export const requirePermission = (
   resourceType: ResourceType,
-  action: PermissionAction,
-  resourceIdKey: string = 'id'
+  action: PermissionAction
 ) => {
   return function (
-    target: any,
+    target: unknown,
     propertyKey: string,
     descriptor: PropertyDescriptor
   ) {
     const originalMethod = descriptor.value;
 
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (...args: unknown[]) {
       // 실제 구현에서는 현재 사용자의 권한 확인 로직이 필요
       // 여기서는 인터페이스만 제공
-      console.log(`Permission check required: ${action} on ${resourceType}`);
+      // Permission check would be implemented here in a real application
 
       return originalMethod.apply(this, args);
     };

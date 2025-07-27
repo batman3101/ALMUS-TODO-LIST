@@ -73,8 +73,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log('Form submission - user:', user);
-    console.log('Form submission - formData:', formData);
+    // Form data is validated below
 
     if (!formData.title.trim()) {
       showError(t('task.titleRequired'));
@@ -87,11 +86,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
     }
 
     if (!formData.teamId || !currentTeam?.id) {
-      console.error('TeamId validation failed:', {
-        formDataTeamId: formData.teamId,
-        currentTeamId: currentTeam?.id,
-        currentTeam: currentTeam,
-      });
+      // TeamId validation failed
       showError('팀이 선택되지 않았습니다. 팀을 선택해주세요.');
       return;
     }
@@ -138,28 +133,31 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
       }
       onTaskCreated?.();
     } catch (error) {
-      console.error('태스크 처리 실패:', error);
+      // Error is already handled by the mutation
       showError(
         isEditing ? '태스크 수정에 실패했습니다.' : t('task.taskCreateFailed')
       );
     }
   };
 
-  const handleInputChange = (field: keyof CreateTaskInput, value: any) => {
+  const handleInputChange = (
+    field: keyof CreateTaskInput,
+    value: string | Date | undefined | TaskStatus | TaskPriority
+  ) => {
     setFormData((prev: CreateTaskInput) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleFileUploadComplete = (result: any) => {
+  const handleFileUploadComplete = (result: { metadata: FileMetadata }) => {
     if (result.metadata) {
       setUploadedFiles(prev => [...prev, result.metadata]);
     }
   };
 
   const handleFileUploadError = (error: string) => {
-    console.error('파일 업로드 실패:', error);
+    // File upload error is shown to user
     showError(`파일 업로드 실패: ${error}`);
   };
 

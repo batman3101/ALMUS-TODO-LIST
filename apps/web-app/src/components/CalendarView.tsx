@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTasks, useUpdateTask } from '../hooks/useTasks';
-import { useAuth } from '../hooks/useAuth';
 import { useTeams } from '../hooks/useTeams';
 import { Task, TaskPriority, UpdateTaskInput } from '@almus/shared-types';
 import EditTaskModal from './EditTaskModal';
@@ -11,7 +10,6 @@ interface CalendarViewProps {
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
-  const { user } = useAuth();
   const { currentTeam } = useTeams();
   const {
     data: tasks,
@@ -68,7 +66,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
     try {
       await updateTask.mutateAsync({ id: taskId, updates: updateData });
     } catch (error) {
-      console.error('태스크 업데이트 실패:', error);
+      // Error is thrown to be handled by EditTaskModal
       throw error; // EditTaskModal에서 에러 처리하도록 throw
     }
   };
@@ -208,7 +206,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
               dueDate: newEndDate,
             });
           } catch (error) {
-            console.error('태스크 날짜 업데이트 실패:', error);
+            // Error handled silently during drag and drop
           }
         }
       }
@@ -279,7 +277,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
     calendarData.weeks.forEach((week, weekIndex) => {
       const weekStartDate = week[0];
       const weekEndDate = week[6];
-      const taskBars: any[] = [];
+      const taskBars: Array<{
+        task: Task;
+        startDay: number;
+        endDay: number;
+        row: number;
+      }> = [];
       let currentRow = 0;
 
       // 각 태스크에 대해 이번 주와 겹치는 부분 확인

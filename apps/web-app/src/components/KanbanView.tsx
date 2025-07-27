@@ -6,7 +6,6 @@ import {
   DropResult,
 } from 'react-beautiful-dnd';
 import { useTasks, useUpdateTask } from '../hooks/useTasks';
-import { useAuth } from '../hooks/useAuth';
 import { useTeams } from '../hooks/useTeams';
 import { useTheme } from '../contexts/ThemeContext';
 import type { Task } from '@almus/shared-types';
@@ -26,7 +25,6 @@ interface Column {
 }
 
 const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
-  const { user } = useAuth();
   const { currentTeam } = useTeams();
   const { theme } = useTheme();
   const toast = createToast(theme === 'dark');
@@ -171,7 +169,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
         `태스크를 "${sourceColumnTitle}"에서 "${destinationColumnTitle}"로 이동했습니다.`
       );
     } catch (error) {
-      console.error('태스크 상태 업데이트 실패:', error);
+      // Error is shown to user via toast
       toast.error('태스크 상태 업데이트에 실패했습니다. 다시 시도해주세요.');
     }
   };
@@ -189,11 +187,6 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
 
     setEditingTask(task);
     setShowEditModal(true);
-  };
-
-  const handleDragHandleClick = (event: React.MouseEvent) => {
-    // 드래그 핸들 클릭 시 편집 모달이 열리지 않도록 방지
-    event.stopPropagation();
   };
 
   const handleEditClose = () => {

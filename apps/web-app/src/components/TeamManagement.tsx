@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Settings, Users, Edit2, Trash2, Crown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { Team, TeamRole, TeamMember } from '../types/team';
+import { Team, TeamRole } from '../types/team';
 import { CreateTeamModal } from './CreateTeamModal';
 import { EditTeamModal } from './EditTeamModal';
 import { ManageTeamMembersModal } from './ManageTeamMembersModal';
@@ -30,7 +30,7 @@ export const TeamManagement: React.FC = () => {
       try {
         await deleteTeam(team.id);
       } catch (error) {
-        console.error('팀 삭제 실패:', error);
+        // Error handling for team deletion
         alert('팀 삭제에 실패했습니다.');
       }
     }

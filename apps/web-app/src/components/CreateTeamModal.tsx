@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Users, Globe, Lock, Settings } from 'lucide-react';
+import { X, Users, Globe, Settings } from 'lucide-react';
 import { CreateTeamInput, TeamRole } from '../types/team';
 import { useTeams } from '../hooks/useTeams';
 
@@ -92,20 +92,26 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
       });
       setErrors({});
     } catch (error) {
-      console.error('팀 생성 실패:', error);
+      // Error is shown to user in the UI
       setErrors({ submit: '팀 생성에 실패했습니다. 다시 시도해주세요.' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (
+    field: string,
+    value: string | number | boolean | TeamRole
+  ) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...((prev[parent as keyof CreateTeamInput] as any) || {}),
+          ...((prev[parent as keyof CreateTeamInput] as Record<
+            string,
+            unknown
+          >) || {}),
           [child]: value,
         },
       }));

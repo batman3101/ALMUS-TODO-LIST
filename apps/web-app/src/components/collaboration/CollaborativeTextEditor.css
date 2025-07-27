@@ -74,8 +74,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .editor-container {
@@ -128,8 +133,14 @@
 }
 
 @keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
 }
 
 .cursor-label {
@@ -238,11 +249,11 @@
   .collaborative-text-editor {
     border-width: 2px;
   }
-  
+
   .status-dot.online {
     background-color: #00ff00;
   }
-  
+
   .status-dot.offline {
     background-color: #ff0000;
   }

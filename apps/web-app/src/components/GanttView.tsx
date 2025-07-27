@@ -9,12 +9,10 @@ import {
   GanttViewConfig,
   UpdateTaskInput,
 } from '@almus/shared-types';
-import { useAuth } from '../hooks/useAuth';
 import { useTeams } from '../hooks/useTeams';
 import EditTaskModal from './EditTaskModal';
 
 const GanttView: React.FC = () => {
-  const { user } = useAuth();
   const { currentTeam } = useTeams();
   const { t } = useTranslation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -75,7 +73,7 @@ const GanttView: React.FC = () => {
     try {
       await updateTask.mutateAsync({ id: taskId, updates: updateData });
     } catch (error) {
-      console.error('태스크 업데이트 실패:', error);
+      // Error is thrown to be handled by EditTaskModal
       throw error; // EditTaskModal에서 에러 처리하도록 throw
     }
   };
@@ -139,14 +137,7 @@ const GanttView: React.FC = () => {
 
       // 디버깅 정보 (개발 시에만)
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Progress calculation for: ${task.title}`, {
-          originalProgress: task.progress,
-          calculatedProgress,
-          status: task.status,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-          now: new Date().toISOString(),
-        });
+        // Progress calculation debugging disabled in production
       }
 
       return {
@@ -568,14 +559,7 @@ const GanttView: React.FC = () => {
 
     // 디버깅 정보 (개발 시에만)
     if (process.env.NODE_ENV === 'development') {
-      console.log('Timeline render:', {
-        rangeStart: start.toISOString(),
-        rangeEnd: end.toISOString(),
-        totalMs,
-        timeUnitsCount: timeUnits.length,
-        chartMinWidth,
-        zoomLevel: config.zoomLevel,
-      });
+      // Timeline render debugging disabled in production
     }
 
     return (
@@ -662,18 +646,7 @@ const GanttView: React.FC = () => {
 
     // 디버깅 정보 (개발 시에만)
     if (process.env.NODE_ENV === 'development') {
-      console.log(`Task: ${task.title} (Time-Unit Based)`, {
-        startDate: task.startDate.toISOString(),
-        endDate: task.endDate.toISOString(),
-        rangeStart: start.toISOString(),
-        rangeEnd: end.toISOString(),
-        zoomLevel: config.zoomLevel,
-        timeUnitsCount: timeUnits.length,
-        leftPosition: leftPosition.toFixed(2),
-        rightPosition: rightPosition.toFixed(2),
-        left: left.toFixed(2),
-        width: width.toFixed(2),
-      });
+      // Task position debugging disabled in production
     }
 
     // 태스크가 범위를 완전히 벗어나는 경우 처리

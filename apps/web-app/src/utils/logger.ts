@@ -9,6 +9,7 @@ export const logger = {
    * 에러 로그 (프로덕션에서도 출력)
    */
   error: (message: string, ...args: unknown[]) => {
+    // eslint-disable-next-line no-console
     console.error(`[ERROR] ${message}`, ...args);
   },
 
@@ -16,6 +17,7 @@ export const logger = {
    * 경고 로그 (프로덕션에서도 출력)
    */
   warn: (message: string, ...args: unknown[]) => {
+    // eslint-disable-next-line no-console
     console.warn(`[WARN] ${message}`, ...args);
   },
 
@@ -24,6 +26,7 @@ export const logger = {
    */
   info: (message: string, ...args: unknown[]) => {
     if (isDevelopment) {
+      // eslint-disable-next-line no-console
       console.info(`[INFO] ${message}`, ...args);
     }
   },
@@ -33,6 +36,7 @@ export const logger = {
    */
   debug: (message: string, ...args: unknown[]) => {
     if (isDevelopment) {
+      // eslint-disable-next-line no-console
       console.debug(`[DEBUG] ${message}`, ...args);
     }
   },
@@ -42,6 +46,7 @@ export const logger = {
    */
   log: (message: string, ...args: unknown[]) => {
     if (isDevelopment) {
+      // eslint-disable-next-line no-console
       console.log(`[LOG] ${message}`, ...args);
     }
   },

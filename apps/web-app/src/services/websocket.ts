@@ -21,7 +21,7 @@ export type WebSocketEvent =
 
 export interface WebSocketMessage {
   event: WebSocketEvent;
-  data: any;
+  data: unknown;
   timestamp: number;
   userId: string;
   sessionId: string;
@@ -39,7 +39,7 @@ export interface EditOperation {
   };
   content?: string;
   length?: number;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
   userId: string;
   timestamp: number;
 }
@@ -106,7 +106,7 @@ class WebSocketService {
 
   async connect(userId: string, token: string): Promise<void> {
     if (this.socket?.connected) {
-      console.log('Already connected to WebSocket');
+      // Already connected to WebSocket
       return;
     }
 
@@ -132,7 +132,7 @@ class WebSocketService {
 
       return new Promise((resolve, reject) => {
         this.socket!.on('connect', () => {
-          console.log('Connected to WebSocket server');
+          // Connected to WebSocket server
           this.connectionState = 'CONNECTED';
           this.reconnectAttempts = 0;
           this.startHeartbeat();
@@ -140,13 +140,13 @@ class WebSocketService {
         });
 
         this.socket!.on('connect_error', error => {
-          console.error('WebSocket connection error:', error);
+          // WebSocket connection error
           this.connectionState = 'ERROR';
           reject(error);
         });
       });
     } catch (error) {
-      console.error('Failed to connect to WebSocket:', error);
+      // Failed to connect to WebSocket
       this.connectionState = 'ERROR';
       throw error;
     }
@@ -157,7 +157,7 @@ class WebSocketService {
 
     // 연결 관련 이벤트
     this.socket.on('disconnect', reason => {
-      console.log('Disconnected from WebSocket:', reason);
+      // Disconnected from WebSocket
       this.connectionState = 'DISCONNECTED';
       this.stopHeartbeat();
 
@@ -167,25 +167,25 @@ class WebSocketService {
       }
     });
 
-    this.socket.on('reconnect', attemptNumber => {
-      console.log(`Reconnected to WebSocket (attempt ${attemptNumber})`);
+    this.socket.on('reconnect', (_attemptNumber) => {
+      // Reconnected to WebSocket
       this.connectionState = 'CONNECTED';
       this.reconnectAttempts = 0;
     });
 
-    this.socket.on('reconnect_error', error => {
-      console.error('WebSocket reconnection error:', error);
+    this.socket.on('reconnect_error', (_error) => {
+      // WebSocket reconnection error
       this.reconnectAttempts++;
     });
 
     this.socket.on('reconnect_failed', () => {
-      console.error('WebSocket reconnection failed after max attempts');
+      // WebSocket reconnection failed after max attempts
       this.connectionState = 'ERROR';
     });
 
     // 커스텀 이벤트 핸들러 설정
     this.eventListeners.forEach((listeners, event) => {
-      this.socket!.on(event, (data: any) => {
+      this.socket!.on(event, (data: unknown) => {
         const message: WebSocketMessage = {
           event,
           data,
@@ -200,7 +200,7 @@ class WebSocketService {
           try {
             listener(message);
           } catch (error) {
-            console.error(`Error in ${event} listener:`, error);
+            // Error in event listener
           }
         });
       });
@@ -229,14 +229,12 @@ class WebSocketService {
 
   private async reconnect(): Promise<void> {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
+      // Max reconnection attempts reached
       return;
     }
 
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
-    console.log(
-      `Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts + 1})`
-    );
+    // Attempting to reconnect with exponential backoff
 
     setTimeout(() => {
       if (this.socket && !this.socket.connected) {
@@ -277,9 +275,9 @@ class WebSocketService {
   }
 
   // 메시지 전송
-  emit(event: WebSocketEvent, data: any): void {
+  emit(event: WebSocketEvent, data: unknown): void {
     if (!this.socket?.connected) {
-      console.warn('Cannot emit message: WebSocket not connected');
+      // Cannot emit message: WebSocket not connected
       return;
     }
 
@@ -311,13 +309,13 @@ class WebSocketService {
         'session-joined',
         (response: { sessionId: string; participants: UserPresence[] }) => {
           this.currentSession = response.sessionId;
-          console.log(`Joined collaboration session: ${response.sessionId}`);
+          // Joined collaboration session
           resolve(response.sessionId);
         }
       );
 
-      this.socket.once('session-error', (error: any) => {
-        console.error('Failed to join session:', error);
+      this.socket.once('session-error', (error: unknown) => {
+        // Failed to join session
         reject(error);
       });
     });
@@ -332,7 +330,7 @@ class WebSocketService {
       this.socket!.emit('leave-session', { sessionId: this.currentSession });
 
       this.socket!.once('session-left', () => {
-        console.log(`Left collaboration session: ${this.currentSession}`);
+        // Left collaboration session
         this.currentSession = null;
         resolve();
       });
@@ -342,7 +340,7 @@ class WebSocketService {
   // 편집 작업 전송
   sendEditOperation(operation: EditOperation): void {
     if (!this.currentSession) {
-      console.warn('Cannot send edit operation: No active session');
+      // Cannot send edit operation: No active session
       return;
     }
 

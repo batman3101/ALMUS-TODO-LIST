@@ -25,7 +25,10 @@ const NotificationSettings: React.FC = () => {
     }
   }, [notificationSettings]);
 
-  const handleSettingChange = (key: string, value: any) => {
+  const handleSettingChange = (
+    key: string,
+    value: boolean | string | number
+  ) => {
     if (settings) {
       setSettings({
         ...settings,
@@ -34,7 +37,7 @@ const NotificationSettings: React.FC = () => {
     }
   };
 
-  const handleQuietHoursChange = (key: string, value: any) => {
+  const handleQuietHoursChange = (key: string, value: boolean | string) => {
     if (settings) {
       setSettings({
         ...settings,

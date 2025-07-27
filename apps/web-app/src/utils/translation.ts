@@ -78,7 +78,7 @@ export const translateText = async (
 
     return translatedText;
   } catch (error) {
-    console.error('Translation failed:', error);
+    // Translation failed - returning original text
     // 번역 실패 시 원본 텍스트 반환
     return text;
   }
