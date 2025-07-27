@@ -19,11 +19,20 @@ ALMUS ToDo List 프로젝트는 Firebase 기반 아키텍처를 사용하여 확
 
 ### 주요 Firebase 서비스
 
-- **Firestore**: NoSQL 문서 데이터베이스
-- **Firebase Functions**: 서버리스 백엔드 로직
-- **Firebase Storage**: 파일 저장소
+- **Firestore**: NoSQL 문서 데이터베이스 (팀 기반 데이터 분리)
+- **Firebase Functions**: 서버리스 백엔드 로직 (권한 관리, 알림)
+- **Firebase Storage**: 파일 저장소 (팀별 파일 관리)
 - **Firebase Hosting**: 정적 웹 호스팅
-- **Firebase Authentication**: 사용자 인증
+- **Firebase Authentication**: 사용자 인증 (구글, 이메일 등)
+
+### 🚨 즉시 확인 필요사항
+
+마이그레이션 전에 다음 항목들을 반드시 확인하세요:
+
+1. **🔥 Firestore 인덱스**: 현재 인덱스가 없어 쿼리 실행 불가
+2. **⚠️ 환경 변수**: VITE_ 접두사 확인 및 실제 값 설정
+3. **🛡️ Storage 규칙**: 경로 불일치 문제
+4. **🔐 보안 규칙**: 팀 기반 권한 시스템 적용
 
 ## Firebase 프로젝트 설정
 

@@ -149,7 +149,7 @@ export const ProjectPermissionEditModal: React.FC<
                     isExpired ? 'text-red-600' : 'text-orange-600'
                   )}
                 >
-                  만료일: {format(permission.expiresAt, 'PPP', { locale: ko })}
+                  만료일: {format(permission.expiresAt, 'PPP')}
                 </div>
               )}
             </div>
@@ -194,7 +194,7 @@ export const ProjectPermissionEditModal: React.FC<
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {expiresAt
-                    ? format(expiresAt, 'PPP', { locale: ko })
+                    ? format(expiresAt, 'PPP')
                     : '만료일 없음'}
                 </Button>
               </PopoverTrigger>
@@ -254,11 +254,11 @@ export const ProjectPermissionEditModal: React.FC<
                 <div>
                   만료일:{' '}
                   {permission.expiresAt
-                    ? format(permission.expiresAt, 'PPP', { locale: ko })
+                    ? format(permission.expiresAt, 'PPP')
                     : '없음'}{' '}
                   →{' '}
                   {expiresAt
-                    ? format(expiresAt, 'PPP', { locale: ko })
+                    ? format(expiresAt, 'PPP')
                     : '없음'}
                 </div>
               )}

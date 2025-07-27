@@ -158,7 +158,7 @@ export const checkPermissionConditions = (
 
     if (allowedDays && allowedDays.length > 0) {
       const currentDay = currentTime.getDay(); // 0 = Sunday, 1 = Monday, ...
-      if (!allowedDays.includes(currentDay)) {
+      if (!allowedDays.includes(String(currentDay))) {
         return false;
       }
     }

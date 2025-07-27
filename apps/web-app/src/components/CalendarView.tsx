@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTasks, useUpdateTask } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
+import { useTeams } from '../hooks/useTeams';
 import { Task, TaskPriority, UpdateTaskInput } from '@almus/shared-types';
 import EditTaskModal from './EditTaskModal';
 
@@ -11,12 +12,13 @@ interface CalendarViewProps {
 
 const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
   const { user } = useAuth();
+  const { currentTeam } = useTeams();
   const {
     data: tasks,
     isLoading,
     error,
   } = useTasks({
-    teamId: user?.teamId || '',
+    teamId: currentTeam?.id || '',
   });
   const { t } = useTranslation();
   const updateTask = useUpdateTask();

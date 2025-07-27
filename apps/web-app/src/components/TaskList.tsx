@@ -2,14 +2,19 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTasks, useDeleteTask, useUpdateTask } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
+import { useTeams } from '../hooks/useTeams';
+import { useTaskAuth } from '../hooks/useTaskAuth';
 import { useTheme } from '../contexts/ThemeContext';
-import { Task, TaskStatus, TaskPriority } from '@almus/shared-types';
+import { TaskStatus, TaskPriority } from '@almus/shared-types';
+import { Task } from '../types/team';
 import { createToast } from '../utils/toast';
 import { useNotification } from '../contexts/NotificationContext';
 import CreateTaskForm from './CreateTaskForm';
 
 const TaskList: React.FC = function TaskList() {
   const { user } = useAuth();
+  const { currentTeam } = useTeams();
+  const { canUpdateTask, canDeleteTask } = useTaskAuth();
   const { theme } = useTheme();
   const toast = createToast(theme === 'dark');
   const { showConfirm } = useNotification();
@@ -18,7 +23,7 @@ const TaskList: React.FC = function TaskList() {
     isLoading,
     error,
   } = useTasks({
-    teamId: user?.teamId || '',
+    teamId: currentTeam?.id || '',
   });
   const deleteTaskMutation = useDeleteTask();
   const updateTaskMutation = useUpdateTask();
@@ -438,18 +443,27 @@ const TaskList: React.FC = function TaskList() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-3">
-                      <button
-                        onClick={() => handleEdit(task)}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors duration-200"
-                      >
-                        편집
-                      </button>
-                      <button
-                        onClick={() => handleDelete(task.id)}
-                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-200"
-                      >
-                        {t('task.deleteTask')}
-                      </button>
+                      {canUpdateTask(task) && (
+                        <button
+                          onClick={() => handleEdit(task)}
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors duration-200"
+                        >
+                          편집
+                        </button>
+                      )}
+                      {canDeleteTask(task) && (
+                        <button
+                          onClick={() => handleDelete(task.id)}
+                          className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-200"
+                        >
+                          {t('task.deleteTask')}
+                        </button>
+                      )}
+                      {!canUpdateTask(task) && !canDeleteTask(task) && (
+                        <span className="text-gray-400 dark:text-dark-400">
+                          -
+                        </span>
+                      )}
                     </div>
                   </td>
                 </tr>

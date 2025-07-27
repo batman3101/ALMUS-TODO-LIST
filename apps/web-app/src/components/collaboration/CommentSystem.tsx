@@ -154,7 +154,7 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
           mentions: ['user1'],
           isEdited: false,
           isDeleted: false,
-          reactions: [{ userId: 'user1', emoji: '👍', createdAt: new Date() }],
+          reactions: [{ userId: 'user1', emoji: '👍', createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0, toDate: () => new Date(), toMillis: () => Date.now(), isEqual: () => false, toJSON: () => new Date().toISOString() } }],
           attachments: [],
           createdAt: new Date(Date.now() - 1800000),
           updatedAt: new Date(Date.now() - 1800000),

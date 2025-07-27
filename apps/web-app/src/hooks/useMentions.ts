@@ -13,6 +13,7 @@ import {
   Timestamp,
   getDocs,
   getDoc,
+  limit,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -281,27 +282,30 @@ export const useMentions = ({
 
   // 멘션 가능한 사용자 검색
   const searchMentionableUsers = useCallback(
-    async (query: string) => {
-      if (!query.trim()) return [];
+    async (searchQuery: string) => {
+      if (!searchQuery.trim()) return [];
 
       try {
         // 현재 사용자가 속한 팀의 멤버들을 검색
         // 실제로는 더 복잡한 쿼리가 필요할 수 있음 (팀 멤버십, 프로젝트 참여자 등)
         const usersQuery = query(
           collection(db, 'users'),
-          where('name', '>=', query),
-          where('name', '<=', query + '\uf8ff'),
+          where('name', '>=', searchQuery),
+          where('name', '<=', searchQuery + '\uf8ff'),
           orderBy('name'),
           limit(10)
         );
 
         const snapshot = await getDocs(usersQuery);
-        const users = snapshot.docs.map(doc => ({
-          id: doc.id,
-          name: doc.data().name,
-          email: doc.data().email,
-          avatar: doc.data().avatar,
-        }));
+        const users = snapshot.docs.map(doc => {
+          const data = doc.data() as any;
+          return {
+            id: doc.id,
+            name: data.name || '',
+            email: data.email || '',
+            avatar: data.avatar,
+          };
+        });
 
         // 현재 사용자는 제외
         return users.filter(u => u.id !== user?.id);

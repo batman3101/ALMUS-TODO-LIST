@@ -36,24 +36,53 @@ firebase init
 # .env 파일 생성
 touch .env
 
-# 환경 변수 추가
-FIREBASE_PROJECT_ID=your-project-id
-FIREBASE_API_KEY=your-api-key
-FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-FIREBASE_MESSAGING_SENDER_ID=123456789
-FIREBASE_APP_ID=1:123456789:web:abcdef123456
+# 환경 변수 추가 (모든 변수는 필수입니다)
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=1:123456789:web:abcdef123456
+
+# ⚠️ 중요: 모든 환경 변수는 실제 값으로 반드시 설정해야 합니다.
+# 기본값이나 더미 값으로는 Firebase 연결이 불가능합니다.
 ```
 
-### 4. 보안 규칙 배포
+### 3-1. 환경 변수 검증
+
+프로젝트 시작 전에 환경 변수가 올바르게 설정되었는지 확인하세요:
 
 ```bash
+# 환경 변수 확인 스크립트 실행
+npm run check-env
+
+# 또는 수동으로 확인
+echo $VITE_FIREBASE_API_KEY
+```
+
+### 4. Firestore 인덱스 및 보안 규칙 배포
+
+⚠️ **중요**: 인덱스 설정은 필수입니다. 누락 시 쿼리 실행이 불가능합니다.
+
+```bash
+# 🔥 CRITICAL: Firestore 인덱스 먼저 배포 (필수!)
+firebase deploy --only firestore:indexes
+
 # Firestore 보안 규칙 배포
 firebase deploy --only firestore:rules
 
 # Storage 보안 규칙 배포
 firebase deploy --only storage
 ```
+
+#### 필수 인덱스 목록 확인
+
+배포 전에 `firestore.indexes.json` 파일이 다음 인덱스를 포함하는지 확인:
+
+1. **tasks 컬렉션**: `teamId` + `status` + `createdAt`
+2. **team_members 컬렉션**: `teamId` + `isActive`
+3. **projects 컬렉션**: `teamId` + `status` + `createdAt`
+4. **notifications 컬렉션**: `userId` + `isRead` + `createdAt`
 
 ### 5. Functions 배포
 

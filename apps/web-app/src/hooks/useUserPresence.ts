@@ -101,8 +101,8 @@ export const useUserPresence = ({
         const presenceData: Partial<FirestoreUserPresence> = {
           ...updates,
           userId: user.id,
-          lastActivity: currentTime,
-          updatedAt: currentTime,
+          lastActivity: currentTime as any,
+          updatedAt: currentTime as any,
         };
 
         await setDoc(presenceRef, presenceData, { merge: true });

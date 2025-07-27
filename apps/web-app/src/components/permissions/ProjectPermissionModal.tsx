@@ -81,18 +81,22 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
       {
         id: 'user1',
         email: 'john@example.com',
+        name: 'John Doe',
         displayName: 'John Doe',
         photoURL: null,
         createdAt: new Date(),
         updatedAt: new Date(),
+        isActive: true,
       },
       {
         id: 'user2',
         email: 'jane@example.com',
+        name: 'Jane Smith',
         displayName: 'Jane Smith',
         photoURL: null,
         createdAt: new Date(),
         updatedAt: new Date(),
+        isActive: true,
       },
     ];
 
@@ -267,7 +271,7 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {expiresAt
-                    ? format(expiresAt, 'PPP', { locale: ko })
+                    ? format(expiresAt, 'PPP')
                     : '만료일 없음'}
                 </Button>
               </PopoverTrigger>

@@ -7,6 +7,7 @@ import {
 } from 'react-beautiful-dnd';
 import { useTasks, useUpdateTask } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
+import { useTeams } from '../hooks/useTeams';
 import { useTheme } from '../contexts/ThemeContext';
 import type { Task } from '@almus/shared-types';
 import { TaskStatus, TaskPriority } from '@almus/shared-types';
@@ -26,6 +27,7 @@ interface Column {
 
 const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
   const { user } = useAuth();
+  const { currentTeam } = useTeams();
   const { theme } = useTheme();
   const toast = createToast(theme === 'dark');
   const {
@@ -33,7 +35,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     isLoading,
     error,
   } = useTasks({
-    teamId: user?.teamId || '',
+    teamId: currentTeam?.id || '',
   });
   const updateTaskMutation = useUpdateTask();
 

@@ -1,5 +1,64 @@
 # Firebase 문제 해결 가이드
 
+## 🚨 즉시 확인해야 할 중요 문제들
+
+### ⚠️ 환경 변수 설정 오류
+가장 흔한 연결 실패 원인입니다.
+
+```bash
+# 환경 변수 검증
+echo $VITE_FIREBASE_API_KEY
+echo $VITE_FIREBASE_PROJECT_ID
+
+# 모든 필수 환경 변수 확인
+npm run check-env
+```
+
+**증상:**
+- Firebase 초기화 실패
+- "Project not found" 오류
+- Authentication 연결 실패
+
+**해결방법:**
+1. `.env` 파일에 모든 `VITE_` 접두사 확인
+2. 더미 값 (`your-api-key` 등) 실제 값으로 교체
+3. Firebase Console에서 정확한 config 값 복사
+
+### 🔥 Firestore 인덱스 누락 (Critical)
+**가장 중요한 문제 - 즉시 해결 필요**
+
+```bash
+# 현재 상태 확인
+firebase firestore:indexes
+
+# 인덱스 배포 (필수!)
+firebase deploy --only firestore:indexes
+```
+
+**증상:**
+```
+Error: The query requires an index that is not defined
+FAILED_PRECONDITION: The query requires an index
+```
+
+**즉시 적용해야 할 인덱스:**
+1. `tasks`: teamId + status + createdAt
+2. `team_members`: teamId + isActive  
+3. `projects`: teamId + status + createdAt
+4. `notifications`: userId + isRead + createdAt
+
+### 🛡️ Storage 규칙 불일치
+현재 Storage 규칙의 경로가 실제 Firestore 구조와 맞지 않습니다.
+
+**문제:**
+```javascript
+// 현재 잘못된 경로
+firestore.get(/databases/(default)/documents/teams/$(teamId)/members/$(request.auth.uid))
+
+// 올바른 경로
+firestore.get(/databases/(default)/documents/team_members/$(teamId + '_' + request.auth.uid))
+```
+
 ## 일반적인 문제 및 해결 방법
 
 ### 1. 인증 관련 문제

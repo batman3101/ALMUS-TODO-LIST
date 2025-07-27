@@ -11,6 +11,7 @@ import {
 } from '@almus/shared-types';
 import { FileUpload } from './FileUpload';
 import { useAuth } from '../hooks/useAuth';
+import { useTeams } from '../hooks/useTeams';
 import { useNotification } from '../contexts/NotificationContext';
 
 interface CreateTaskFormProps {
@@ -25,6 +26,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
   editingTask = null,
 }) => {
   const { user } = useAuth();
+  const { currentTeam } = useTeams();
   const { success, error: showError, warning } = useNotification();
   const [formData, setFormData] = useState<CreateTaskInput>({
     title: '',
@@ -34,7 +36,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
     priority: TaskPriority.MEDIUM,
     startDate: undefined,
     dueDate: undefined,
-    teamId: user?.teamId || '',
+    teamId: currentTeam?.id || '',
   });
 
   const [uploadedFiles, setUploadedFiles] = useState<FileMetadata[]>([]);
@@ -58,15 +60,15 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
         dueDate: editingTask.dueDate,
         teamId: editingTask.teamId,
       });
-    } else if (user?.teamId) {
+    } else if (currentTeam?.id) {
       // 새 태스크 생성 모드
       setFormData(prev => ({
         ...prev,
-        teamId: user.teamId,
-        assigneeId: user.uid, // 기본적으로 자신을 할당자로 설정
+        teamId: currentTeam.id,
+        assigneeId: user?.uid || '', // 기본적으로 자신을 할당자로 설정
       }));
     }
-  }, [user, editingTask]);
+  }, [user, currentTeam, editingTask]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,13 +86,13 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
       return;
     }
 
-    if (!formData.teamId || !user?.teamId) {
+    if (!formData.teamId || !currentTeam?.id) {
       console.error('TeamId validation failed:', {
         formDataTeamId: formData.teamId,
-        userTeamId: user?.teamId,
-        user: user,
+        currentTeamId: currentTeam?.id,
+        currentTeam: currentTeam,
       });
-      showError('팀 ID가 필요합니다. 로그인을 다시 시도해주세요.');
+      showError('팀이 선택되지 않았습니다. 팀을 선택해주세요.');
       return;
     }
 
@@ -130,7 +132,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
           priority: TaskPriority.MEDIUM,
           startDate: undefined,
           dueDate: undefined,
-          teamId: user?.teamId || '',
+          teamId: currentTeam?.id || '',
         });
         success(t('task.taskCreated'));
       }
@@ -373,7 +375,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
             metadata={{
               uploaderId: user?.uid || '',
               uploaderName: user?.displayName || user?.email || 'Unknown',
-              teamId: user?.teamId || '',
+              teamId: currentTeam?.id || '',
             }}
             onUploadComplete={handleFileUploadComplete}
             onUploadError={handleFileUploadError}

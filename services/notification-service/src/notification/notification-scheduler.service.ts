@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class NotificationSchedulerService {
-  async scheduleNotification(
-    notificationData: any,
-    scheduleTime: Date
-  ): Promise<any> {
+  async scheduleNotification(notificationData: any, scheduleTime: Date): Promise<any> {
     // TODO: 알림 스케줄링 로직 구현
     return {
       id: Date.now().toString(),

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNotification } from '../contexts/NotificationContext';
 import ThemeToggle from './ThemeToggle';
+import LanguageToggle from './LanguageToggle';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -47,8 +48,9 @@ const LoginForm: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-50 flex items-center justify-center transition-colors duration-200">
       <div className="max-w-md w-full space-y-8 p-8">
-        {/* Theme Toggle */}
-        <div className="flex justify-end">
+        {/* Theme and Language Toggles */}
+        <div className="flex justify-end gap-2">
+          <LanguageToggle />
           <ThemeToggle />
         </div>
         <div>

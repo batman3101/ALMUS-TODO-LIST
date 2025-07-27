@@ -231,7 +231,7 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
                 </TableCell>
                 <TableCell>
                   <div className="text-sm">
-                    {format(permission.grantedAt, 'PPP', { locale: ko })}
+                    {format(permission.grantedAt, 'PPP')}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -248,7 +248,7 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
                             'text-orange-600 font-medium'
                         )}
                       >
-                        {format(permission.expiresAt, 'PPP', { locale: ko })}
+                        {format(permission.expiresAt, 'PPP')}
                       </div>
                     </div>
                   ) : (

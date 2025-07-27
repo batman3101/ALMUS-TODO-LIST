@@ -3,11 +3,14 @@
 export interface User {
   id: string;
   email: string;
+  name: string;
   displayName: string;
   photoURL?: string;
   createdAt: Date;
+  updatedAt: Date;
   lastLoginAt?: Date;
   isActive: boolean;
+  role?: string;
 }
 
 export enum TeamRole {

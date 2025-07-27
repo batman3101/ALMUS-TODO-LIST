@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { TaskList } from './TaskList';
+import TaskList from './TaskList';
 
 // Mock the hooks
 jest.mock('../hooks/useTasks', () => ({

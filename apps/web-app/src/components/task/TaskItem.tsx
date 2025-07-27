@@ -335,7 +335,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                   )}
                 >
                   <Calendar className="h-3 w-3" />
-                  <span>{format(task.dueDate, 'MM/dd', { locale: ko })}</span>
+                  <span>{format(task.dueDate, 'MM/dd')}</span>
                 </div>
               )}
 

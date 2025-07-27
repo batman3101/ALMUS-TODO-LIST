@@ -47,6 +47,8 @@
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
+    "@stagewise-plugins/react": "^0.6.2",
+    "@stagewise/toolbar-react": "^0.6.2",
     "@types/node": "^20.3.1",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.2.0",

@@ -10,10 +10,12 @@ import {
   UpdateTaskInput,
 } from '@almus/shared-types';
 import { useAuth } from '../hooks/useAuth';
+import { useTeams } from '../hooks/useTeams';
 import EditTaskModal from './EditTaskModal';
 
 const GanttView: React.FC = () => {
   const { user } = useAuth();
+  const { currentTeam } = useTeams();
   const { t } = useTranslation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
@@ -40,7 +42,7 @@ const GanttView: React.FC = () => {
     isLoading,
     error,
   } = useTasks({
-    teamId: user?.teamId || '',
+    teamId: currentTeam?.id || '',
   });
 
   const updateTask = useUpdateTask();
