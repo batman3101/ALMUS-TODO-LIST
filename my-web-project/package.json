@@ -1,0 +1,24 @@
+{
+  "name": "my-web-project",
+  "version": "1.0.0",
+  "description": "A web project integrating Stagewise for AI-powered editing capabilities.",
+  "main": "src/main.ts",
+  "scripts": {
+    "start": "ts-node src/main.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@stagewise/toolbar": "^1.0.0",
+    "@stagewise/toolbar-react": "^1.0.0",
+    "@stagewise-plugins/react": "^1.0.0",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.0.0",
+    "ts-node": "^10.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
