@@ -60,7 +60,7 @@ describe('TaskController', () => {
     it('should return a single task', async () => {
       const taskId = 'test-id';
       const result = await controller.findOne(taskId);
-      
+
       expect(result).toEqual({
         id: taskId,
         title: 'Test Task',
@@ -91,7 +91,10 @@ describe('TaskController', () => {
         ...createTaskInput,
         createdBy: 'test-user',
       });
-      expect(service.createTask).toHaveBeenCalledWith(createTaskInput, 'test-user');
+      expect(service.createTask).toHaveBeenCalledWith(
+        createTaskInput,
+        'test-user'
+      );
     });
   });
 
@@ -108,7 +111,11 @@ describe('TaskController', () => {
         ...updateTaskInput,
         updatedBy: 'test-user',
       });
-      expect(service.updateTask).toHaveBeenCalledWith(taskId, updateTaskInput, 'test-user');
+      expect(service.updateTask).toHaveBeenCalledWith(
+        taskId,
+        updateTaskInput,
+        'test-user'
+      );
     });
   });
 

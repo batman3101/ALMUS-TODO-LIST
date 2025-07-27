@@ -262,8 +262,8 @@ export const validatePermissionWithCache = (
  * 권한 검증 데코레이터 (클래스 메서드용)
  */
 export const requirePermission = (
-  resourceType: ResourceType,
-  action: PermissionAction
+  _resourceType: ResourceType,
+  _action: PermissionAction
 ) => {
   return function (
     target: unknown,

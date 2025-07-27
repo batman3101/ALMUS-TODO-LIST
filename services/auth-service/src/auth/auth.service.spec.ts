@@ -14,7 +14,9 @@ describe('AuthService', () => {
           provide: JwtService,
           useValue: {
             sign: jest.fn().mockReturnValue('mock-jwt-token'),
-            verify: jest.fn().mockReturnValue({ email: 'test@example.com', userId: '1' }),
+            verify: jest
+              .fn()
+              .mockReturnValue({ email: 'test@example.com', userId: '1' }),
           },
         },
       ],
@@ -31,7 +33,7 @@ describe('AuthService', () => {
   describe('validateUser', () => {
     it('should return user for valid email', async () => {
       const email = 'test@example.com';
-      
+
       const result = await service.validateUser(email);
       expect(result).toBeDefined();
       expect(result?.email).toBe(email);
@@ -55,7 +57,9 @@ describe('AuthService', () => {
       // Mock validateUser to return null
       jest.spyOn(service, 'validateUser').mockResolvedValue(null);
 
-      await expect(service.login('invalid@example.com')).rejects.toThrow('Invalid credentials');
+      await expect(service.login('invalid@example.com')).rejects.toThrow(
+        'Invalid credentials'
+      );
     });
   });
 
@@ -75,7 +79,9 @@ describe('AuthService', () => {
         throw new Error('Invalid token');
       });
 
-      await expect(service.refreshToken('invalid-token')).rejects.toThrow('Invalid refresh token');
+      await expect(service.refreshToken('invalid-token')).rejects.toThrow(
+        'Invalid refresh token'
+      );
     });
   });
 

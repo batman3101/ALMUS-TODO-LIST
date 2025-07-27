@@ -63,12 +63,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
     taskId: string,
     updateData: UpdateTaskInput
   ) => {
-    try {
-      await updateTask.mutateAsync({ id: taskId, updates: updateData });
-    } catch (error) {
-      // Error is thrown to be handled by EditTaskModal
-      throw error; // EditTaskModal에서 에러 처리하도록 throw
-    }
+    await updateTask.mutateAsync({ id: taskId, updates: updateData });
   };
 
   // 드래그 시작 핸들러

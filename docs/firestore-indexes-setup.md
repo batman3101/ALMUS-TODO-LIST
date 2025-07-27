@@ -15,6 +15,7 @@ cat firestore.indexes.json
 ```
 
 **현재 문제**: `firestore.indexes.json` 파일이 비어있음
+
 ```json
 {
   "indexes": [],
@@ -276,53 +277,61 @@ firebase firestore:indexes --project [your-project-id]
 ### 4.1 Tasks 컬렉션 인덱스
 
 #### Index 1: 팀별 상태 필터링
+
 ```javascript
 // 사용 쿼리 예시
-firebase.firestore()
+firebase
+  .firestore()
   .collection('tasks')
   .where('teamId', '==', teamId)
   .where('status', '==', 'TODO')
-  .orderBy('createdAt', 'desc')
+  .orderBy('createdAt', 'desc');
 ```
 
 #### Index 2: 담당자별 태스크 조회
+
 ```javascript
-firebase.firestore()
+firebase
+  .firestore()
   .collection('tasks')
   .where('teamId', '==', teamId)
   .where('assigneeId', '==', userId)
-  .orderBy('dueDate', 'asc')
+  .orderBy('dueDate', 'asc');
 ```
 
 #### Index 3: 프로젝트별 태스크 조회
+
 ```javascript
-firebase.firestore()
+firebase
+  .firestore()
   .collection('tasks')
   .where('teamId', '==', teamId)
   .where('projectId', '==', projectId)
-  .orderBy('createdAt', 'desc')
+  .orderBy('createdAt', 'desc');
 ```
 
 ### 4.2 Team Members 인덱스
 
 ```javascript
 // 활성 팀 멤버 조회
-firebase.firestore()
+firebase
+  .firestore()
   .collection('team_members')
   .where('teamId', '==', teamId)
   .where('isActive', '==', true)
-  .orderBy('joinedAt', 'desc')
+  .orderBy('joinedAt', 'desc');
 ```
 
 ### 4.3 Notifications 인덱스
 
 ```javascript
 // 읽지 않은 알림 조회
-firebase.firestore()
+firebase
+  .firestore()
   .collection('notifications')
   .where('userId', '==', userId)
   .where('isRead', '==', false)
-  .orderBy('createdAt', 'desc')
+  .orderBy('createdAt', 'desc');
 ```
 
 ## 5. 추가 최적화 설정
@@ -331,14 +340,16 @@ firebase.firestore()
 
 ```javascript
 // tags 배열 필드 검색
-firebase.firestore()
+firebase
+  .firestore()
   .collection('tasks')
-  .where('tags', 'array-contains', 'urgent')
+  .where('tags', 'array-contains', 'urgent');
 
-// mentions 배열 필드 검색  
-firebase.firestore()
+// mentions 배열 필드 검색
+firebase
+  .firestore()
   .collection('comments')
-  .where('mentions', 'array-contains', userId)
+  .where('mentions', 'array-contains', userId);
 ```
 
 ### 5.2 성능 모니터링
@@ -373,7 +384,6 @@ firebase firestore:indexes --dry-run
 1. **Firebase Console에서 자동 인덱스 생성**
    - 에러 메시지의 링크 클릭
    - "Create Index" 버튼 클릭
-   
 2. **수동 인덱스 추가**
    ```bash
    # 누락된 인덱스를 firestore.indexes.json에 추가 후
@@ -386,18 +396,20 @@ firebase firestore:indexes --dry-run
 
 ```javascript
 // ✅ 좋은 쿼리 (인덱스 효율적 사용)
-const tasks = await firebase.firestore()
+const tasks = await firebase
+  .firestore()
   .collection('tasks')
-  .where('teamId', '==', teamId)        // 첫 번째 필터
-  .where('status', '==', 'TODO')       // 두 번째 필터
-  .orderBy('createdAt', 'desc')        // 정렬
-  .limit(20)                           // 제한
+  .where('teamId', '==', teamId) // 첫 번째 필터
+  .where('status', '==', 'TODO') // 두 번째 필터
+  .orderBy('createdAt', 'desc') // 정렬
+  .limit(20) // 제한
   .get();
 
 // ❌ 나쁜 쿼리 (인덱스 비효율적)
-const tasks = await firebase.firestore()
+const tasks = await firebase
+  .firestore()
   .collection('tasks')
-  .where('assigneeId', '==', userId)   // 팀 필터 없음
+  .where('assigneeId', '==', userId) // 팀 필터 없음
   .get();
 ```
 
@@ -405,14 +417,16 @@ const tasks = await firebase.firestore()
 
 ```javascript
 // 첫 번째 페이지
-const first = firebase.firestore()
+const first = firebase
+  .firestore()
   .collection('tasks')
   .where('teamId', '==', teamId)
   .orderBy('createdAt', 'desc')
   .limit(25);
 
 // 다음 페이지
-const next = firebase.firestore()
+const next = firebase
+  .firestore()
   .collection('tasks')
   .where('teamId', '==', teamId)
   .orderBy('createdAt', 'desc')
@@ -432,6 +446,7 @@ const next = firebase.firestore()
 ### 8.2 알림 설정
 
 Firebase Console에서 다음 알림을 설정하세요:
+
 - 인덱스 생성 완료
 - 쿼리 성능 저하
 - 사용량 한도 초과

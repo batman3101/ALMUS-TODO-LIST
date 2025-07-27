@@ -8,10 +8,19 @@ describe('NotificationController', () => {
   let service: NotificationService;
 
   const mockNotificationService = {
-    create: jest.fn(() => ({ id: 'notification-id', title: 'Test Notification' })),
+    create: jest.fn(() => ({
+      id: 'notification-id',
+      title: 'Test Notification',
+    })),
     findAll: jest.fn(() => []),
-    findOne: jest.fn(() => ({ id: 'notification-id', title: 'Test Notification' })),
-    update: jest.fn(() => ({ id: 'notification-id', title: 'Updated Notification' })),
+    findOne: jest.fn(() => ({
+      id: 'notification-id',
+      title: 'Test Notification',
+    })),
+    update: jest.fn(() => ({
+      id: 'notification-id',
+      title: 'Updated Notification',
+    })),
     remove: jest.fn(),
   };
 
@@ -46,7 +55,10 @@ describe('NotificationController', () => {
 
       const result = await controller.create(createNotificationDto);
 
-      expect(result).toEqual({ id: 'notification-id', title: 'Test Notification' });
+      expect(result).toEqual({
+        id: 'notification-id',
+        title: 'Test Notification',
+      });
       expect(service.create).toHaveBeenCalledWith(createNotificationDto);
     });
   });
@@ -66,7 +78,10 @@ describe('NotificationController', () => {
 
       const result = await controller.findOne(notificationId);
 
-      expect(result).toEqual({ id: 'notification-id', title: 'Test Notification' });
+      expect(result).toEqual({
+        id: 'notification-id',
+        title: 'Test Notification',
+      });
       expect(service.findOne).toHaveBeenCalledWith(notificationId);
     });
   });
@@ -81,7 +96,10 @@ describe('NotificationController', () => {
 
       const result = await controller.update(notificationId, updateData);
 
-      expect(result).toEqual({ id: 'notification-id', title: 'Updated Notification' });
+      expect(result).toEqual({
+        id: 'notification-id',
+        title: 'Updated Notification',
+      });
       expect(service.update).toHaveBeenCalledWith(notificationId, updateData);
     });
   });

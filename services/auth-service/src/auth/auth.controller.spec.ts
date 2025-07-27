@@ -69,18 +69,20 @@ describe('AuthController', () => {
         refreshToken: 'new-refresh-token',
         user: { id: '1', email: 'test@example.com', name: 'Test User' },
       });
-      expect(service.refreshToken).toHaveBeenCalledWith(refreshBody.refreshToken);
+      expect(service.refreshToken).toHaveBeenCalledWith(
+        refreshBody.refreshToken
+      );
     });
   });
 
   describe('getProfile', () => {
     it('should return user profile from request', async () => {
-      const req = { 
-        user: { 
-          id: '1', 
-          email: 'test@example.com', 
-          name: 'Test User' 
-        } 
+      const req = {
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: 'Test User',
+        },
       };
 
       const result = await controller.getProfile(req);

@@ -66,7 +66,9 @@ export class TaskResolver {
   }
 
   @ResolveField()
-  async assignee(@Parent() task: Task): Promise<{ id: string; name: string; email: string } | null> {
+  async assignee(
+    @Parent() task: Task
+  ): Promise<{ id: string; name: string; email: string } | null> {
     // TODO: 실제 사용자 정보 가져오기
     return {
       id: task.assigneeId,
@@ -76,7 +78,9 @@ export class TaskResolver {
   }
 
   @ResolveField()
-  async createdByUser(@Parent() task: Task): Promise<{ id: string; name: string; email: string } | null> {
+  async createdByUser(
+    @Parent() task: Task
+  ): Promise<{ id: string; name: string; email: string } | null> {
     // TODO: 실제 사용자 정보 가져오기
     return {
       id: task.createdBy,

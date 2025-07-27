@@ -70,7 +70,11 @@ describe('TaskService', () => {
       const userId = 'test-user-id';
 
       try {
-        const result = await service.updateTask(taskId, updateTaskInput, userId);
+        const result = await service.updateTask(
+          taskId,
+          updateTaskInput,
+          userId
+        );
         expect(result).toBeDefined();
       } catch (error) {
         // Expected for now since we don't have real database

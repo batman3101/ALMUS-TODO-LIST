@@ -423,7 +423,7 @@ export const getDefaultPermissionsForTeamRole = (
 
 // 프로젝트 역할의 기본 권한 반환
 export const getDefaultPermissionsForProjectRole = (
-  _role: ProjectRole
+  role: ProjectRole
 ): Permission[] => {
   // 프로젝트 역할별 기본 권한 정의
   // 실제 구현에서는 더 세밀한 권한 설정이 필요
@@ -432,7 +432,7 @@ export const getDefaultPermissionsForProjectRole = (
 
 // 작업 역할의 기본 권한 반환
 export const getDefaultPermissionsForTaskRole = (
-  _role: TaskRole
+  role: TaskRole
 ): Permission[] => {
   // 작업 역할별 기본 권한 정의
   // 실제 구현에서는 더 세밀한 권한 설정이 필요

@@ -52,14 +52,14 @@ describe('NotificationService', () => {
 
     service = module.get<NotificationService>(NotificationService);
     notificationRepository = module.get<Repository<Notification>>(
-      getRepositoryToken(Notification),
+      getRepositoryToken(Notification)
     );
-    notificationSettingsRepository = module.get<Repository<NotificationSettings>>(
-      getRepositoryToken(NotificationSettings),
-    );
-    notificationTemplateRepository = module.get<Repository<NotificationTemplate>>(
-      getRepositoryToken(NotificationTemplate),
-    );
+    notificationSettingsRepository = module.get<
+      Repository<NotificationSettings>
+    >(getRepositoryToken(NotificationSettings));
+    notificationTemplateRepository = module.get<
+      Repository<NotificationTemplate>
+    >(getRepositoryToken(NotificationTemplate));
   });
 
   it('should be defined', () => {
@@ -82,8 +82,12 @@ describe('NotificationService', () => {
 
       const result = await service.createNotification(createNotificationInput);
 
-      expect(mockNotificationRepository.create).toHaveBeenCalledWith(createNotificationInput);
-      expect(mockNotificationRepository.save).toHaveBeenCalledWith(mockNotification);
+      expect(mockNotificationRepository.create).toHaveBeenCalledWith(
+        createNotificationInput
+      );
+      expect(mockNotificationRepository.save).toHaveBeenCalledWith(
+        mockNotification
+      );
       expect(result).toEqual(mockNotification);
     });
   });
@@ -132,7 +136,9 @@ describe('NotificationService', () => {
       const notificationId = 'non-existent';
       mockNotificationRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.markAsRead(notificationId)).rejects.toThrow('알림을 찾을 수 없습니다.');
+      await expect(service.markAsRead(notificationId)).rejects.toThrow(
+        '알림을 찾을 수 없습니다.'
+      );
     });
   });
 
