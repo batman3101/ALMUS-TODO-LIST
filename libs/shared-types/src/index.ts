@@ -1,290 +1,250 @@
-// User related types
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  avatar?: string;
-  currentTeamId?: string;
-  teams?: TeamMember[];
-  isActive: boolean;
-  lastLoginAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+// Supabase 관련 타입 및 스키마 내보내기
+export * from './supabase-schema';
+export type { 
+  TaskStatus, 
+  TaskPriority, 
+  UserRole, 
+  TeamRole, 
+  User, 
+  Task, 
+  ResourceType, 
+  PermissionAction 
+} from './supabase-schema';
+
+// 공통 유틸리티 타입
+export type UUID = string;
+export type ISODateString = string;
+export type JSONValue = string | number | boolean | null | JSONArray | JSONObject;
+export interface JSONObject {
+  [x: string]: JSONValue;
+}
+export interface JSONArray extends Array<JSONValue> {}
+
+// 에러 타입
+export interface AppError {
+  code: string;
+  message: string;
+  details?: JSONObject;
 }
 
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  EDITOR = 'EDITOR',
-  VIEWER = 'VIEWER',
-}
-
-// Team related types
-export interface Team {
-  id: string;
-  name: string;
-  description?: string;
-  ownerId: string;
-  owner?: User;
-  memberCount: number;
-  settings: TeamSettings;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface TeamSettings {
-  isPublic: boolean;
-  allowInvitations: boolean;
-  defaultMemberRole: TeamRole;
-  maxMembers: number;
-  timeZone: string;
-  language: string;
-  features: TeamFeatures;
-}
-
-export interface TeamFeatures {
-  ganttView: boolean;
-  timeTracking: boolean;
-  advancedReporting: boolean;
-  customFields: boolean;
-  integrations: boolean;
-}
-
-export enum TeamRole {
-  OWNER = 'OWNER',
-  ADMIN = 'ADMIN',
-  EDITOR = 'EDITOR',
-  VIEWER = 'VIEWER',
-}
-
-export interface TeamMember {
-  id: string;
-  teamId: string;
-  userId: string;
-  user?: User;
-  role: TeamRole;
-  joinedAt: Date;
-  invitedBy?: string;
-  invitedByUser?: User;
-  isActive: boolean;
-}
-
-export interface TeamInvitation {
-  id: string;
-  teamId: string;
-  team?: Team;
-  email: string;
-  role: TeamRole;
-  token: string;
-  invitedBy: string;
-  invitedByUser?: User;
+// API 응답 타입 (향상된 버전)
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: AppError;
   message?: string;
-  expiresAt: Date;
-  acceptedAt?: Date;
-  rejectedAt?: Date;
-  status: InvitationStatus;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-export enum InvitationStatus {
-  PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  REJECTED = 'REJECTED',
-  EXPIRED = 'EXPIRED',
-  CANCELLED = 'CANCELLED',
+// 페이지네이션 타입 (PaginatedResponse는 supabase-schema.ts에서 가져옴)
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
-// Advanced Permission System Types
-export enum ProjectRole {
-  PROJECT_MANAGER = 'PROJECT_MANAGER',
-  PROJECT_LEAD = 'PROJECT_LEAD',
-  CONTRIBUTOR = 'CONTRIBUTOR',
-  OBSERVER = 'OBSERVER',
+// 필터 타입
+export interface BaseFilter {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  search?: string;
 }
 
-export enum TaskRole {
-  ASSIGNEE = 'ASSIGNEE',
-  REVIEWER = 'REVIEWER',
-  COLLABORATOR = 'COLLABORATOR',
-  WATCHER = 'WATCHER',
+// 날짜 범위 필터
+export interface DateRangeFilter {
+  startDate?: ISODateString;
+  endDate?: ISODateString;
 }
 
-export enum PermissionAction {
-  CREATE = 'CREATE',
-  READ = 'READ',
-  UPDATE = 'UPDATE',
-  DELETE = 'DELETE',
-  ASSIGN = 'ASSIGN',
-  COMMENT = 'COMMENT',
-  COMPLETE = 'COMPLETE',
-  MANAGE_PERMISSIONS = 'MANAGE_PERMISSIONS',
+// 상태 필터
+export interface StatusFilter<T = string> {
+  status?: T | T[];
 }
 
-export enum ResourceType {
-  TEAM = 'TEAM',
-  PROJECT = 'PROJECT',
-  TASK = 'TASK',
+// 사용자 필터
+export interface UserFilter {
+  userId?: UUID;
+  userIds?: UUID[];
 }
 
-export interface Permission {
-  resource: ResourceType;
-  action: PermissionAction;
-  granted: boolean;
-  conditions?: PermissionConditions;
+// 팀 필터
+export interface TeamFilter {
+  teamId?: UUID;
+  teamIds?: UUID[];
 }
 
-export interface PermissionConditions {
-  timeRange?: {
-    start: Date;
-    end: Date;
-  };
-  ipRange?: string[];
-  deviceType?: string[];
-  customConditions?: Record<string, unknown>;
-  // Additional properties needed by permissionUtils
-  timeRestriction?: {
-    allowedHours?: number[];
-    timezone?: string;
-    startTime?: string;
-    endTime?: string;
-    allowedDays?: string[];
-  };
-  ipRestriction?: {
-    allowedIps?: string[];
-    blockedIps?: string[];
-  };
-  userAttributeRequirements?: Record<string, any>;
-  resourceStateRequirements?: Record<string, any>;
-  expiresAt?: Date;
+// 프로젝트 필터
+export interface ProjectFilter {
+  projectId?: UUID;
+  projectIds?: UUID[];
 }
 
-export interface ProjectPermission {
-  id: string;
-  projectId: string;
-  userId: string;
-  user?: User;
-  role: ProjectRole;
-  permissions: Permission[];
-  grantedBy: string;
-  grantedByUser?: User;
-  grantedAt: Date;
-  expiresAt?: Date;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface TaskPermission {
-  id: string;
-  taskId: string;
-  userId: string;
-  user?: User;
-  role: TaskRole;
-  permissions: Permission[];
-  grantedBy: string;
-  grantedByUser?: User;
-  grantedAt: Date;
-  expiresAt?: Date;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Project related types
-export interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  teamId: string;
-  ownerId: string;
-  owner?: User;
-  status: ProjectStatus;
-  priority: ProjectPriority;
-  startDate?: Date;
-  endDate?: Date;
-  budget?: number;
+// 태그 필터
+export interface TagFilter {
   tags?: string[];
-  memberCount: number;
-  taskCount: number;
-  completedTaskCount: number;
-  progress: number; // 0-100
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  tagMode?: 'any' | 'all'; // 'any': 하나라도 일치, 'all': 모두 일치
 }
 
-export enum ProjectStatus {
-  PLANNING = 'PLANNING',
-  ACTIVE = 'ACTIVE',
-  ON_HOLD = 'ON_HOLD',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
+// 파일 업로드 관련 타입
+export interface FileUploadOptions {
+  maxSize?: number;
+  allowedTypes?: string[];
+  bucket?: string;
+  folder?: string;
 }
 
-export enum ProjectPriority {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  URGENT = 'URGENT',
+export interface UploadedFile {
+  id: UUID;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  bucket: string;
+  path: string;
+  uploadedAt: ISODateString;
+  uploadedBy: UUID;
 }
 
-// Task related types
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  assigneeId: string;
-  assignee?: User;
-  status: TaskStatus;
-  priority: TaskPriority;
-  dueDate?: Date;
-  createdBy: string;
-  createdByUser?: User;
-  version: number;
-  teamId: string; // 팀 ID
-  projectId?: string; // 프로젝트 ID (프로젝트에 속한 경우)
-  project?: Project; // 프로젝트 정보
-  createdAt: Date;
-  updatedAt: Date;
-  // 간트 차트 관련 필드
-  startDate?: Date;
-  endDate?: Date;
-  dependencies?: string[]; // 의존하는 Task ID 목록
-  progress?: number; // 진행률 (0-100)
-  // 권한 관련 필드
-  permissions?: TaskPermission[];
-  collaborators?: User[]; // 협력자 목록
+// 검색 관련 타입
+export interface SearchOptions {
+  query: string;
+  fields?: string[];
+  fuzzy?: boolean;
+  boost?: Record<string, number>;
 }
 
-export enum TaskStatus {
-  TODO = 'TODO',
-  IN_PROGRESS = 'IN_PROGRESS',
-  REVIEW = 'REVIEW',
-  DONE = 'DONE',
+export interface SearchResult<T = any> {
+  item: T;
+  score: number;
+  highlights?: Record<string, string[]>;
 }
 
-export enum TaskPriority {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  URGENT = 'URGENT',
+// 실시간 이벤트 타입 (Supabase Realtime)
+export interface RealtimeEvent<T = any> {
+  type: 'INSERT' | 'UPDATE' | 'DELETE';
+  table: string;
+  schema: string;
+  old_record?: T;
+  new_record?: T;
+  timestamp: ISODateString;
 }
 
-// 간트 차트 관련 타입
-export interface TaskDependency {
-  id: string;
-  sourceTaskId: string;
-  targetTaskId: string;
-  type:
-    | 'finish-to-start'
-    | 'start-to-start'
-    | 'finish-to-finish'
-    | 'start-to-finish';
-  lag?: number; // 지연일수 (일)
+// Supabase Realtime 채널 이벤트
+export interface ChannelEvent<T = any> {
+  type: string;
+  payload: T;
+  timestamp: ISODateString;
+  userId?: UUID;
 }
 
+// 배치 작업 타입
+export interface BatchOperation<T = any> {
+  operation: 'create' | 'update' | 'delete';
+  data: T;
+  id?: UUID;
+}
+
+export interface BatchResult<T = any> {
+  success: boolean;
+  data?: T;
+  error?: AppError;
+  operation: BatchOperation<T>;
+}
+
+// 감사 로그 타입 (PermissionAuditLog는 supabase-schema.ts에서 가져옴)
+export interface AuditLog {
+  id: UUID;
+  userId: UUID;
+  action: string;
+  resource: string;
+  resourceId: UUID;
+  oldValue?: JSONValue;
+  newValue?: JSONValue;
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp: ISODateString;
+}
+
+// 메트릭 및 분석 타입
+export interface Metric {
+  name: string;
+  value: number;
+  unit?: string;
+  timestamp: ISODateString;
+  dimensions?: Record<string, string>;
+}
+
+export interface TimeSeriesData {
+  timestamp: ISODateString;
+  value: number;
+}
+
+export interface AnalyticsData {
+  metric: string;
+  data: TimeSeriesData[];
+  aggregation?: 'sum' | 'avg' | 'min' | 'max' | 'count';
+  period?: 'hour' | 'day' | 'week' | 'month';
+}
+
+// Supabase RLS 관련 타입
+export interface RLSPolicy {
+  name: string;
+  table: string;
+  command: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'ALL';
+  role?: string;
+  using?: string;
+  withCheck?: string;
+}
+
+// 설정 타입
+export interface AppConfig {
+  name: string;
+  version: string;
+  environment: 'development' | 'staging' | 'production';
+  features: Record<string, boolean>;
+  limits: Record<string, number>;
+  supabase: {
+    url: string;
+    anonKey: string;
+    serviceRoleKey?: string;
+  };
+}
+
+// Storage 관련 타입
+export interface StorageConfig {
+  bucket: string;
+  maxFileSize: number;
+  allowedMimeTypes: string[];
+  publicUrl?: string;
+}
+
+// Edge Functions 관련 타입
+export interface EdgeFunctionResponse<T = any> {
+  data?: T;
+  error?: string;
+  status: number;
+}
+
+// 헬스 체크 타입
+export interface HealthCheck {
+  service: string;
+  status: 'healthy' | 'unhealthy' | 'degraded';
+  timestamp: ISODateString;
+  details?: JSONObject;
+  supabase?: {
+    database: 'healthy' | 'unhealthy';
+    storage: 'healthy' | 'unhealthy';
+    auth: 'healthy' | 'unhealthy';
+    realtime: 'healthy' | 'unhealthy';
+  };
+}
+
+// 간트 차트 관련 타입 (기존 유지)
 export enum ZoomLevel {
   DAY = 'day',
   WEEK = 'week',
@@ -299,8 +259,8 @@ export interface GanttTask {
   startDate: Date;
   endDate: Date;
   progress: number;
-  status: TaskStatus;
-  priority: TaskPriority;
+  status: 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   assigneeId: string;
   dependencies: string[];
   isDelayed: boolean;
@@ -318,86 +278,11 @@ export interface GanttViewConfig {
   };
 }
 
-// 알림 관련 타입
-export enum NotificationType {
-  TASK_DUE_REMINDER = 'TASK_DUE_REMINDER',
-  TASK_STATUS_CHANGE = 'TASK_STATUS_CHANGE',
-  TASK_ASSIGNED = 'TASK_ASSIGNED',
-  TASK_COMMENT = 'TASK_COMMENT',
-  TASK_OVERDUE = 'TASK_OVERDUE',
-  SYSTEM_ANNOUNCEMENT = 'SYSTEM_ANNOUNCEMENT',
-}
-
-export enum NotificationChannel {
-  EMAIL = 'EMAIL',
-  PUSH = 'PUSH',
-  IN_APP = 'IN_APP',
-  SLACK = 'SLACK',
-  TEAMS = 'TEAMS',
-  KAKAO = 'KAKAO',
-}
-
-export enum NotificationFrequency {
-  IMMEDIATE = 'IMMEDIATE',
-  DAILY = 'DAILY',
-  WEEKLY = 'WEEKLY',
-  NEVER = 'NEVER',
-}
-
-export interface Notification {
-  id: string;
-  userId: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  data?: Record<string, unknown>;
-  channels: NotificationChannel[];
-  isRead: boolean;
-  isSent: boolean;
-  sentAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface NotificationSettings {
-  id: string;
-  userId: string;
-  taskDueReminder: NotificationFrequency;
-  taskStatusChange: NotificationFrequency;
-  taskAssigned: NotificationFrequency;
-  taskComment: NotificationFrequency;
-  taskOverdue: NotificationFrequency;
-  systemAnnouncement: NotificationFrequency;
-  emailEnabled: boolean;
-  pushEnabled: boolean;
-  inAppEnabled: boolean;
-  slackEnabled: boolean;
-  teamsEnabled: boolean;
-  kakaoEnabled: boolean;
-  emailAddress?: string;
-  slackWebhook?: string;
-  teamsWebhook?: string;
-  kakaoWebhook?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface NotificationTemplate {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  variables: string[];
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Auth related types
+// Auth related types (Supabase Auth)
 export interface AuthPayload {
   userId: string;
   email: string;
-  role: UserRole;
+  role: 'ADMIN' | 'EDITOR' | 'VIEWER';
   iat?: number;
   exp?: number;
 }
@@ -405,282 +290,26 @@ export interface AuthPayload {
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
-  user: User;
+  user: any; // User type from supabase-schema
 }
 
 export interface OAuthProfile {
-  provider: 'google' | 'microsoft';
+  provider: 'google' | 'microsoft' | 'github';
   id: string;
   email: string;
   name: string;
   avatar?: string;
 }
 
-// GraphQL types
-export interface CreateUserInput {
-  email: string;
-  name: string;
-  role?: UserRole;
-}
-
-export interface UpdateUserInput {
-  id: string;
-  name?: string;
-  role?: UserRole;
-  avatar?: string;
-}
-
-export interface LoginInput {
-  email: string;
-  password?: string;
-  provider?: 'google' | 'microsoft';
-  code?: string;
-}
-
-// Team Input types
-export interface CreateTeamInput {
-  name: string;
-  description?: string;
-  settings?: Partial<TeamSettings>;
-}
-
-export interface UpdateTeamInput {
-  id: string;
-  name?: string;
-  description?: string;
-  settings?: Partial<TeamSettings>;
-  isActive?: boolean;
-}
-
-export interface InviteTeamMemberInput {
-  teamId: string;
-  email: string;
-  role: TeamRole;
-  message?: string;
-}
-
-export interface UpdateTeamMemberInput {
-  id: string;
-  role?: TeamRole;
-  isActive?: boolean;
-}
-
-export interface TeamFilterInput {
-  ownerId?: string;
-  isActive?: boolean;
-  memberUserId?: string;
-}
-
-export interface AcceptInvitationInput {
-  token: string;
-  userId?: string;
-}
-
-export interface RespondToInvitationInput {
-  invitationId: string;
-  action: 'ACCEPT' | 'REJECT';
-}
-
-// Project Input types
-export interface CreateProjectInput {
-  name: string;
-  description?: string;
-  teamId: string;
-  status?: ProjectStatus;
-  priority?: ProjectPriority;
-  startDate?: Date;
-  endDate?: Date;
-  budget?: number;
-  tags?: string[];
-}
-
-export interface UpdateProjectInput {
-  id: string;
-  name?: string;
-  description?: string;
-  status?: ProjectStatus;
-  priority?: ProjectPriority;
-  startDate?: Date;
-  endDate?: Date;
-  budget?: number;
-  tags?: string[];
-  isActive?: boolean;
-}
-
-// Permission Input types
-export interface CreateProjectPermissionInput {
-  projectId: string;
-  userId: string;
-  role: ProjectRole;
-  permissions?: Permission[];
-  expiresAt?: Date;
-}
-
-export interface UpdateProjectPermissionInput {
-  id: string;
-  role?: ProjectRole;
-  permissions?: Permission[];
-  expiresAt?: Date;
-  isActive?: boolean;
-}
-
-export interface CreateTaskPermissionInput {
-  taskId: string;
-  userId: string;
-  role: TaskRole;
-  permissions?: Permission[];
-  expiresAt?: Date;
-}
-
-export interface UpdateTaskPermissionInput {
-  id: string;
-  role?: TaskRole;
-  permissions?: Permission[];
-  expiresAt?: Date;
-  isActive?: boolean;
-}
-
-export interface PermissionCheckInput {
-  userId: string;
-  resource: {
-    type: ResourceType;
-    teamId?: string;
-    projectId?: string;
-    taskId?: string;
-  };
-  action: PermissionAction;
-}
-
-export interface CreateTaskInput {
-  title: string;
-  description?: string;
-  assigneeId: string;
-  status?: TaskStatus;
-  priority?: TaskPriority;
-  dueDate?: Date;
-  startDate?: Date;
-  endDate?: Date;
-  dependencies?: string[];
-  progress?: number;
-  teamId: string;
-  projectId?: string;
-}
-
-export interface UpdateTaskInput {
-  title?: string;
-  description?: string;
-  assigneeId?: string;
-  status?: TaskStatus;
-  priority?: TaskPriority;
-  dueDate?: Date;
-  startDate?: Date;
-  endDate?: Date;
-  dependencies?: string[];
-  progress?: number;
-  version?: number;
-}
-
-export interface TaskFilterInput {
-  status?: TaskStatus;
-  priority?: TaskPriority;
-  assigneeId?: string;
-  createdBy?: string;
-  dueDateFrom?: Date;
-  dueDateTo?: Date;
-  startDateFrom?: Date;
-  startDateTo?: Date;
-}
-
-// Notification types
-export interface CreateNotificationInput {
-  userId: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  data?: Record<string, unknown>;
-  channels: NotificationChannel[];
-}
-
-export interface UpdateNotificationInput {
-  id: string;
-  isRead?: boolean;
-  isSent?: boolean;
-}
-
-export interface CreateNotificationSettingsInput {
-  userId: string;
-  taskDueReminder?: NotificationFrequency;
-  taskStatusChange?: NotificationFrequency;
-  taskAssigned?: NotificationFrequency;
-  taskComment?: NotificationFrequency;
-  taskOverdue?: NotificationFrequency;
-  systemAnnouncement?: NotificationFrequency;
-  emailEnabled?: boolean;
-  pushEnabled?: boolean;
-  inAppEnabled?: boolean;
-  slackEnabled?: boolean;
-  teamsEnabled?: boolean;
-  kakaoEnabled?: boolean;
-  emailAddress?: string;
-  slackWebhook?: string;
-  teamsWebhook?: string;
-  kakaoWebhook?: string;
-}
-
-export interface UpdateNotificationSettingsInput {
-  id: string;
-  taskDueReminder?: NotificationFrequency;
-  taskStatusChange?: NotificationFrequency;
-  taskAssigned?: NotificationFrequency;
-  taskComment?: NotificationFrequency;
-  taskOverdue?: NotificationFrequency;
-  systemAnnouncement?: NotificationFrequency;
-  emailEnabled?: boolean;
-  pushEnabled?: boolean;
-  inAppEnabled?: boolean;
-  slackEnabled?: boolean;
-  teamsEnabled?: boolean;
-  kakaoEnabled?: boolean;
-  emailAddress?: string;
-  slackWebhook?: string;
-  teamsWebhook?: string;
-  kakaoWebhook?: string;
-}
-
-// Legacy Permission types (kept for backward compatibility)
-export interface LegacyPermission {
-  resource: string;
-  action: string;
-}
-
-export interface RolePermissions {
-  role: UserRole;
-  permissions: LegacyPermission[];
-}
-
-// Conflict resolution types
-export interface TaskConflict {
-  taskId: string;
-  serverVersion: number;
-  clientVersion: number;
-  serverData: Task;
-  clientData: Task | null;
-}
-
-export interface TaskOperation {
-  type: 'CREATE' | 'UPDATE' | 'DELETE';
-  taskId?: string;
-  data?: Partial<Task>;
-  version?: number;
-}
-
-// File upload types
+// 파일 메타데이터 타입 (Supabase Storage)
 export interface FileMetadata {
   id: string;
   name: string;
   size: number;
   type: string;
   url: string;
+  bucket: string;
+  path: string;
   uploaderId: string;
   uploaderName: string;
   taskId?: string;
@@ -704,5 +333,104 @@ export interface UploadState {
   downloadURL?: string;
 }
 
-// Re-export from firestore-schema
-export * from './firestore-schema';
+// Conflict resolution types (OT 관련)
+export interface TaskConflict {
+  taskId: string;
+  serverVersion: number;
+  clientVersion: number;
+  serverData: any; // Task type from supabase-schema
+  clientData: any | null; // Task type from supabase-schema
+}
+
+export interface TaskOperation {
+  type: 'CREATE' | 'UPDATE' | 'DELETE';
+  taskId?: string;
+  data?: any; // Partial<Task> from supabase-schema
+  version?: number;
+}
+
+// Legacy types (호환성을 위해 유지, 점진적으로 제거 예정)
+export interface LegacyPermission {
+  resource: string;
+  action: string;
+}
+
+export interface RolePermissions {
+  role: 'ADMIN' | 'EDITOR' | 'VIEWER';
+  permissions: LegacyPermission[];
+}
+
+// 팀 설정 타입 (기존 유지)
+export interface TeamSettings {
+  isPublic: boolean;
+  allowInvitations: boolean;
+  defaultMemberRole: 'OWNER' | 'ADMIN' | 'EDITOR' | 'VIEWER';
+  maxMembers: number;
+  timeZone: string;
+  language: string;
+  features: TeamFeatures;
+}
+
+export interface TeamFeatures {
+  ganttView: boolean;
+  timeTracking: boolean;
+  advancedReporting: boolean;
+  customFields: boolean;
+  integrations: boolean;
+}
+
+// Input types for backward compatibility
+export interface CreateUserInput {
+  email: string;
+  name: string;
+  role?: 'ADMIN' | 'EDITOR' | 'VIEWER';
+}
+
+export interface UpdateUserInput {
+  id: string;
+  name?: string;
+  role?: 'ADMIN' | 'EDITOR' | 'VIEWER';
+  avatar?: string;
+}
+
+export interface LoginInput {
+  email: string;
+  password?: string;
+  provider?: 'google' | 'microsoft' | 'github';
+  code?: string;
+}
+
+export interface InviteTeamMemberInput {
+  teamId: string;
+  email: string;
+  role: 'OWNER' | 'ADMIN' | 'EDITOR' | 'VIEWER';
+  message?: string;
+}
+
+export interface UpdateTeamMemberInput {
+  id: string;
+  role?: 'OWNER' | 'ADMIN' | 'EDITOR' | 'VIEWER';
+  isActive?: boolean;
+}
+
+export interface AcceptInvitationInput {
+  token: string;
+  userId?: string;
+}
+
+export interface RespondToInvitationInput {
+  invitationId: string;
+  action: 'ACCEPT' | 'REJECT';
+}
+
+// Permission check input
+export interface PermissionCheckInput {
+  userId: string;
+  resource: {
+    type: 'TEAM' | 'PROJECT' | 'TASK';
+    teamId?: string;
+    projectId?: string;
+    taskId?: string;
+  };
+  action: 'CREATE' | 'read' | 'update' | 'DELETE' | 'ASSIGN' | 'COMMENT' | 'COMPLETE' | 'MANAGE_PERMISSIONS';
+}

@@ -9,7 +9,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserRole, } from "@almus/shared-types";
 let AuthService = class AuthService {
     constructor(jwtService) {
         this.jwtService = jwtService;

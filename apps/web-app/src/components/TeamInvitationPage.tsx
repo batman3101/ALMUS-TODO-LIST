@@ -11,10 +11,9 @@ import {
   Edit,
   Eye,
 } from 'lucide-react';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../config/firebase';
+import { supabase } from '../../../lib/supabase/client';
 import { useAuth } from '../hooks/useAuth';
-import { TeamRole } from '../types/team';
+import type { TeamRole } from '@almus/shared-types/src/supabase-schema';
 
 interface InvitationDetails {
   teamName: string;
@@ -83,22 +82,46 @@ export const TeamInvitationPage: React.FC = () => {
       return;
     }
 
-    // 실제 환경에서는 토큰을 검증하여 초대 정보를 가져옵니다
-    // 여기서는 시연을 위해 임시 데이터를 사용합니다
-    setTimeout(() => {
-      const mockInvitation: InvitationDetails = {
-        teamName: '마케팅팀',
-        inviterName: '김철수',
-        role: TeamRole.EDITOR,
-        message:
-          '마케팅팀에 함께하게 되어 기쁩니다! 궁금한 점이 있으면 언제든지 연락해주세요.',
-        expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5일 후
-        isExpired: false,
-      };
+    const loadInvitationDetails = async () => {
+      try {
+        // Supabase에서 초대 정보 조회
+        const { data, error } = await supabase.rpc('get_invitation_details', {
+          invitation_token: token,
+        });
 
-      setInvitation(mockInvitation);
-      setLoading(false);
-    }, 1000);
+        if (error) throw error;
+
+        if (!data) {
+          setResult({
+            type: 'invalid',
+            message: '유효하지 않은 초대 링크입니다.',
+          });
+          setLoading(false);
+          return;
+        }
+
+        const invitationData: InvitationDetails = {
+          teamName: data.team_name,
+          inviterName: data.inviter_name,
+          role: data.role as TeamRole,
+          message: data.message,
+          expiresAt: new Date(data.expires_at),
+          isExpired: new Date(data.expires_at) < new Date(),
+        };
+
+        setInvitation(invitationData);
+      } catch (error) {
+        console.error('Failed to load invitation:', error);
+        setResult({
+          type: 'error',
+          message: '초대 정보를 불러오는 중 오류가 발생했습니다.',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInvitationDetails();
   }, [token]);
 
   const handleAcceptInvitation = async () => {
@@ -106,13 +129,18 @@ export const TeamInvitationPage: React.FC = () => {
 
     setProcessing(true);
     try {
-      const acceptInvitation = httpsCallable(functions, 'acceptTeamInvitation');
-      const result = await acceptInvitation({ token });
+      // Supabase RPC call to accept team invitation
+      const { data, error } = await supabase.rpc('accept_team_invitation', {
+        invitation_token: token,
+        user_id: user.uid,
+      });
+
+      if (error) throw error;
 
       setResult({
         type: 'success',
         message: '팀 초대를 수락했습니다!',
-        teamName: (result.data as { teamName: string }).teamName,
+        teamName: data?.team_name || invitation?.teamName,
       });
 
       // 3초 후 홈으로 리다이렉트
@@ -121,17 +149,20 @@ export const TeamInvitationPage: React.FC = () => {
       }, 3000);
     } catch (error) {
       // Error handling below
+      const errorMessage = (error as Error).message;
 
-      if ((error as { code?: string }).code === 'functions/deadline-exceeded') {
+      if (
+        errorMessage.includes('expired') ||
+        errorMessage.includes('invalid')
+      ) {
         setResult({
           type: 'expired',
-          message: '초대장이 만료되었습니다.',
+          message: '초대장이 만료되었거나 유효하지 않습니다.',
         });
       } else {
         setResult({
           type: 'error',
-          message:
-            (error as Error).message || '초대 수락 중 오류가 발생했습니다.',
+          message: errorMessage || '초대 수락 중 오류가 발생했습니다.',
         });
       }
     } finally {
@@ -146,8 +177,13 @@ export const TeamInvitationPage: React.FC = () => {
 
     setProcessing(true);
     try {
-      const rejectInvitation = httpsCallable(functions, 'rejectTeamInvitation');
-      await rejectInvitation({ token });
+      // Supabase RPC call to reject team invitation
+      const { error } = await supabase.rpc('reject_team_invitation', {
+        invitation_token: token,
+        user_id: user.uid,
+      });
+
+      if (error) throw error;
 
       setResult({
         type: 'success',

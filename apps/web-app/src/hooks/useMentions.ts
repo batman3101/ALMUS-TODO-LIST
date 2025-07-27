@@ -1,23 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
-import type { FirestoreMention } from '@almus/shared-types';
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  doc,
-  updateDoc,
-  serverTimestamp,
-  Timestamp,
-  getDocs,
-  getDoc,
-  limit,
-} from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { supabase } from '../../../lib/supabase/client';
+import type { Mention as SupabaseMention, User } from '@almus/shared-types';
 
-interface Mention extends Omit<FirestoreMention, 'createdAt' | 'readAt'> {
+interface Mention extends Omit<SupabaseMention, 'created_at' | 'read_at'> {
   createdAt: Date;
   readAt?: Date;
   mentionedByUser?: {
@@ -65,18 +51,16 @@ export const useMentions = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Firestore 멘션을 Mention 타입으로 변환
-  const transformFirestoreMention = useCallback((doc: any): Mention => {
-    const data = doc.data();
+  // Supabase 멘션을 Mention 타입으로 변환
+  const transformSupabaseMention = useCallback((data: any): Mention => {
     return {
-      id: doc.id,
-      ...data,
-      createdAt:
-        data.createdAt instanceof Timestamp
-          ? data.createdAt.toDate()
-          : new Date(data.createdAt),
-      readAt:
-        data.readAt instanceof Timestamp ? data.readAt.toDate() : undefined,
+      id: data.id,
+      mentionedUserId: data.mentioned_user_id,
+      mentionedByUserId: data.mentioned_by_user_id,
+      commentId: data.comment_id,
+      isRead: data.is_read,
+      createdAt: new Date(data.created_at),
+      readAt: data.read_at ? new Date(data.read_at) : undefined,
     };
   }, []);
 
@@ -89,13 +73,20 @@ export const useMentions = ({
     }
 
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      if (userDoc.exists()) {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, name, email, avatar_url')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
         const userData = {
-          id: userDoc.id,
-          name: userDoc.data().name,
-          email: userDoc.data().email,
-          avatar: userDoc.data().avatar,
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          avatar: data.avatar_url,
         };
         userCache.set(userId, userData);
         return userData;
@@ -116,13 +107,20 @@ export const useMentions = ({
     }
 
     try {
-      const commentDoc = await getDoc(doc(db, 'comments', commentId));
-      if (commentDoc.exists()) {
+      const { data, error } = await supabase
+        .from('comments')
+        .select('id, content, resource_type, resource_id')
+        .eq('id', commentId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
         const commentData = {
-          id: commentDoc.id,
-          content: commentDoc.data().content,
-          resourceType: commentDoc.data().resourceType,
-          resourceId: commentDoc.data().resourceId,
+          id: data.id,
+          content: data.content,
+          resourceType: data.resource_type,
+          resourceId: data.resource_id,
         };
         commentCache.set(commentId, commentData);
         return commentData;
@@ -163,43 +161,44 @@ export const useMentions = ({
     setError(null);
 
     try {
-      const mentionsQuery = query(
-        collection(db, 'mentions'),
-        where('mentionedUserId', '==', user.id),
-        orderBy('createdAt', 'desc')
-      );
+      const { data, error } = await supabase
+        .from('mentions')
+        .select('*')
+        .eq('mentioned_user_id', user.uid)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const mentionDocs = data?.map(transformSupabaseMention) || [];
+      const enrichedMentions =
+        await enrichMentionsWithAdditionalInfo(mentionDocs);
+
+      setMentions(enrichedMentions);
+      setUnreadCount(enrichedMentions.filter(m => !m.isRead).length);
+      setIsLoading(false);
 
       if (enableRealtime) {
-        // 실시간 리스너 설정
-        const unsubscribe = onSnapshot(
-          mentionsQuery,
-          async snapshot => {
-            const mentionDocs = snapshot.docs.map(transformFirestoreMention);
-            const enrichedMentions =
-              await enrichMentionsWithAdditionalInfo(mentionDocs);
+        // 실시간 구독 설정
+        const channel = supabase
+          .channel('mentions')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'mentions',
+              filter: `mentioned_user_id=eq.${user.uid}`,
+            },
+            () => {
+              // 변경사항이 있으면 다시 로드
+              loadMentions();
+            }
+          )
+          .subscribe();
 
-            setMentions(enrichedMentions);
-            setUnreadCount(enrichedMentions.filter(m => !m.isRead).length);
-            setIsLoading(false);
-          },
-          error => {
-            console.error('Error loading mentions:', error);
-            setError('멘션을 불러오는 중 오류가 발생했습니다.');
-            setIsLoading(false);
-          }
-        );
-
-        return unsubscribe;
-      } else {
-        // 일회성 로드
-        const snapshot = await getDocs(mentionsQuery);
-        const mentionDocs = snapshot.docs.map(transformFirestoreMention);
-        const enrichedMentions =
-          await enrichMentionsWithAdditionalInfo(mentionDocs);
-
-        setMentions(enrichedMentions);
-        setUnreadCount(enrichedMentions.filter(m => !m.isRead).length);
-        setIsLoading(false);
+        return () => {
+          channel.unsubscribe();
+        };
       }
     } catch (error) {
       console.error('Error loading mentions:', error);
@@ -209,7 +208,7 @@ export const useMentions = ({
   }, [
     user,
     enableRealtime,
-    transformFirestoreMention,
+    transformSupabaseMention,
     enrichMentionsWithAdditionalInfo,
   ]);
 
@@ -221,11 +220,15 @@ export const useMentions = ({
       }
 
       try {
-        const mentionRef = doc(db, 'mentions', mentionId);
-        await updateDoc(mentionRef, {
-          isRead: true,
-          readAt: serverTimestamp(),
-        });
+        const { error } = await supabase
+          .from('mentions')
+          .update({
+            is_read: true,
+            read_at: new Date().toISOString(),
+          })
+          .eq('id', mentionId);
+
+        if (error) throw error;
 
         // 로컬 상태 업데이트
         setMentions(prev =>
@@ -252,17 +255,16 @@ export const useMentions = ({
     }
 
     try {
-      const unreadMentions = mentions.filter(m => !m.isRead);
+      const { error } = await supabase
+        .from('mentions')
+        .update({
+          is_read: true,
+          read_at: new Date().toISOString(),
+        })
+        .eq('mentioned_user_id', user.uid)
+        .eq('is_read', false);
 
-      const updatePromises = unreadMentions.map(mention => {
-        const mentionRef = doc(db, 'mentions', mention.id);
-        return updateDoc(mentionRef, {
-          isRead: true,
-          readAt: serverTimestamp(),
-        });
-      });
-
-      await Promise.all(updatePromises);
+      if (error) throw error;
 
       // 로컬 상태 업데이트
       setMentions(prev =>
@@ -278,7 +280,7 @@ export const useMentions = ({
       console.error('Error marking all mentions as read:', error);
       throw new Error('모든 멘션을 읽음으로 표시하는 중 오류가 발생했습니다.');
     }
-  }, [user, mentions]);
+  }, [user]);
 
   // 멘션 가능한 사용자 검색
   const searchMentionableUsers = useCallback(
@@ -287,28 +289,24 @@ export const useMentions = ({
 
       try {
         // 현재 사용자가 속한 팀의 멤버들을 검색
-        // 실제로는 더 복잡한 쿼리가 필요할 수 있음 (팀 멤버십, 프로젝트 참여자 등)
-        const usersQuery = query(
-          collection(db, 'users'),
-          where('name', '>=', searchQuery),
-          where('name', '<=', searchQuery + '\uf8ff'),
-          orderBy('name'),
-          limit(10)
-        );
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, name, email, avatar_url')
+          .ilike('name', `%${searchQuery}%`)
+          .limit(10);
 
-        const snapshot = await getDocs(usersQuery);
-        const users = snapshot.docs.map(doc => {
-          const data = doc.data() as any;
-          return {
-            id: doc.id,
-            name: data.name || '',
-            email: data.email || '',
-            avatar: data.avatar,
-          };
-        });
+        if (error) throw error;
+
+        const users =
+          data?.map(user => ({
+            id: user.id,
+            name: user.name || '',
+            email: user.email || '',
+            avatar: user.avatar_url,
+          })) || [];
 
         // 현재 사용자는 제외
-        return users.filter(u => u.id !== user?.id);
+        return users.filter(u => u.id !== user?.uid);
       } catch (error) {
         console.error('Error searching mentionable users:', error);
         return [];

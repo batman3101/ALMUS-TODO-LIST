@@ -167,13 +167,13 @@ class WebSocketService {
       }
     });
 
-    this.socket.on('reconnect', (_attemptNumber: number) => {
+    this.socket.on('reconnect', () => {
       // Reconnected to WebSocket
       this.connectionState = 'CONNECTED';
       this.reconnectAttempts = 0;
     });
 
-    this.socket.on('reconnect_error', (_error: Error) => {
+    this.socket.on('reconnect_error', () => {
       // WebSocket reconnection error
       this.reconnectAttempts++;
     });

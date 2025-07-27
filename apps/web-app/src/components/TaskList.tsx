@@ -4,7 +4,10 @@ import { useTasks, useDeleteTask } from '../hooks/useTasks';
 import { useTeams } from '../hooks/useTeams';
 import { useTaskAuth } from '../hooks/useTaskAuth';
 import { useTheme } from '../contexts/ThemeContext';
-import { TaskStatus, TaskPriority } from '@almus/shared-types';
+import type {
+  TaskStatus,
+  TaskPriority,
+} from '@almus/shared-types/src/supabase-schema';
 import { Task } from '../types/team';
 import { createToast } from '../utils/toast';
 import { useNotification } from '../contexts/NotificationContext';

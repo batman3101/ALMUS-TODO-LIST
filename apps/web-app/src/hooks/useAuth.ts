@@ -1,28 +1,17 @@
 import { useState, useEffect } from 'react';
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-} from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, firestore as db } from '../config/firebase';
+import { supabase } from '../../../../lib/supabase/client';
+import type { User } from '../../../../libs/shared-types/src/supabase-schema';
 
-export interface AuthUser {
-  id: string; // alias for uid
-  uid: string;
-  email: string | null;
-  name: string | null; // alias for displayName
-  displayName: string | null;
-  photoURL: string | null;
-  role: string;
-  currentTeamId?: string; // updated field name
-  teamId: string; // legacy field
-  projectIds: string[];
-  isActive: boolean;
-  lastLoginAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+export interface AuthUser extends User {
+  // Compatibility aliases for existing code
+  uid: string; // alias for id
+  displayName: string | null; // alias for name
+  photoURL: string | null; // alias for avatar
+  teamId: string; // legacy field, maps to current_team_id
+  projectIds: string[]; // derived from user's projects
+  lastLoginAt?: Date; // parsed from last_login_at
+  createdAt: Date; // parsed from created_at
+  updatedAt: Date; // parsed from updated_at
 }
 
 export const useAuth = () => {
@@ -31,209 +20,221 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async firebaseUser => {
-      try {
-        if (firebaseUser) {
-          try {
-            // Firestore에서 사용자 정보 조회 시도
-            const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+    let isMounted = true;
 
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              const now = new Date();
-              setUser({
-                id: firebaseUser.uid,
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                name: firebaseUser.displayName,
-                displayName: firebaseUser.displayName,
-                photoURL: firebaseUser.photoURL,
-                role: userData.role || 'VIEWER',
-                currentTeamId: userData.currentTeamId,
-                teamId: userData.teamId || 'default-team',
-                projectIds: userData.projectIds || [],
-                isActive: userData.isActive !== false,
-                lastLoginAt: userData.lastLoginAt?.toDate(),
-                createdAt: userData.createdAt?.toDate() || now,
-                updatedAt: userData.updatedAt?.toDate() || now,
-              });
-            } else {
-              // 사용자 문서가 없으면 기본 정보만 설정
-              const now = new Date();
-              setUser({
-                id: firebaseUser.uid,
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                name: firebaseUser.displayName,
-                displayName: firebaseUser.displayName,
-                photoURL: firebaseUser.photoURL,
-                role: 'ADMIN',
-                currentTeamId: 'default-team',
-                teamId: 'default-team',
-                projectIds: ['default-project'],
-                isActive: true,
-                lastLoginAt: now,
-                createdAt: now,
-                updatedAt: now,
-              });
-            }
-          } catch (firestoreError) {
-            // Firestore 연결 실패 시 기본 정보만 설정
-            console.warn(
-              'Firestore connection failed, using default user data:',
-              firestoreError
-            );
-            const now = new Date();
-            setUser({
-              id: firebaseUser.uid,
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              name: firebaseUser.displayName,
-              displayName: firebaseUser.displayName,
-              photoURL: firebaseUser.photoURL,
-              role: 'ADMIN',
-              currentTeamId: 'default-team',
-              teamId: 'default-team',
-              projectIds: ['default-project'],
-              isActive: true,
-              lastLoginAt: now,
-              createdAt: now,
-              updatedAt: now,
-            });
-          }
-        } else {
+    const getSession = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error('Session error:', error);
+          setError(error.message);
+          return;
+        }
+
+        if (session?.user && isMounted) {
+          await loadUserProfile(session.user.id);
+        } else if (isMounted) {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error('Get session error:', err);
+        if (isMounted) {
+          setError(
+            err instanceof Error ? err.message : '인증 오류가 발생했습니다.'
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    const loadUserProfile = async (userId: string) => {
+      try {
+        const { data: userProfile, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (error) {
+          console.error('User profile error:', error);
+          setError('사용자 정보를 불러오는데 실패했습니다.');
+          return;
+        }
+
+        if (userProfile && isMounted) {
+          const authUser: AuthUser = {
+            ...userProfile,
+            uid: userProfile.id,
+            displayName: userProfile.name,
+            photoURL: userProfile.avatar,
+            teamId: userProfile.current_team_id || 'default-team',
+            projectIds: [], // TODO: Load from user's projects
+            lastLoginAt: userProfile.last_login_at
+              ? new Date(userProfile.last_login_at)
+              : undefined,
+            createdAt: new Date(userProfile.created_at),
+            updatedAt: new Date(userProfile.updated_at),
+          };
+          setUser(authUser);
+        }
+      } catch (err) {
+        console.error('Load user profile error:', err);
+        if (isMounted) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : '사용자 정보 로딩 오류가 발생했습니다.'
+          );
+        }
+      }
+    };
+
+    // Set up auth state listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isMounted) return;
+
+      try {
+        if (event === 'SIGNED_IN' && session?.user) {
+          await loadUserProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
           setUser(null);
         }
       } catch (err) {
         console.error('Auth state change error:', err);
         setError(
-          err instanceof Error ? err.message : '인증 오류가 발생했습니다.'
+          err instanceof Error
+            ? err.message
+            : '인증 상태 변경 오류가 발생했습니다.'
         );
-      } finally {
-        setLoading(false);
       }
     });
 
-    return () => unsubscribe();
+    // Get initial session
+    getSession();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
       setError(null);
-      if (import.meta.env.DEV) {
-        console.log('🔐 로그인 시도:', {
-          email,
-          authInstance: !!auth,
-          authConfig: auth.config,
-          currentUser: auth.currentUser,
-        });
+      setLoading(true);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
       }
 
-      // Firebase Auth 인스턴스 확인
-      if (!auth) {
-        throw new Error('Firebase Auth가 초기화되지 않았습니다.');
+      if (data.user) {
+        // Update last login time
+        await supabase
+          .from('users')
+          .update({ last_login_at: new Date().toISOString() })
+          .eq('id', data.user.id);
       }
 
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      if (import.meta.env.DEV) {
-        console.log('Sign in successful:', result.user.uid);
-      }
-      return result;
+      return data;
     } catch (err: any) {
-      if (import.meta.env.DEV) {
-        console.error('Sign in error details:', err);
-      }
-
-      // Firebase 오류 메시지를 한국어로 변환
+      // Supabase 오류 메시지를 한국어로 변환
       let errorMessage = '로그인에 실패했습니다.';
 
-      switch (err.code) {
-        case 'auth/user-not-found':
-          errorMessage = '등록되지 않은 이메일입니다.';
-          break;
-        case 'auth/wrong-password':
-          errorMessage = '잘못된 비밀번호입니다.';
-          break;
-        case 'auth/invalid-email':
+      if (err.message) {
+        if (err.message.includes('Invalid login credentials')) {
+          errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
+        } else if (err.message.includes('Invalid email format')) {
           errorMessage = '올바른 이메일 형식이 아닙니다.';
-          break;
-        case 'auth/too-many-requests':
+        } else if (err.message.includes('Too many requests')) {
           errorMessage =
             '너무 많은 로그인 시도가 있었습니다. 잠시 후 다시 시도해주세요.';
-          break;
-        case 'auth/network-request-failed':
+        } else if (err.message.includes('Network error')) {
           errorMessage = '네트워크 연결을 확인해주세요.';
-          break;
-        case 'auth/invalid-credential':
-          errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
-          break;
-        case 'auth/user-disabled':
-          errorMessage = '비활성화된 계정입니다.';
-          break;
-        default:
-          errorMessage = err.message || '로그인에 실패했습니다.';
+        } else if (err.message.includes('User not confirmed')) {
+          errorMessage = '이메일 인증이 필요합니다. 이메일을 확인해주세요.';
+        } else if (err.message.includes('Email not confirmed')) {
+          errorMessage = '이메일 인증이 필요합니다. 이메일을 확인해주세요.';
+        } else {
+          errorMessage = err.message;
+        }
       }
 
       setError(errorMessage);
       throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, name?: string) => {
     try {
       setError(null);
-      console.log('회원가입 시도:', email);
+      setLoading(true);
 
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      const { data, error } = await supabase.auth.signUp({
         email,
-        password
-      );
-      const user = userCredential.user;
-
-      console.log('회원가입 성공:', user);
-
-      // Firestore에 사용자 정보 저장
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName || '사용자',
-        teamId: 'default-team', // 기본 팀 ID
-        role: 'member',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        password,
+        options: {
+          data: {
+            name: name || '사용자',
+          },
+        },
       });
 
-      console.log('사용자 문서 생성 완료');
-      return userCredential;
-    } catch (err: any) {
-      console.error('회원가입 실패:', err);
+      if (error) {
+        throw error;
+      }
 
+      // Supabase auth will trigger the database trigger to create user profile
+      // The trigger function will handle user creation in the users table
+
+      return data;
+    } catch (err: any) {
       let errorMessage = '회원가입에 실패했습니다.';
 
-      switch (err.code) {
-        case 'auth/email-already-in-use':
+      if (err.message) {
+        if (err.message.includes('User already registered')) {
           errorMessage = '이미 사용 중인 이메일입니다.';
-          break;
-        case 'auth/weak-password':
+        } else if (err.message.includes('Password should be at least')) {
           errorMessage = '비밀번호가 너무 약합니다. 6자 이상 입력해주세요.';
-          break;
-        case 'auth/invalid-email':
+        } else if (err.message.includes('Invalid email format')) {
           errorMessage = '올바른 이메일 형식이 아닙니다.';
-          break;
-        default:
-          errorMessage = err.message || '회원가입에 실패했습니다.';
+        } else if (err.message.includes('Signup is disabled')) {
+          errorMessage = '현재 회원가입이 비활성화되어 있습니다.';
+        } else {
+          errorMessage = err.message;
+        }
       }
 
       setError(errorMessage);
       throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
     try {
       setError(null);
-      await signOut(auth);
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        throw error;
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : '로그아웃에 실패했습니다.';
@@ -246,27 +247,35 @@ export const useAuth = () => {
     if (!user) throw new Error('사용자가 로그인되어 있지 않습니다');
 
     try {
-      // Firestore 사용자 문서 업데이트
-      const userRef = doc(db, 'users', user.uid);
-      const firestoreUpdates: any = {
-        updatedAt: new Date(),
+      const supabaseUpdates: any = {
+        updated_at: new Date().toISOString(),
       };
 
-      // 업데이트할 필드들을 변환
-      if (updates.currentTeamId !== undefined) {
-        firestoreUpdates.currentTeamId = updates.currentTeamId;
+      // 업데이트할 필드들을 Supabase 스키마에 맞게 변환
+      if (updates.current_team_id !== undefined) {
+        supabaseUpdates.current_team_id = updates.current_team_id;
       }
       if (updates.name !== undefined) {
-        firestoreUpdates.name = updates.name;
+        supabaseUpdates.name = updates.name;
       }
       if (updates.role !== undefined) {
-        firestoreUpdates.role = updates.role;
+        supabaseUpdates.role = updates.role;
       }
-      if (updates.isActive !== undefined) {
-        firestoreUpdates.isActive = updates.isActive;
+      if (updates.is_active !== undefined) {
+        supabaseUpdates.is_active = updates.is_active;
+      }
+      if (updates.avatar !== undefined) {
+        supabaseUpdates.avatar = updates.avatar;
       }
 
-      await setDoc(userRef, firestoreUpdates, { merge: true });
+      const { error } = await supabase
+        .from('users')
+        .update(supabaseUpdates)
+        .eq('id', user.id);
+
+      if (error) {
+        throw error;
+      }
 
       // 로컬 상태 업데이트
       setUser(prev => (prev ? { ...prev, ...updates } : null));

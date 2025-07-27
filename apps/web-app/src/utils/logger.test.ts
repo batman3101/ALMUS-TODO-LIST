@@ -1,15 +1,28 @@
+import {
+  vi,
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterAll,
+  beforeAll,
+} from 'vitest';
 import { logger } from './logger';
 
 // Mock console methods
-const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation();
-const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-const mockConsoleWarn = jest.spyOn(console, 'warn').mockImplementation();
-const mockConsoleInfo = jest.spyOn(console, 'info').mockImplementation();
-const mockConsoleDebug = jest.spyOn(console, 'debug').mockImplementation();
+const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+const mockConsoleError = vi
+  .spyOn(console, 'error')
+  .mockImplementation(() => {});
+const mockConsoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+const mockConsoleInfo = vi.spyOn(console, 'info').mockImplementation(() => {});
+const mockConsoleDebug = vi
+  .spyOn(console, 'debug')
+  .mockImplementation(() => {});
 
 describe('Logger', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(() => {

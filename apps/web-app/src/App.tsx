@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Toaster } from 'react-hot-toast';
 import { StagewiseToolbar } from '@stagewise/toolbar-react';
@@ -9,7 +9,6 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import { useAuth } from './hooks/useAuth';
 import { useTaskAuth } from './hooks/useTaskAuth';
 import { useTeams } from './hooks/useTeams';
-import { initializeSampleTasks } from './utils/initializeData';
 import TaskList from './components/TaskList';
 import CreateTaskForm from './components/CreateTaskForm';
 import CalendarView from './components/CalendarView';
@@ -25,14 +24,14 @@ import { TeamRole } from './types/team';
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('list');
   const [showCreateTask, setShowCreateTask] = useState(false);
-  const { loading, isAuthenticated, user } = useAuth();
+  const { loading, isAuthenticated } = useAuth();
 
-  // 사용자가 로그인했을 때 샘플 데이터 초기화
-  useEffect(() => {
-    if (user && user.teamId) {
-      initializeSampleTasks(user.teamId, user.uid);
-    }
-  }, [user]);
+  // 사용자가 로그인했을 때 샘플 데이터 초기화 - Supabase 마이그레이션으로 주석 처리
+  // useEffect(() => {
+  //   if (user && user.teamId) {
+  //     initializeSampleTasks(user.teamId, user.uid);
+  //   }
+  // }, [user]);
 
   const renderCurrentView = () => {
     switch (currentView) {

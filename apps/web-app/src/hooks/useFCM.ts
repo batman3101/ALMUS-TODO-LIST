@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  getMessaging,
-  getToken,
-  onMessage,
-  deleteToken,
-} from 'firebase/messaging';
+import { supabase } from '../../../lib/supabase/client';
 import { useAuth } from './useAuth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -27,43 +22,22 @@ interface NotificationSettings {
   updatedAt: Date;
 }
 
-const API_BASE_URL =
-  process.env.VITE_FUNCTIONS_URL ||
-  'http://localhost:5001/almus-todo-app/asia-northeast3';
-
 export const useFCM = () => {
   const { user, isAuthenticated } = useAuth();
-  const [messaging, setMessaging] = useState<any>(null);
   const [fcmToken, setFcmToken] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // FCM 초기화
+  // 브라우저 알림 권한 확인 및 초기화
   useEffect(() => {
-    if (isAuthenticated && 'serviceWorker' in navigator) {
-      const initFCM = async () => {
-        try {
-          const messagingInstance = getMessaging();
-          setMessaging(messagingInstance);
-
-          // FCM 토큰 요청
-          const token = await getToken(messagingInstance, {
-            vapidKey: process.env.VITE_FIREBASE_VAPID_KEY,
-          });
-
-          if (token) {
-            setFcmToken(token);
-            console.log('FCM 토큰 획득:', token);
-          }
-        } catch (error) {
-          console.error('FCM 초기화 오류:', error);
-        }
-      };
-
-      initFCM();
+    if (isAuthenticated && 'Notification' in window) {
+      // 기본 브라우저 알림으로 대체 (FCM 대신 사용)
+      if (Notification.permission === 'granted') {
+        setFcmToken('browser-notification-enabled');
+      }
     }
   }, [isAuthenticated]);
 
-  // FCM 토큰 저장
+  // 알림 토큰 저장
   const saveTokenMutation = useMutation({
     mutationFn: async ({
       token,
@@ -72,52 +46,45 @@ export const useFCM = () => {
       token: string;
       platform: string;
     }) => {
-      const response = await fetch(`${API_BASE_URL}/saveFCMToken`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user?.uid}`,
+      const { error } = await supabase.from('notification_tokens').upsert(
+        {
+          user_id: user?.uid,
+          token,
+          platform,
+          is_active: true,
+          updated_at: new Date().toISOString(),
         },
-        body: JSON.stringify({ token, platform }),
-      });
+        {
+          onConflict: 'user_id,platform',
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error('FCM 토큰 저장에 실패했습니다.');
-      }
-
-      return response.json();
+      if (error) throw error;
     },
     onSuccess: () => {
-      console.log('FCM 토큰이 저장되었습니다.');
+      console.log('알림 토큰이 저장되었습니다.');
     },
     onError: error => {
-      console.error('FCM 토큰 저장 오류:', error);
+      console.error('알림 토큰 저장 오류:', error);
     },
   });
 
-  // FCM 토큰 삭제
+  // 알림 토큰 삭제
   const deleteTokenMutation = useMutation({
     mutationFn: async (token: string) => {
-      const response = await fetch(`${API_BASE_URL}/deleteFCMToken`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user?.uid}`,
-        },
-        body: JSON.stringify({ token }),
-      });
+      const { error } = await supabase
+        .from('notification_tokens')
+        .update({ is_active: false })
+        .eq('user_id', user?.uid)
+        .eq('token', token);
 
-      if (!response.ok) {
-        throw new Error('FCM 토큰 삭제에 실패했습니다.');
-      }
-
-      return response.json();
+      if (error) throw error;
     },
     onSuccess: () => {
-      console.log('FCM 토큰이 삭제되었습니다.');
+      console.log('알림 토큰이 삭제되었습니다.');
     },
     onError: error => {
-      console.error('FCM 토큰 삭제 오류:', error);
+      console.error('알림 토큰 삭제 오류:', error);
     },
   });
 
@@ -125,17 +92,76 @@ export const useFCM = () => {
   const { data: notificationSettings, isLoading: settingsLoading } = useQuery({
     queryKey: ['notificationSettings'],
     queryFn: async (): Promise<NotificationSettings> => {
-      const response = await fetch(`${API_BASE_URL}/getNotificationSettings`, {
-        headers: {
-          Authorization: `Bearer ${user?.uid}`,
-        },
-      });
+      const { data, error } = await supabase
+        .from('notification_settings')
+        .select('*')
+        .eq('user_id', user?.uid)
+        .single();
 
-      if (!response.ok) {
-        throw new Error('알림 설정 조회에 실패했습니다.');
+      if (error && error.code !== 'PGRST116') throw error;
+
+      if (!data) {
+        // 기본 설정 생성
+        const defaultSettings = {
+          user_id: user?.uid,
+          push_enabled: true,
+          email_enabled: true,
+          in_app_enabled: true,
+          task_created: true,
+          task_updated: true,
+          task_due_soon: true,
+          task_overdue: true,
+          team_updates: true,
+          quiet_hours_enabled: false,
+          quiet_hours_start: '22:00',
+          quiet_hours_end: '08:00',
+        };
+
+        const { data: created, error: createError } = await supabase
+          .from('notification_settings')
+          .insert(defaultSettings)
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        return {
+          userId: created.user_id,
+          pushEnabled: created.push_enabled,
+          emailEnabled: created.email_enabled,
+          inAppEnabled: created.in_app_enabled,
+          taskCreated: created.task_created,
+          taskUpdated: created.task_updated,
+          taskDueSoon: created.task_due_soon,
+          taskOverdue: created.task_overdue,
+          teamUpdates: created.team_updates,
+          quietHours: {
+            enabled: created.quiet_hours_enabled,
+            start: created.quiet_hours_start,
+            end: created.quiet_hours_end,
+          },
+          createdAt: new Date(created.created_at),
+          updatedAt: new Date(created.updated_at),
+        };
       }
 
-      return response.json();
+      return {
+        userId: data.user_id,
+        pushEnabled: data.push_enabled,
+        emailEnabled: data.email_enabled,
+        inAppEnabled: data.in_app_enabled,
+        taskCreated: data.task_created,
+        taskUpdated: data.task_updated,
+        taskDueSoon: data.task_due_soon,
+        taskOverdue: data.task_overdue,
+        teamUpdates: data.team_updates,
+        quietHours: {
+          enabled: data.quiet_hours_enabled,
+          start: data.quiet_hours_start,
+          end: data.quiet_hours_end,
+        },
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at),
+      };
     },
     enabled: !!user,
   });
@@ -143,20 +169,28 @@ export const useFCM = () => {
   // 알림 설정 저장
   const saveSettingsMutation = useMutation({
     mutationFn: async (settings: Partial<NotificationSettings>) => {
-      const response = await fetch(`${API_BASE_URL}/saveNotificationSettings`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user?.uid}`,
+      const { error } = await supabase.from('notification_settings').upsert(
+        {
+          user_id: user?.uid,
+          push_enabled: settings.pushEnabled,
+          email_enabled: settings.emailEnabled,
+          in_app_enabled: settings.inAppEnabled,
+          task_created: settings.taskCreated,
+          task_updated: settings.taskUpdated,
+          task_due_soon: settings.taskDueSoon,
+          task_overdue: settings.taskOverdue,
+          team_updates: settings.teamUpdates,
+          quiet_hours_enabled: settings.quietHours?.enabled,
+          quiet_hours_start: settings.quietHours?.start,
+          quiet_hours_end: settings.quietHours?.end,
+          updated_at: new Date().toISOString(),
         },
-        body: JSON.stringify(settings),
-      });
+        {
+          onConflict: 'user_id',
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error('알림 설정 저장에 실패했습니다.');
-      }
-
-      return response.json();
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notificationSettings'] });
@@ -170,18 +204,24 @@ export const useFCM = () => {
   // 테스트 알림 발송
   const sendTestNotificationMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/sendTestNotification`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${user?.uid}`,
-        },
-      });
+      // 브라우저 알림으로 테스트 알림 표시
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const notification = new Notification('테스트 알림', {
+          body: '알림 설정이 정상적으로 작동합니다.',
+          icon: '/icon-192x192.png',
+          badge: '/badge-72x72.png',
+          tag: 'test-notification',
+        });
 
-      if (!response.ok) {
-        throw new Error('테스트 알림 발송에 실패했습니다.');
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+
+        return { success: true };
+      } else {
+        throw new Error('알림 권한이 없습니다.');
       }
-
-      return response.json();
     },
     onSuccess: () => {
       console.log('테스트 알림이 발송되었습니다.');
@@ -191,7 +231,7 @@ export const useFCM = () => {
     },
   });
 
-  // FCM 토큰 자동 저장
+  // 알림 토큰 자동 저장
   useEffect(() => {
     if (fcmToken && user) {
       saveTokenMutation.mutate({
@@ -201,61 +241,27 @@ export const useFCM = () => {
     }
   }, [fcmToken, user]);
 
-  // 포그라운드 메시지 처리
-  useEffect(() => {
-    if (messaging) {
-      const unsubscribe = onMessage(messaging, payload => {
-        console.log('포그라운드 메시지 수신:', payload);
-
-        // 브라우저 알림 표시
-        if ('Notification' in window && Notification.permission === 'granted') {
-          const notification = new Notification(
-            payload.notification?.title || '알림',
-            {
-              body: payload.notification?.body,
-              icon: '/icon-192x192.png',
-              badge: '/badge-72x72.png',
-              tag: payload.data?.type,
-              data: payload.data,
-            }
-          );
-
-          // 알림 클릭 시 처리
-          notification.onclick = () => {
-            window.focus();
-            notification.close();
-
-            // Task 페이지로 이동
-            if (payload.data?.taskId) {
-              window.location.href = `/tasks/${payload.data.taskId}`;
-            }
-          };
-        }
-      });
-
-      return () => unsubscribe();
-    }
-  }, [messaging]);
-
   // 알림 권한 요청
   const requestNotificationPermission = async () => {
     if ('Notification' in window) {
       const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        setFcmToken('browser-notification-enabled');
+      }
       return permission === 'granted';
     }
     return false;
   };
 
-  // FCM 구독 해제
+  // 알림 구독 해제
   const unsubscribeFromFCM = async () => {
     if (fcmToken) {
       try {
-        await deleteToken(messaging);
         await deleteTokenMutation.mutateAsync(fcmToken);
         setFcmToken(null);
-        console.log('FCM 구독이 해제되었습니다.');
+        console.log('알림 구독이 해제되었습니다.');
       } catch (error) {
-        console.error('FCM 구독 해제 오류:', error);
+        console.error('알림 구독 해제 오류:', error);
       }
     }
   };

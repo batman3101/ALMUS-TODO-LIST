@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useWebSocket } from '../../services/websocket';
+import { useComments } from '../../hooks/useComments';
 import type {
-  FirestoreComment,
-  FirestoreCommentReaction,
+  Comment as SupabaseComment,
+  CommentReaction,
   CommentType,
 } from '@almus/shared-types';
-import { Timestamp } from 'firebase/firestore';
 
 interface CommentSystemProps {
   resourceType: CommentType;

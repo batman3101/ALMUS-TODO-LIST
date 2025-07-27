@@ -34,7 +34,8 @@
       "Bash(npm test)",
       "mcp__mcp-sequentialthinking-tools__sequentialthinking_tools",
       "Bash(git rm:*)",
-      "Bash(npx madge:*)"
+      "Bash(npx madge:*)",
+      "Bash(npx vitest run:*)"
     ],
     "deny": []
   }

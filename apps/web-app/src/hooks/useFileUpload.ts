@@ -1,14 +1,6 @@
 import { useState } from 'react';
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from 'firebase/storage';
-import { doc, setDoc, deleteDoc } from 'firebase/firestore';
-import { storage, firestore } from '../config/firebase';
+import { supabase } from '../../../../lib/supabase/client';
 import { useAuth } from './useAuth';
-import { getDoc } from 'firebase/firestore';
 import { FileMetadata, UploadState } from '@almus/shared-types';
 
 export interface UploadProgress {
@@ -83,60 +75,74 @@ export const useFileUpload = (): UseFileUploadReturn => {
     });
 
     try {
-      // Storage에 파일 업로드
-      const storageRef = ref(storage, `${path}/${Date.now()}_${file.name}`);
+      // Supabase Storage에 파일 업로드
+      const fileName = `${Date.now()}_${file.name}`;
+      const filePath = `${path}/${fileName}`;
 
-      // 업로드 진행률 모니터링 (Firebase Storage는 기본적으로 진행률을 제공하지 않음)
-      const uploadTask = uploadBytes(storageRef, file);
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('files') // Supabase storage bucket name
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
 
-      // 진행률 시뮬레이션 (실제로는 Firebase Storage에서 제공하지 않음)
-      const progressInterval = setInterval(() => {
-        setUploadState(prev => ({
-          ...prev,
-          progress: {
-            loaded: prev.progress.loaded + file.size / 10,
-            total: file.size,
-            percentage: Math.min(
-              ((prev.progress.loaded + file.size / 10) / file.size) * 100,
-              90
-            ),
-          },
-        }));
-      }, 100);
+      if (uploadError) {
+        throw uploadError;
+      }
 
-      await uploadTask;
-      clearInterval(progressInterval);
+      // 공개 URL 가져오기
+      const { data: urlData } = supabase.storage
+        .from('files')
+        .getPublicUrl(filePath);
 
-      // 다운로드 URL 가져오기
-      const downloadURL = await getDownloadURL(storageRef);
-
-      // Firestore에 메타데이터 저장
-      const fileMetadata: FileMetadata = {
-        id: storageRef.name,
+      // Supabase DB에 메타데이터 저장
+      const fileMetadata = {
         name: file.name,
         size: file.size,
         type: file.type,
-        url: downloadURL,
-        uploaderId: user.uid,
-        uploaderName: user.displayName || user.email || 'Unknown',
-        taskId: metadata?.taskId,
-        projectId: metadata?.projectId,
-        teamId: metadata?.teamId || user.teamId || '',
+        url: urlData.publicUrl,
+        bucket: 'files',
+        path: filePath,
+        uploader_id: user.id,
+        uploader_name: user.displayName || user.email || 'Unknown',
+        task_id: metadata?.taskId,
+        project_id: metadata?.projectId,
+        team_id: metadata?.teamId || user.teamId || '',
         version: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
-      await setDoc(doc(firestore, 'files', fileMetadata.id), fileMetadata);
+      const { data: dbData, error: dbError } = await supabase
+        .from('file_metadata')
+        .insert([fileMetadata])
+        .select()
+        .single();
+
+      if (dbError) {
+        // 업로드된 파일 삭제 후 에러 throw
+        await supabase.storage.from('files').remove([filePath]);
+        throw dbError;
+      }
 
       setUploadState({
         isUploading: false,
         progress: { loaded: file.size, total: file.size, percentage: 100 },
         error: null,
-        downloadURL,
+        downloadURL: urlData.publicUrl,
       });
 
-      return fileMetadata;
+      return {
+        ...dbData,
+        id: dbData.id,
+        uploaderId: dbData.uploader_id,
+        uploaderName: dbData.uploader_name,
+        taskId: dbData.task_id,
+        projectId: dbData.project_id,
+        teamId: dbData.team_id,
+        createdAt: new Date(dbData.created_at),
+        updatedAt: new Date(dbData.updated_at),
+      } as FileMetadata;
     } catch (error) {
       setUploadState({
         isUploading: false,
@@ -181,27 +187,41 @@ export const useFileUpload = (): UseFileUploadReturn => {
     }
 
     try {
-      // Firestore에서 파일 메타데이터 조회
-      const fileDoc = await doc(firestore, 'files', fileId);
-      const fileSnap = await getDoc(fileDoc);
+      // Supabase DB에서 파일 메타데이터 조회
+      const { data: fileData, error: fetchError } = await supabase
+        .from('file_metadata')
+        .select('*')
+        .eq('id', fileId)
+        .single();
 
-      if (!fileSnap.exists()) {
+      if (fetchError || !fileData) {
         return { success: false, error: '파일을 찾을 수 없습니다.' };
       }
 
-      const fileData = fileSnap.data() as FileMetadata;
-
       // 권한 확인 (업로더 또는 팀 관리자만 삭제 가능)
-      if (fileData.uploaderId !== user.uid && user.role !== 'ADMIN') {
+      if (fileData.uploader_id !== user.id && user.role !== 'ADMIN') {
         return { success: false, error: '파일을 삭제할 권한이 없습니다.' };
       }
 
-      // Storage에서 파일 삭제
-      const storageRef = ref(storage, fileId);
-      await deleteObject(storageRef);
+      // Supabase Storage에서 파일 삭제
+      const { error: storageError } = await supabase.storage
+        .from('files')
+        .remove([fileData.path]);
 
-      // Firestore에서 메타데이터 삭제
-      await deleteDoc(fileDoc);
+      if (storageError) {
+        console.warn('Storage 파일 삭제 실패:', storageError);
+        // Storage 삭제 실패해도 메타데이터는 삭제 진행
+      }
+
+      // Supabase DB에서 메타데이터 삭제
+      const { error: dbError } = await supabase
+        .from('file_metadata')
+        .delete()
+        .eq('id', fileId);
+
+      if (dbError) {
+        throw dbError;
+      }
 
       return { success: true };
     } catch (error) {
@@ -217,15 +237,16 @@ export const useFileUpload = (): UseFileUploadReturn => {
     fileId: string
   ): Promise<{ success: boolean; url?: string; error?: string }> => {
     try {
-      // Firestore에서 파일 메타데이터 조회
-      const fileDoc = await doc(firestore, 'files', fileId);
-      const fileSnap = await getDoc(fileDoc);
+      // Supabase DB에서 파일 메타데이터 조회
+      const { data: fileData, error: fetchError } = await supabase
+        .from('file_metadata')
+        .select('*')
+        .eq('id', fileId)
+        .single();
 
-      if (!fileSnap.exists()) {
+      if (fetchError || !fileData) {
         return { success: false, error: '파일을 찾을 수 없습니다.' };
       }
-
-      const fileData = fileSnap.data() as FileMetadata;
 
       return { success: true, url: fileData.url };
     } catch (error) {

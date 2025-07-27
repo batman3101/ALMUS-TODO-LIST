@@ -1,13 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  doc,
-  getDoc,
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { supabase } from '../../../lib/supabase/client';
 import { useAuth } from './useAuth';
 import {
   Permission,
@@ -15,11 +7,10 @@ import {
   TaskPermission,
   ProjectRole,
   TaskRole,
-  TeamRole,
   PermissionAction,
   ResourceType,
-  FIRESTORE_COLLECTIONS,
 } from '../types/team';
+import type { TeamRole } from '@almus/shared-types/src/supabase-schema';
 
 // 권한 매트릭스 정의
 const TEAM_PERMISSIONS: Record<TeamRole, Record<PermissionAction, boolean>> = {
@@ -198,72 +189,107 @@ export const usePermissions = (): UsePermissionsReturn => {
       return;
     }
 
-    const unsubscribes: (() => void)[] = [];
+    const loadPermissions = async () => {
+      try {
+        // 프로젝트 권한 조회
+        const { data: projectPerms, error: projectError } = await supabase
+          .from('project_permissions')
+          .select('*')
+          .eq('user_id', user.uid)
+          .eq('is_active', true);
 
-    // 프로젝트 권한 구독
-    const projectPermissionsQuery = query(
-      collection(db, FIRESTORE_COLLECTIONS.PROJECT_PERMISSIONS),
-      where('userId', '==', user.id),
-      where('isActive', '==', true)
-    );
+        if (projectError) throw projectError;
 
-    const unsubscribeProjects = onSnapshot(
-      projectPermissionsQuery,
-      snapshot => {
-        const permissions = snapshot.docs.map(doc => {
-          const data = doc.data() as any;
-          return {
-            id: doc.id,
-            projectId: data.projectId,
-            userId: data.userId,
-            role: data.role,
-            permissions: data.permissions || [],
-            grantedBy: data.grantedBy,
-            grantedAt: data.grantedAt.toDate(),
-            expiresAt: data.expiresAt?.toDate(),
-            isActive: data.isActive,
-            createdAt: data.createdAt.toDate(),
-            updatedAt: data.updatedAt.toDate(),
-          } as ProjectPermission;
-        });
-        setProjectPermissions(permissions);
+        // 작업 권한 조회
+        const { data: taskPerms, error: taskError } = await supabase
+          .from('task_permissions')
+          .select('*')
+          .eq('user_id', user.uid)
+          .eq('is_active', true);
+
+        if (taskError) throw taskError;
+
+        setProjectPermissions(
+          projectPerms?.map(perm => ({
+            id: perm.id,
+            projectId: perm.project_id,
+            userId: perm.user_id,
+            role: perm.role as ProjectRole,
+            permissions: perm.permissions || [],
+            grantedBy: perm.granted_by,
+            grantedAt: new Date(perm.granted_at),
+            expiresAt: perm.expires_at ? new Date(perm.expires_at) : undefined,
+            isActive: perm.is_active,
+            createdAt: new Date(perm.created_at),
+            updatedAt: new Date(perm.updated_at),
+          })) || []
+        );
+
+        setTaskPermissions(
+          taskPerms?.map(perm => ({
+            id: perm.id,
+            taskId: perm.task_id,
+            userId: perm.user_id,
+            role: perm.role as TaskRole,
+            permissions: perm.permissions || [],
+            grantedBy: perm.granted_by,
+            grantedAt: new Date(perm.granted_at),
+            expiresAt: perm.expires_at ? new Date(perm.expires_at) : undefined,
+            isActive: perm.is_active,
+            createdAt: new Date(perm.created_at),
+            updatedAt: new Date(perm.updated_at),
+          })) || []
+        );
+
+        // 실시간 권한 변경 구독
+        const projectChannel = supabase
+          .channel('project-permissions')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'project_permissions',
+              filter: `user_id=eq.${user.uid}`,
+            },
+            () => {
+              // 권한이 변경되면 다시 로드
+              loadPermissions();
+            }
+          )
+          .subscribe();
+
+        const taskChannel = supabase
+          .channel('task-permissions')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'task_permissions',
+              filter: `user_id=eq.${user.uid}`,
+            },
+            () => {
+              // 권한이 변경되면 다시 로드
+              loadPermissions();
+            }
+          )
+          .subscribe();
+
+        return () => {
+          projectChannel.unsubscribe();
+          taskChannel.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Failed to load permissions:', error);
+      } finally {
+        setLoading(false);
       }
-    );
+    };
 
-    unsubscribes.push(unsubscribeProjects);
-
-    // 작업 권한 구독
-    const taskPermissionsQuery = query(
-      collection(db, FIRESTORE_COLLECTIONS.TASK_PERMISSIONS),
-      where('userId', '==', user.id),
-      where('isActive', '==', true)
-    );
-
-    const unsubscribeTasks = onSnapshot(taskPermissionsQuery, snapshot => {
-      const permissions = snapshot.docs.map(doc => {
-        const data = doc.data() as any;
-        return {
-          id: doc.id,
-          taskId: data.taskId,
-          userId: data.userId,
-          role: data.role,
-          permissions: data.permissions || [],
-          grantedBy: data.grantedBy,
-          grantedAt: data.grantedAt.toDate(),
-          expiresAt: data.expiresAt?.toDate(),
-          isActive: data.isActive,
-          createdAt: data.createdAt.toDate(),
-          updatedAt: data.updatedAt.toDate(),
-        } as TaskPermission;
-      });
-      setTaskPermissions(permissions);
-      setLoading(false);
-    });
-
-    unsubscribes.push(unsubscribeTasks);
-
+    const cleanup = loadPermissions();
     return () => {
-      unsubscribes.forEach(unsub => unsub());
+      cleanup?.then(cleanupFn => cleanupFn?.());
     };
   }, [user]);
 

@@ -9,7 +9,10 @@ import { useTasks, useUpdateTask } from '../hooks/useTasks';
 import { useTeams } from '../hooks/useTeams';
 import { useTheme } from '../contexts/ThemeContext';
 import type { Task } from '@almus/shared-types';
-import { TaskStatus, TaskPriority } from '@almus/shared-types';
+import type {
+  TaskStatus,
+  TaskPriority,
+} from '@almus/shared-types/src/supabase-schema';
 import { createToast } from '../utils/toast';
 import CreateTaskForm from './CreateTaskForm';
 
