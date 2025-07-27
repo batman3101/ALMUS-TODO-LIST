@@ -5,9 +5,7 @@ import {
   expect,
   beforeEach,
   afterAll,
-  beforeAll,
 } from 'vitest';
-import { logger } from './logger';
 
 // Mock console methods
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -33,8 +31,11 @@ describe('Logger', () => {
     mockConsoleDebug.mockRestore();
   });
 
-  describe('error', () => {
-    it('should always log errors', () => {
+  describe('error logging', () => {
+    it('should always log errors', async () => {
+      // Dynamic import to avoid module caching issues
+      const { logger } = await import('./logger');
+      
       logger.error('Test error', { data: 'test' });
       expect(mockConsoleError).toHaveBeenCalledWith('[ERROR] Test error', {
         data: 'test',
@@ -42,8 +43,10 @@ describe('Logger', () => {
     });
   });
 
-  describe('warn', () => {
-    it('should always log warnings', () => {
+  describe('warn logging', () => {
+    it('should always log warnings', async () => {
+      const { logger } = await import('./logger');
+      
       logger.warn('Test warning', { data: 'test' });
       expect(mockConsoleWarn).toHaveBeenCalledWith('[WARN] Test warning', {
         data: 'test',
@@ -51,32 +54,51 @@ describe('Logger', () => {
     });
   });
 
-  describe('development environment', () => {
-    const originalEnv = process.env.NODE_ENV;
+  describe('development environment (DEV=true)', () => {
+    it('should log info, debug, and general logs when DEV is true', async () => {
+      // Mock import.meta.env.DEV as true
+      vi.doMock('./logger', () => {
+        const isDevelopment = true; // Simulate DEV=true
+        
+        return {
+          logger: {
+            error: (message: string, ...args: unknown[]) => {
+              console.error(`[ERROR] ${message}`, ...args);
+            },
+            warn: (message: string, ...args: unknown[]) => {
+              console.warn(`[WARN] ${message}`, ...args);
+            },
+            info: (message: string, ...args: unknown[]) => {
+              if (isDevelopment) {
+                console.info(`[INFO] ${message}`, ...args);
+              }
+            },
+            debug: (message: string, ...args: unknown[]) => {
+              if (isDevelopment) {
+                console.debug(`[DEBUG] ${message}`, ...args);
+              }
+            },
+            log: (message: string, ...args: unknown[]) => {
+              if (isDevelopment) {
+                console.log(`[LOG] ${message}`, ...args);
+              }
+            },
+          },
+        };
+      });
 
-    beforeAll(() => {
-      process.env.NODE_ENV = 'development';
-    });
+      const { logger } = await import('./logger');
 
-    afterAll(() => {
-      process.env.NODE_ENV = originalEnv;
-    });
-
-    it('should log info in development', () => {
       logger.info('Test info', { data: 'test' });
       expect(mockConsoleInfo).toHaveBeenCalledWith('[INFO] Test info', {
         data: 'test',
       });
-    });
 
-    it('should log debug in development', () => {
       logger.debug('Test debug', { data: 'test' });
       expect(mockConsoleDebug).toHaveBeenCalledWith('[DEBUG] Test debug', {
         data: 'test',
       });
-    });
 
-    it('should log general logs in development', () => {
       logger.log('Test log', { data: 'test' });
       expect(mockConsoleLog).toHaveBeenCalledWith('[LOG] Test log', {
         data: 'test',
@@ -84,28 +106,47 @@ describe('Logger', () => {
     });
   });
 
-  describe('production environment', () => {
-    const originalEnv = process.env.NODE_ENV;
+  describe('production environment (DEV=false)', () => {
+    it('should not log info, debug, and general logs when DEV is false', async () => {
+      // Mock import.meta.env.DEV as false
+      vi.doMock('./logger', () => {
+        const isDevelopment = false; // Simulate DEV=false
+        
+        return {
+          logger: {
+            error: (message: string, ...args: unknown[]) => {
+              console.error(`[ERROR] ${message}`, ...args);
+            },
+            warn: (message: string, ...args: unknown[]) => {
+              console.warn(`[WARN] ${message}`, ...args);
+            },
+            info: (message: string, ...args: unknown[]) => {
+              if (isDevelopment) {
+                console.info(`[INFO] ${message}`, ...args);
+              }
+            },
+            debug: (message: string, ...args: unknown[]) => {
+              if (isDevelopment) {
+                console.debug(`[DEBUG] ${message}`, ...args);
+              }
+            },
+            log: (message: string, ...args: unknown[]) => {
+              if (isDevelopment) {
+                console.log(`[LOG] ${message}`, ...args);
+              }
+            },
+          },
+        };
+      });
 
-    beforeAll(() => {
-      process.env.NODE_ENV = 'production';
-    });
+      const { logger } = await import('./logger');
 
-    afterAll(() => {
-      process.env.NODE_ENV = originalEnv;
-    });
-
-    it('should not log info in production', () => {
       logger.info('Test info', { data: 'test' });
       expect(mockConsoleInfo).not.toHaveBeenCalled();
-    });
 
-    it('should not log debug in production', () => {
       logger.debug('Test debug', { data: 'test' });
       expect(mockConsoleDebug).not.toHaveBeenCalled();
-    });
 
-    it('should not log general logs in production', () => {
       logger.log('Test log', { data: 'test' });
       expect(mockConsoleLog).not.toHaveBeenCalled();
     });

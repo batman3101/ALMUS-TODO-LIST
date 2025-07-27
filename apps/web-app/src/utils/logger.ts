@@ -2,7 +2,7 @@
  * 개발/프로덕션 환경을 고려한 로깅 유틸리티
  */
 
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = import.meta.env.DEV;
 
 export const logger = {
   /**

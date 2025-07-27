@@ -114,7 +114,7 @@ class WebSocketService {
 
     try {
       this.socket = io(
-        process.env.REACT_APP_WEBSOCKET_URL || 'ws://localhost:3001',
+        import.meta.env.VITE_WEBSOCKET_URL || 'ws://localhost:3001',
         {
           auth: {
             userId,

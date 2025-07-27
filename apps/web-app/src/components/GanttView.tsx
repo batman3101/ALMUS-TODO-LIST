@@ -131,7 +131,7 @@ const GanttView: React.FC = () => {
       );
 
       // 디버깅 정보 (개발 시에만)
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         // Progress calculation debugging disabled in production
       }
 
@@ -553,7 +553,7 @@ const GanttView: React.FC = () => {
     const totalMs = end.getTime() - start.getTime();
 
     // 디버깅 정보 (개발 시에만)
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       // Timeline render debugging disabled in production
     }
 
@@ -640,7 +640,7 @@ const GanttView: React.FC = () => {
     const width = Math.max(0.5, rightPosition - leftPosition); // 최소 0.5% 너비 보장
 
     // 디버깅 정보 (개발 시에만)
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       // Task position debugging disabled in production
     }
 

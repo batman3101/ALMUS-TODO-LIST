@@ -49,7 +49,7 @@ export const translateText = async (
   try {
     // Google Translation API 호출
     const response = await fetch(
-      `https://translation.googleapis.com/language/translate/v2?key=${process.env.REACT_APP_GOOGLE_TRANSLATE_API_KEY}`,
+      `https://translation.googleapis.com/language/translate/v2?key=${import.meta.env.VITE_GOOGLE_TRANSLATE_API_KEY}`,
       {
         method: 'POST',
         headers: {

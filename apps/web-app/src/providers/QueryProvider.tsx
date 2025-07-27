@@ -26,7 +26,7 @@ export const QueryProvider = ({ children }: QueryProviderProps) => {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {process.env.NODE_ENV === 'development' && (
+      {import.meta.env.DEV && (
         <div style={{ display: 'none' }}>
           {/* ReactQueryDevtools는 개발 환경에서만 필요하므로 주석 처리 */}
           {/* <ReactQueryDevtools initialIsOpen={false} /> */}
