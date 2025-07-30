@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TaskController } from './task.controller';
 import { TaskService } from './task.service';
-import { TaskStatus, TaskPriority } from '@almus/shared-types';
+import type { TaskStatus, TaskPriority, CreateTaskInput, UpdateTaskInput } from '@almus/shared-types';
 
 describe('TaskController', () => {
   let controller: TaskController;
@@ -16,12 +16,12 @@ describe('TaskController', () => {
       status: 'TODO',
       priority: 'MEDIUM',
     })),
-    createTask: jest.fn((createTaskInput: any, userId: string) => ({
+    createTask: jest.fn((createTaskInput: CreateTaskInput, userId: string) => ({
       id: 'new-id',
       ...createTaskInput,
       createdBy: userId,
     })),
-    updateTask: jest.fn((id: string, updateTaskInput: any, userId: string) => ({
+    updateTask: jest.fn((id: string, updateTaskInput: UpdateTaskInput, userId: string) => ({
       id,
       ...updateTaskInput,
       updatedBy: userId,
@@ -74,13 +74,13 @@ describe('TaskController', () => {
 
   describe('create', () => {
     it('should create a new task', async () => {
-      const createTaskInput = {
+      const createTaskInput: CreateTaskInput = {
         title: 'New Task',
         description: 'New Description',
-        status: TaskStatus.TODO,
-        priority: TaskPriority.HIGH,
-        assigneeId: 'test-assignee',
-        teamId: 'test-team',
+        assignee_id: 'test-assignee',
+        project_id: 'test-project',
+        team_id: 'test-team',
+        priority: 'HIGH' as TaskPriority,
       };
       const req = { user: { userId: 'test-user' } };
 

@@ -4,10 +4,10 @@ import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { NotificationSettings } from './entities/notification-settings.entity';
 import { NotificationTemplate } from './entities/notification-template.entity';
-import {
-  Notification as NotificationType,
+import type {
+  Notification as NotificationTypeInterface,
   CreateNotificationInput,
-  NotificationType as NotificationTypeEnum,
+  NotificationType,
   NotificationChannel,
 } from '@almus/shared-types';
 
@@ -24,9 +24,9 @@ export class NotificationService {
 
   async createNotification(
     input: CreateNotificationInput
-  ): Promise<NotificationType> {
+  ): Promise<NotificationTypeInterface> {
     const notification = this.notificationRepository.create({
-      userId: input.userId,
+      user_id: input.user_id,
       type: input.type,
       title: input.title,
       message: input.message,
@@ -34,7 +34,8 @@ export class NotificationService {
       channels: input.channels,
     });
 
-    return this.notificationRepository.save(notification);
+    const savedNotification = await this.notificationRepository.save(notification);
+    return this.mapToNotificationInterface(savedNotification);
   }
 
   async findNotificationsByUserId(userId: string): Promise<NotificationType[]> {

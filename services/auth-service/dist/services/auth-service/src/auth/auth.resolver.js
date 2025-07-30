@@ -30,9 +30,9 @@ let AuthResolver = class AuthResolver {
             email: 'test@example.com',
             name: 'Test User',
             role: 'ADMIN',
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
         };
     }
 };

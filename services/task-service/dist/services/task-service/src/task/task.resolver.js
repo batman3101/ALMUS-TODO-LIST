@@ -40,8 +40,11 @@ let TaskResolver = class TaskResolver {
     }
     async assignee(task) {
         // TODO: 실제 사용자 정보 가져오기
+        if (!task.assignee_id) {
+            return null;
+        }
         return {
-            id: task.assigneeId,
+            id: task.assignee_id,
             name: 'Test User',
             email: 'test@example.com',
         };
@@ -49,7 +52,7 @@ let TaskResolver = class TaskResolver {
     async createdByUser(task) {
         // TODO: 실제 사용자 정보 가져오기
         return {
-            id: task.createdBy,
+            id: task.created_by,
             name: 'Test User',
             email: 'test@example.com',
         };

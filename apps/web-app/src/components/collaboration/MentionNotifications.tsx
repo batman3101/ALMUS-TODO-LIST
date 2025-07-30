@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from '../../utils/logger';
 import { useMentions } from '../../hooks/useMentions';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 import { ko } from 'date-fns/locale';
@@ -33,7 +34,7 @@ export const MentionNotifications: React.FC<MentionNotificationsProps> = ({
         window.location.href = `${baseUrl}#comment-${mentionId}`;
       }
     } catch (error) {
-      console.error('Failed to handle mention click:', error);
+      logger.error('Failed to handle mention click:', error);
     }
   };
 

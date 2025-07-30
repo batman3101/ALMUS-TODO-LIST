@@ -1,7 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '../utils/logger';
 import { useAuth } from './useAuth';
 import { supabase } from '../../../lib/supabase/client';
-import type { Mention as SupabaseMention, User } from '@almus/shared-types';
+import type { Mention as SupabaseMention } from '@almus/shared-types';
+
+interface CommentInfo {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+}
 
 interface Mention extends Omit<SupabaseMention, 'created_at' | 'read_at'> {
   createdAt: Date;
@@ -65,7 +73,7 @@ export const useMentions = ({
   }, []);
 
   // 사용자 정보 캐시
-  const userCache = new Map<string, any>();
+  const userCache = new Map<string, CommentInfo>();
 
   const loadUserInfo = useCallback(async (userId: string) => {
     if (userCache.has(userId)) {
@@ -92,14 +100,14 @@ export const useMentions = ({
         return userData;
       }
     } catch (error) {
-      console.error('Error loading user info:', error);
+      logger.error('Error loading user info:', error);
     }
 
     return null;
   }, []);
 
   // 댓글 정보 캐시
-  const commentCache = new Map<string, any>();
+  const commentCache = new Map<string, CommentInfo>();
 
   const loadCommentInfo = useCallback(async (commentId: string) => {
     if (commentCache.has(commentId)) {
@@ -126,7 +134,7 @@ export const useMentions = ({
         return commentData;
       }
     } catch (error) {
-      console.error('Error loading comment info:', error);
+      logger.error('Error loading comment info:', error);
     }
 
     return null;
@@ -201,7 +209,7 @@ export const useMentions = ({
         };
       }
     } catch (error) {
-      console.error('Error loading mentions:', error);
+      logger.error('Error loading mentions:', error);
       setError('멘션을 불러오는 중 오류가 발생했습니다.');
       setIsLoading(false);
     }
@@ -241,7 +249,7 @@ export const useMentions = ({
 
         setUnreadCount(prev => Math.max(0, prev - 1));
       } catch (error) {
-        console.error('Error marking mention as read:', error);
+        logger.error('Error marking mention as read:', error);
         throw new Error('멘션을 읽음으로 표시하는 중 오류가 발생했습니다.');
       }
     },
@@ -277,7 +285,7 @@ export const useMentions = ({
 
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error marking all mentions as read:', error);
+      logger.error('Error marking all mentions as read:', error);
       throw new Error('모든 멘션을 읽음으로 표시하는 중 오류가 발생했습니다.');
     }
   }, [user]);
@@ -308,7 +316,7 @@ export const useMentions = ({
         // 현재 사용자는 제외
         return users.filter(u => u.id !== user?.uid);
       } catch (error) {
-        console.error('Error searching mentionable users:', error);
+        logger.error('Error searching mentionable users:', error);
         return [];
       }
     },
@@ -348,7 +356,7 @@ export const useMentions = ({
       // 실제로는 Intersection Observer를 사용해야 함
       const timeoutId = setTimeout(() => {
         unreadMentions.forEach(mention => {
-          markAsRead(mention.id).catch(console.error);
+          markAsRead(mention.id).catch(logger.error);
         });
       }, 1000);
 

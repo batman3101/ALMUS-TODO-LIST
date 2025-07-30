@@ -1,12 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService, ApiError } from '../services/api';
 import type {
-  Task,
-  Team,
-  TeamMember,
-  Project,
-  Comment,
-  User,
   TaskFilters,
   TeamMemberFilters,
   CreateTaskData,

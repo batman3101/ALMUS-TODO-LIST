@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TaskService } from './task.service';
-import { TaskStatus, TaskPriority } from '@almus/shared-types';
+import type { TaskStatus, TaskPriority, CreateTaskInput } from '@almus/shared-types';
 
 describe('TaskService', () => {
   let service: TaskService;
@@ -40,13 +40,13 @@ describe('TaskService', () => {
 
   describe('createTask', () => {
     it('should create a new task', async () => {
-      const createTaskInput = {
+      const createTaskInput: CreateTaskInput = {
         title: 'Test Task',
         description: 'Test Description',
-        status: TaskStatus.TODO,
-        priority: TaskPriority.MEDIUM,
-        assigneeId: 'test-assignee',
-        teamId: 'test-team',
+        assignee_id: 'test-assignee',
+        project_id: 'test-project',
+        team_id: 'test-team',
+        priority: 'MEDIUM' as TaskPriority,
       };
       const userId = 'test-user-id';
 

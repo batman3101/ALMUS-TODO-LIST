@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { logger } from '../utils/logger';
 import {
   CheckCircle,
   XCircle,
@@ -111,7 +112,7 @@ export const TeamInvitationPage: React.FC = () => {
 
         setInvitation(invitationData);
       } catch (error) {
-        console.error('Failed to load invitation:', error);
+        logger.error('Failed to load invitation:', error);
         setResult({
           type: 'error',
           message: '초대 정보를 불러오는 중 오류가 발생했습니다.',

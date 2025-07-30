@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from '../utils/logger';
 import { useWebSocket } from '../services/websocket';
 import { useAuth } from './useAuth';
 import type {
@@ -151,7 +152,7 @@ export const useCollaborativeSession = ({
     (message: WebSocketMessage) => {
       if (message.resourceId !== resourceId) return;
 
-      const { userId, fieldPath } = message.data;
+      const { userId } = message.data;
 
       setSessionState(prev => ({
         ...prev,
@@ -250,9 +251,9 @@ export const useCollaborativeSession = ({
         lastActivity: new Date(),
       }));
 
-      console.log(`Joined collaborative session: ${sessionId}`);
+      logger.log(`Joined collaborative session: ${sessionId}`);
     } catch (err) {
-      console.error('Failed to join collaborative session:', err);
+      logger.error('Failed to join collaborative session:', err);
       setError(err instanceof Error ? err.message : 'Failed to join session');
     } finally {
       setIsConnecting(false);
@@ -279,9 +280,9 @@ export const useCollaborativeSession = ({
       pendingOperations.current = [];
       appliedOperations.current.clear();
 
-      console.log('Left collaborative session');
+      logger.log('Left collaborative session');
     } catch (err) {
-      console.error('Failed to leave collaborative session:', err);
+      logger.error('Failed to leave collaborative session:', err);
       setError(err instanceof Error ? err.message : 'Failed to leave session');
     }
   }, [websocket, sessionState.isActive]);

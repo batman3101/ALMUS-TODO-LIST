@@ -7,7 +7,6 @@ import {
   UserPlus,
   Shield,
   AlertTriangle,
-  TrendingUp,
   Users,
   Clock,
   BarChart3,

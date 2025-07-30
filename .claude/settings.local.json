@@ -35,7 +35,14 @@
       "mcp__mcp-sequentialthinking-tools__sequentialthinking_tools",
       "Bash(git rm:*)",
       "Bash(npx madge:*)",
-      "Bash(npx vitest run:*)"
+      "Bash(npx vitest run:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(node:*)",
+      "mcp__mcp-taskmanager__request_planning",
+      "mcp__mcp-taskmanager__get_next_task",
+      "mcp__mcp-taskmanager__mark_task_done",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }

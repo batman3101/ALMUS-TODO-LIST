@@ -34,10 +34,6 @@ export const TaskPermissionsPanel: React.FC<TaskPermissionsPanelProps> = ({
     getExpiredPermissions,
     getExpiringPermissions,
     getPermissionStats,
-    changeAssignee,
-    addReviewer,
-    addCollaborator,
-    addWatcher,
   } = useTaskPermissions(taskId);
   const { canManageTaskPermissions } = usePermissions();
   const [showGrantModal, setShowGrantModal] = useState(false);
@@ -227,7 +223,7 @@ export const TaskPermissionsPanel: React.FC<TaskPermissionsPanelProps> = ({
 
       {/* 역할별 요약 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {Object.entries(TaskRole).map(([key, role]) => {
+        {Object.entries(TaskRole).map(([, role]) => {
           const rolePermissions = getPermissionsByRole(role);
           const isAssignee = role === TaskRole.ASSIGNEE;
 

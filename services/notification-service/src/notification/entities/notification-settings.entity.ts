@@ -7,7 +7,10 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { NotificationFrequency } from '@almus/shared-types';
+import type { NotificationFrequency } from '@almus/shared-types';
+
+// Enum values for TypeORM
+const NotificationFrequencyEnum = ['IMMEDIATE', 'HOURLY', 'DAILY', 'WEEKLY', 'NEVER'] as const;
 
 @Entity('notification_settings')
 export class NotificationSettings {
@@ -15,88 +18,88 @@ export class NotificationSettings {
   id: string;
 
   @Column({ type: 'uuid' })
-  userId: string;
+  user_id: string;
 
   @Column({
     type: 'enum',
-    enum: NotificationFrequency,
-    default: NotificationFrequency.IMMEDIATE,
+    enum: NotificationFrequencyEnum,
+    default: 'IMMEDIATE',
   })
-  taskDueReminder: NotificationFrequency;
+  task_due_reminder: NotificationFrequency;
 
   @Column({
     type: 'enum',
-    enum: NotificationFrequency,
-    default: NotificationFrequency.IMMEDIATE,
+    enum: NotificationFrequencyEnum,
+    default: 'IMMEDIATE',
   })
-  taskStatusChange: NotificationFrequency;
+  task_status_change: NotificationFrequency;
 
   @Column({
     type: 'enum',
-    enum: NotificationFrequency,
-    default: NotificationFrequency.IMMEDIATE,
+    enum: NotificationFrequencyEnum,
+    default: 'IMMEDIATE',
   })
-  taskAssigned: NotificationFrequency;
+  task_assigned: NotificationFrequency;
 
   @Column({
     type: 'enum',
-    enum: NotificationFrequency,
-    default: NotificationFrequency.IMMEDIATE,
+    enum: NotificationFrequencyEnum,
+    default: 'IMMEDIATE',
   })
-  taskComment: NotificationFrequency;
+  task_comment: NotificationFrequency;
 
   @Column({
     type: 'enum',
-    enum: NotificationFrequency,
-    default: NotificationFrequency.IMMEDIATE,
+    enum: NotificationFrequencyEnum,
+    default: 'IMMEDIATE',
   })
-  taskOverdue: NotificationFrequency;
+  task_overdue: NotificationFrequency;
 
   @Column({
     type: 'enum',
-    enum: NotificationFrequency,
-    default: NotificationFrequency.IMMEDIATE,
+    enum: NotificationFrequencyEnum,
+    default: 'IMMEDIATE',
   })
-  systemAnnouncement: NotificationFrequency;
+  system_announcement: NotificationFrequency;
 
   @Column({ type: 'boolean', default: true })
-  emailEnabled: boolean;
+  email_enabled: boolean;
 
   @Column({ type: 'boolean', default: true })
-  pushEnabled: boolean;
+  push_enabled: boolean;
 
   @Column({ type: 'boolean', default: true })
-  inAppEnabled: boolean;
+  in_app_enabled: boolean;
 
   @Column({ type: 'boolean', default: false })
-  slackEnabled: boolean;
+  slack_enabled: boolean;
 
   @Column({ type: 'boolean', default: false })
-  teamsEnabled: boolean;
+  teams_enabled: boolean;
 
   @Column({ type: 'boolean', default: false })
-  kakaoEnabled: boolean;
+  kakao_enabled: boolean;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  emailAddress?: string;
+  email_address?: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  slackWebhook?: string;
+  slack_webhook?: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  teamsWebhook?: string;
+  teams_webhook?: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  kakaoWebhook?: string;
+  kakao_webhook?: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updated_at: Date;
 
   // Relations
   @ManyToOne(() => NotificationSettings, { nullable: true })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'user_id' })
   user?: any;
 }

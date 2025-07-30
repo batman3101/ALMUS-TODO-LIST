@@ -3,12 +3,7 @@ import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import CreateTaskForm from './CreateTaskForm';
-import {
-  render,
-  mockSupabase,
-  createMockTeam,
-  createMockProject,
-} from '../utils/test-utils';
+import { render, createMockTeam, createMockProject } from '../utils/test-utils';
 
 // Mock translation
 vi.mock('react-i18next', () => ({

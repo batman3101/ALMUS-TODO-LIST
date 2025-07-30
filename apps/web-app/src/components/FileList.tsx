@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../../lib/supabase/client';
 import { useFileUpload } from '../hooks/useFileUpload';
 import { FileMetadata } from '@almus/shared-types';
+import { logger } from '../utils/logger';
 
 interface FileListProps {
   taskId?: string;
@@ -54,7 +55,7 @@ export const FileList: React.FC<FileListProps> = ({
 
       setFiles(fileList || []);
     } catch (error) {
-      console.error('파일 목록 로드 실패:', error);
+      logger.error('파일 목록 로드 실패:', error);
       setError('파일 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
@@ -67,7 +68,7 @@ export const FileList: React.FC<FileListProps> = ({
       setFiles(prev => prev.filter(file => file.id !== fileId));
       onFileDeleted?.(fileId);
     } catch (error) {
-      console.error('파일 삭제 실패:', error);
+      logger.error('파일 삭제 실패:', error);
       setError('파일 삭제에 실패했습니다.');
     }
   };
@@ -76,7 +77,7 @@ export const FileList: React.FC<FileListProps> = ({
     try {
       await downloadFile(file.id, file.name);
     } catch (error) {
-      console.error('파일 다운로드 실패:', error);
+      logger.error('파일 다운로드 실패:', error);
       setError('파일 다운로드에 실패했습니다.');
     }
   };
@@ -115,17 +116,29 @@ export const FileList: React.FC<FileListProps> = ({
     <div className={`space-y-2 ${className}`}>
       <h3 className="text-lg font-semibold mb-3">첨부 파일</h3>
       {files.map(file => (
-        <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div
+          key={file.id}
+          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+        >
           <div className="flex items-center space-x-3">
             <div className="flex-shrink-0">
-              <svg className="h-8 w-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+              <svg
+                className="h-8 w-8 text-gray-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">{file.name}</p>
               <p className="text-sm text-gray-500">
-                {(file.size / 1024).toFixed(1)} KB • {new Date(file.created_at).toLocaleDateString()}
+                {(file.size / 1024).toFixed(1)} KB •{' '}
+                {new Date(file.created_at).toLocaleDateString()}
               </p>
             </div>
           </div>

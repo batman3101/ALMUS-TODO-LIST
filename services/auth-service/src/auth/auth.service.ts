@@ -18,10 +18,10 @@ export class AuthService {
       id: '1',
       email,
       name: 'Test User',
-      role: UserRole.ADMIN,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      role: 'ADMIN' as UserRole,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
   }
 
@@ -53,11 +53,11 @@ export class AuthService {
       id: profile.id,
       email: profile.email,
       name: profile.name,
-      role: UserRole.EDITOR,
+      role: 'EDITOR' as UserRole,
       avatar: profile.avatar,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
   }
 

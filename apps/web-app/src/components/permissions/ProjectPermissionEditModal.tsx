@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '../../utils/logger';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,6 @@ import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { CalendarIcon, Edit } from 'lucide-react';
 import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
 import {
   ProjectRole,
@@ -85,7 +85,7 @@ export const ProjectPermissionEditModal: React.FC<
       };
       await onSave(input);
     } catch (error) {
-      console.error('권한 수정 실패:', error);
+      logger.error('권한 수정 실패:', error);
     } finally {
       setIsLoading(false);
     }

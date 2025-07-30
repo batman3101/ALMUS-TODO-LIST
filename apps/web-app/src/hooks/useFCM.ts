@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 import { supabase } from '../../../lib/supabase/client';
 import { useAuth } from './useAuth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -62,10 +63,10 @@ export const useFCM = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      console.log('알림 토큰이 저장되었습니다.');
+      logger.log('알림 토큰이 저장되었습니다.');
     },
     onError: error => {
-      console.error('알림 토큰 저장 오류:', error);
+      logger.error('알림 토큰 저장 오류:', error);
     },
   });
 
@@ -81,10 +82,10 @@ export const useFCM = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      console.log('알림 토큰이 삭제되었습니다.');
+      logger.log('알림 토큰이 삭제되었습니다.');
     },
     onError: error => {
-      console.error('알림 토큰 삭제 오류:', error);
+      logger.error('알림 토큰 삭제 오류:', error);
     },
   });
 
@@ -194,10 +195,10 @@ export const useFCM = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notificationSettings'] });
-      console.log('알림 설정이 저장되었습니다.');
+      logger.log('알림 설정이 저장되었습니다.');
     },
     onError: error => {
-      console.error('알림 설정 저장 오류:', error);
+      logger.error('알림 설정 저장 오류:', error);
     },
   });
 
@@ -224,10 +225,10 @@ export const useFCM = () => {
       }
     },
     onSuccess: () => {
-      console.log('테스트 알림이 발송되었습니다.');
+      logger.log('테스트 알림이 발송되었습니다.');
     },
     onError: error => {
-      console.error('테스트 알림 발송 오류:', error);
+      logger.error('테스트 알림 발송 오류:', error);
     },
   });
 
@@ -259,9 +260,9 @@ export const useFCM = () => {
       try {
         await deleteTokenMutation.mutateAsync(fcmToken);
         setFcmToken(null);
-        console.log('알림 구독이 해제되었습니다.');
+        logger.log('알림 구독이 해제되었습니다.');
       } catch (error) {
-        console.error('알림 구독 해제 오류:', error);
+        logger.error('알림 구독 해제 오류:', error);
       }
     }
   };

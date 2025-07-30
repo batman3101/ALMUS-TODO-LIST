@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from '../../utils/logger';
 import {
   Table,
   TableBody,
@@ -30,7 +31,6 @@ import {
   MoreVertical,
   UserX,
   Edit,
-  Clock,
   AlertTriangle,
   UserCheck,
   Eye,
@@ -38,7 +38,6 @@ import {
   Users,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
 import {
   TaskPermission,
@@ -126,7 +125,7 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
       setShowRevokeDialog(false);
       setSelectedPermission(null);
     } catch (error) {
-      console.error('권한 취소 실패:', error);
+      logger.error('권한 취소 실패:', error);
     } finally {
       setIsRevoking(false);
     }
@@ -143,7 +142,7 @@ export const TaskPermissionList: React.FC<TaskPermissionListProps> = ({
       setShowEditModal(false);
       setSelectedPermission(null);
     } catch (error) {
-      console.error('권한 수정 실패:', error);
+      logger.error('권한 수정 실패:', error);
     }
   };
 

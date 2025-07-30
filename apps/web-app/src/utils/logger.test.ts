@@ -1,11 +1,4 @@
-import {
-  vi,
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterAll,
-} from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterAll } from 'vitest';
 
 // Mock console methods
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -35,7 +28,7 @@ describe('Logger', () => {
     it('should always log errors', async () => {
       // Dynamic import to avoid module caching issues
       const { logger } = await import('./logger');
-      
+
       logger.error('Test error', { data: 'test' });
       expect(mockConsoleError).toHaveBeenCalledWith('[ERROR] Test error', {
         data: 'test',
@@ -46,7 +39,7 @@ describe('Logger', () => {
   describe('warn logging', () => {
     it('should always log warnings', async () => {
       const { logger } = await import('./logger');
-      
+
       logger.warn('Test warning', { data: 'test' });
       expect(mockConsoleWarn).toHaveBeenCalledWith('[WARN] Test warning', {
         data: 'test',
@@ -59,7 +52,7 @@ describe('Logger', () => {
       // Mock import.meta.env.DEV as true
       vi.doMock('./logger', () => {
         const isDevelopment = true; // Simulate DEV=true
-        
+
         return {
           logger: {
             error: (message: string, ...args: unknown[]) => {
@@ -111,7 +104,7 @@ describe('Logger', () => {
       // Mock import.meta.env.DEV as false
       vi.doMock('./logger', () => {
         const isDevelopment = false; // Simulate DEV=false
-        
+
         return {
           logger: {
             error: (message: string, ...args: unknown[]) => {

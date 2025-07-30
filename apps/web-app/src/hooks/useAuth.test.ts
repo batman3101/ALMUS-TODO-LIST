@@ -145,8 +145,6 @@ describe('useAuth', () => {
   });
 
   it('인증 상태 변경을 감지한다', async () => {
-    const mockCallback = jest.fn();
-
     mockSupabase.auth.onAuthStateChange.mockImplementation(callback => {
       // 인증 상태 변경 시뮬레이션
       setTimeout(() => {

@@ -7,7 +7,11 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { TaskStatus, TaskPriority } from '@almus/shared-types';
+import type { TaskStatus, TaskPriority } from '@almus/shared-types';
+
+// Enum values for TypeORM
+const TaskStatusEnum = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'] as const;
+const TaskPriorityEnum = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as const;
 
 @Entity('tasks')
 export class Task {
@@ -26,25 +30,40 @@ export class Task {
   @Column({ type: 'uuid' })
   teamId!: string;
 
+  @Column({ type: 'uuid' })
+  projectId!: string;
+
   @Column({
     type: 'enum',
-    enum: TaskStatus,
-    default: TaskStatus.TODO,
+    enum: TaskStatusEnum,
+    default: 'TODO',
   })
   status!: TaskStatus;
 
   @Column({
     type: 'enum',
-    enum: TaskPriority,
-    default: TaskPriority.MEDIUM,
+    enum: TaskPriorityEnum,
+    default: 'MEDIUM',
   })
   priority!: TaskPriority;
 
   @Column({ type: 'timestamp', nullable: true })
   dueDate?: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  startDate?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  endDate?: Date;
+
   @Column({ type: 'uuid' })
   createdBy!: string;
+
+  @Column({ type: 'simple-array', default: '' })
+  dependencies!: string[];
+
+  @Column({ type: 'int', default: 0 })
+  progress!: number;
 
   @Column({ type: 'int', default: 1 })
   version!: number;

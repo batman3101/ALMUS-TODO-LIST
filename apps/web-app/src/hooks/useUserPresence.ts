@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from '../utils/logger';
 import { supabase } from '../../../lib/supabase/client';
 import { useAuth } from './useAuth';
 import type { PresenceStatus } from '@almus/shared-types';
@@ -93,7 +94,7 @@ export const useUserPresence = ({
 
         if (error) throw error;
       } catch (error) {
-        console.error('Error updating user presence:', error);
+        logger.error('Error updating user presence:', error);
       }
     },
     [user]
@@ -160,7 +161,7 @@ export const useUserPresence = ({
 
   // 타이핑 상태 설정
   const setTyping = useCallback(
-    (isTyping: boolean, resourceId?: string) => {
+    (isTyping: boolean) => {
       // Firestore에도 업데이트
       updateUserPresence({
         isTyping,
@@ -225,7 +226,7 @@ export const useUserPresence = ({
         setIsOnline(currentUser?.status === 'ONLINE' || false);
       }
     } catch (error) {
-      console.error('Error loading online users:', error);
+      logger.error('Error loading online users:', error);
     }
   }, [user]);
 
@@ -242,7 +243,7 @@ export const useUserPresence = ({
 
       setIsOnline(true);
     } catch (error) {
-      console.error('Error initializing user presence:', error);
+      logger.error('Error initializing user presence:', error);
     }
   }, [user, updateUserPresence]);
 
@@ -366,7 +367,7 @@ export const useUserPresence = ({
       if (user) {
         updateUserPresence({
           status: 'OFFLINE',
-        }).catch(console.error);
+        }).catch(logger.error);
       }
     };
   }, [

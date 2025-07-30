@@ -271,7 +271,6 @@ interface ConditionalActionGroupProps {
 export const ConditionalActionGroup: React.FC<ConditionalActionGroupProps> = ({
   children,
   conditions,
-  operator = 'OR',
   fallback = null,
 }) => {
   // MultiPermissionGate를 사용하여 구현할 수 있지만,

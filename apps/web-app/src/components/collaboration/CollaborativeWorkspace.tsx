@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from '../../utils/logger';
 import { CollaborativeTextEditor } from './CollaborativeTextEditor';
 import { CommentSystem } from './CommentSystem';
 import { MentionNotifications } from './MentionNotifications';
@@ -7,15 +8,16 @@ import { useUserPresence } from '../../hooks/useUserPresence';
 import { useWebSocket } from '../../services/websocket';
 import { useAuth } from '../../hooks/useAuth';
 import type { CommentType } from '@almus/shared-types';
+import type { EditOperation } from '../../services/websocket';
 import './CollaborativeWorkspace.css';
 
 interface CollaborativeWorkspaceProps {
   resourceType: 'TASK' | 'PROJECT' | 'DOCUMENT';
   resourceId: string;
   title?: string;
-  data: Record<string, any>;
-  onDataChange?: (data: Record<string, any>) => void;
-  onSave?: (data: Record<string, any>) => void;
+  data: Record<string, unknown>;
+  onDataChange?: (data: Record<string, unknown>) => void;
+  onSave?: (data: Record<string, unknown>) => void;
   className?: string;
 }
 
@@ -29,7 +31,6 @@ interface PresenceIndicatorProps {
 }
 
 const PresenceIndicator: React.FC<PresenceIndicatorProps> = ({
-  userId,
   userName,
   color,
   status,
@@ -91,11 +92,6 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
     isActive: isSessionActive,
     isConnecting: isSessionConnecting,
     error: sessionError,
-    joinSession,
-    leaveSession,
-    sendEditOperation,
-    updateCursor,
-    updateSelection,
     setTyping,
     getTypingParticipants,
   } = useCollaborativeSession({
@@ -108,12 +104,9 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
 
   // 사용자 상태 관리
   const {
-    currentUserPresence,
     onlineUsers,
     isOnline,
     updateStatus,
-    updateCursor: updatePresenceCursor,
-    updateSelection: updatePresenceSelection,
     setTyping: setPresenceTyping,
   } = useUserPresence({
     enableAutoUpdate: true,
@@ -161,7 +154,7 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
 
         setIsConnecting(false);
       } catch (error) {
-        console.error('Failed to initialize collaboration:', error);
+        logger.error('Failed to initialize collaboration:', error);
         setConnectionError(
           error instanceof Error ? error.message : 'Connection failed'
         );
@@ -173,14 +166,14 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
 
     return () => {
       // 정리
-      updateStatus('OFFLINE').catch(console.error);
+      updateStatus('OFFLINE').catch(logger.error);
       websocket.disconnect();
     };
   }, [user, websocket, updateStatus]);
 
   // 편집 작업 처리
-  function handleEditOperation(operation: any) {
-    console.log('Received edit operation:', operation);
+  function handleEditOperation(operation: EditOperation) {
+    logger.log('Received edit operation:', operation);
 
     // 실제 데이터 업데이트 로직
     if (
@@ -208,8 +201,8 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
   }
 
   // 충돌 처리
-  function handleConflictDetected(operations: any[]) {
-    console.log('Conflict detected:', operations);
+  function handleConflictDetected(operations: EditOperation[]) {
+    logger.log('Conflict detected:', operations);
 
     // 충돌 해결 UI 표시 또는 자동 해결
     // 여기서는 간단히 타임스탬프 기반으로 해결
@@ -242,9 +235,9 @@ export const CollaborativeWorkspace: React.FC<CollaborativeWorkspaceProps> = ({
       await onSave?.(localData);
 
       // 성공 피드백 (토스트 메시지 등)
-      console.log('Data saved successfully');
+      logger.log('Data saved successfully');
     } catch (error) {
-      console.error('Failed to save data:', error);
+      logger.error('Failed to save data:', error);
       // 에러 피드백
     }
   }, [localData, onSave]);

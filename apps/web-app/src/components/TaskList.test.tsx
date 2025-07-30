@@ -3,14 +3,7 @@ import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import TaskList from './TaskList';
-import {
-  render,
-  mockSupabase,
-  createMockTask,
-  createMockUser,
-  createMockTeam,
-  mockSupabaseResponse,
-} from '../utils/test-utils';
+import { render, createMockTask, createMockTeam } from '../utils/test-utils';
 
 // Mock translation
 vi.mock('react-i18next', () => ({
@@ -51,7 +44,6 @@ describe('TaskList', () => {
   const mockUseTaskAuth = require('../hooks/useTaskAuth').useTaskAuth;
   const mockUseDeleteTask = require('../hooks/useTasks').useDeleteTask;
 
-  const mockUser = createMockUser();
   const mockTeam = createMockTeam();
   const mockTasks = [
     createMockTask({ id: '1', title: 'Task 1', status: 'TODO' }),

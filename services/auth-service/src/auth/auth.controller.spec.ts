@@ -10,12 +10,28 @@ describe('AuthController', () => {
     login: jest.fn(() => ({
       accessToken: 'jwt-access-token',
       refreshToken: 'jwt-refresh-token',
-      user: { id: '1', email: 'test@example.com', name: 'Test User' },
+      user: { 
+        id: '1', 
+        email: 'test@example.com', 
+        name: 'Test User',
+        role: 'ADMIN' as const,
+        is_active: true,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z'
+      },
     })),
     refreshToken: jest.fn(() => ({
       accessToken: 'new-access-token',
       refreshToken: 'new-refresh-token',
-      user: { id: '1', email: 'test@example.com', name: 'Test User' },
+      user: { 
+        id: '1', 
+        email: 'test@example.com', 
+        name: 'Test User',
+        role: 'ADMIN' as const,
+        is_active: true,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z'
+      },
     })),
   };
 
@@ -50,7 +66,15 @@ describe('AuthController', () => {
       expect(result).toEqual({
         accessToken: 'jwt-access-token',
         refreshToken: 'jwt-refresh-token',
-        user: { id: '1', email: 'test@example.com', name: 'Test User' },
+        user: { 
+          id: '1', 
+          email: 'test@example.com', 
+          name: 'Test User',
+          role: 'ADMIN',
+          is_active: true,
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z'
+        },
       });
       expect(service.login).toHaveBeenCalledWith(loginInput.email);
     });
@@ -67,7 +91,15 @@ describe('AuthController', () => {
       expect(result).toEqual({
         accessToken: 'new-access-token',
         refreshToken: 'new-refresh-token',
-        user: { id: '1', email: 'test@example.com', name: 'Test User' },
+        user: { 
+          id: '1', 
+          email: 'test@example.com', 
+          name: 'Test User',
+          role: 'ADMIN',
+          is_active: true,
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z'
+        },
       });
       expect(service.refreshToken).toHaveBeenCalledWith(
         refreshBody.refreshToken
@@ -82,6 +114,10 @@ describe('AuthController', () => {
           id: '1',
           email: 'test@example.com',
           name: 'Test User',
+          role: 'ADMIN' as const,
+          is_active: true,
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z'
         },
       };
 

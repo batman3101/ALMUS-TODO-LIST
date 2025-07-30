@@ -1,20 +1,38 @@
 // Supabase 관련 타입 및 스키마 내보내기
 export * from './supabase-schema';
-export type { 
-  TaskStatus, 
-  TaskPriority, 
-  UserRole, 
-  TeamRole, 
-  User, 
-  Task, 
-  ResourceType, 
-  PermissionAction 
+export type {
+  TaskStatus,
+  TaskPriority,
+  UserRole,
+  TeamRole,
+  User,
+  Task,
+  ResourceType,
+  PermissionAction,
+  NotificationType,
+  NotificationChannel,
+  NotificationFrequency,
+  Notification,
+  NotificationSettings,
+  NotificationTemplate,
+  CreateNotificationInput,
+  UpdateNotificationInput,
+  CreateNotificationSettingsInput,
+  UpdateNotificationSettingsInput,
+  CreateNotificationTemplateInput,
+  UpdateNotificationTemplateInput,
 } from './supabase-schema';
 
 // 공통 유틸리티 타입
 export type UUID = string;
 export type ISODateString = string;
-export type JSONValue = string | number | boolean | null | JSONArray | JSONObject;
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JSONArray
+  | JSONObject;
 export interface JSONObject {
   [x: string]: JSONValue;
 }
@@ -149,7 +167,7 @@ export interface BatchOperation<T = any> {
   id?: UUID;
 }
 
-export interface BatchResult<T = any> {
+export interface BatchResult<T = unknown> {
   success: boolean;
   data?: T;
   error?: AppError;
@@ -224,7 +242,7 @@ export interface StorageConfig {
 }
 
 // Edge Functions 관련 타입
-export interface EdgeFunctionResponse<T = any> {
+export interface EdgeFunctionResponse<T = unknown> {
   data?: T;
   error?: string;
   status: number;
@@ -290,7 +308,7 @@ export interface AuthPayload {
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
-  user: any; // User type from supabase-schema
+  user: import('./supabase-schema').User;
 }
 
 export interface OAuthProfile {
@@ -338,14 +356,14 @@ export interface TaskConflict {
   taskId: string;
   serverVersion: number;
   clientVersion: number;
-  serverData: any; // Task type from supabase-schema
-  clientData: any | null; // Task type from supabase-schema
+  serverData: import('./supabase-schema').Task;
+  clientData: import('./supabase-schema').Task | null;
 }
 
 export interface TaskOperation {
   type: 'CREATE' | 'UPDATE' | 'DELETE';
   taskId?: string;
-  data?: any; // Partial<Task> from supabase-schema
+  data?: Partial<import('./supabase-schema').Task>;
   version?: number;
 }
 
@@ -432,5 +450,13 @@ export interface PermissionCheckInput {
     projectId?: string;
     taskId?: string;
   };
-  action: 'CREATE' | 'read' | 'update' | 'DELETE' | 'ASSIGN' | 'COMMENT' | 'COMPLETE' | 'MANAGE_PERMISSIONS';
+  action:
+    | 'CREATE'
+    | 'read'
+    | 'update'
+    | 'DELETE'
+    | 'ASSIGN'
+    | 'COMMENT'
+    | 'COMPLETE'
+    | 'MANAGE_PERMISSIONS';
 }

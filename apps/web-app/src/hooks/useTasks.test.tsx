@@ -1,9 +1,14 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import React from 'react';
 import { renderHook, waitFor } from '../utils/test-utils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from './useTasks';
+import {
+  useTasks,
+  useCreateTask,
+  useUpdateTask,
+  useDeleteTask,
+} from './useTasks';
 import { mockSupabase, createMockTask } from '../utils/test-utils';
-import React from 'react';
 
 // Mock Supabase client
 vi.mock('../../../../lib/supabase/client', () => ({
@@ -24,11 +29,9 @@ const createWrapper = () => {
       mutations: { retry: false },
     },
   });
-  
+
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
@@ -185,9 +188,9 @@ describe('useUpdateTask', () => {
   });
 
   it('태스크를 업데이트한다', async () => {
-    const updatedTask = createMockTask({ 
-      id: 'task-1', 
-      title: 'Updated Task' 
+    const updatedTask = createMockTask({
+      id: 'task-1',
+      title: 'Updated Task',
     });
 
     mockSupabase.from.mockReturnValue({

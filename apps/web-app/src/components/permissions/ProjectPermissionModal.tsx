@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '../../utils/logger';
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,6 @@ import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { CalendarIcon, UserPlus, X, Search } from 'lucide-react';
 import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
 import {
   ProjectRole,
@@ -153,7 +153,7 @@ export const ProjectPermissionModal: React.FC<ProjectPermissionModalProps> = ({
       onClose();
       resetForm();
     } catch (error) {
-      console.error('권한 부여 실패:', error);
+      logger.error('권한 부여 실패:', error);
     } finally {
       setIsLoading(false);
     }

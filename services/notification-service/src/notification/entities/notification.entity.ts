@@ -7,7 +7,27 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { NotificationType, NotificationChannel } from '@almus/shared-types';
+import type { NotificationType, NotificationChannel } from '@almus/shared-types';
+
+// Enum values for TypeORM
+const NotificationTypeEnum = [
+  'TASK_ASSIGNED',
+  'TASK_DUE',
+  'TASK_COMPLETED',
+  'TASK_COMMENT',
+  'TASK_OVERDUE',
+  'MENTION',
+  'SYSTEM_ANNOUNCEMENT'
+] as const;
+
+const NotificationChannelEnum = [
+  'EMAIL',
+  'PUSH',
+  'IN_APP',
+  'SLACK',
+  'TEAMS',
+  'KAKAO'
+] as const;
 
 @Entity('notifications')
 export class Notification {
@@ -15,11 +35,11 @@ export class Notification {
   id: string;
 
   @Column({ type: 'uuid' })
-  userId: string;
+  user_id: string;
 
   @Column({
     type: 'enum',
-    enum: NotificationType,
+    enum: NotificationTypeEnum,
   })
   type: NotificationType;
 
@@ -32,26 +52,26 @@ export class Notification {
   @Column({ type: 'jsonb', nullable: true })
   data?: Record<string, any>;
 
-  @Column({ type: 'enum', enum: NotificationChannel, array: true })
+  @Column({ type: 'enum', enum: NotificationChannelEnum, array: true })
   channels: NotificationChannel[];
 
   @Column({ type: 'boolean', default: false })
-  isRead: boolean;
+  is_read: boolean;
 
   @Column({ type: 'boolean', default: false })
-  isSent: boolean;
+  is_sent: boolean;
 
   @Column({ type: 'timestamp', nullable: true })
-  sentAt?: Date;
+  sent_at?: Date;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updated_at: Date;
 
   // Relations
   @ManyToOne(() => Notification, { nullable: true })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'user_id' })
   user?: any;
 }

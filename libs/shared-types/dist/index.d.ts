@@ -1,5 +1,5 @@
 export * from './supabase-schema';
-export type { TaskStatus, TaskPriority, UserRole, TeamRole, User, Task, ResourceType, PermissionAction } from './supabase-schema';
+export type { TaskStatus, TaskPriority, UserRole, TeamRole, User, Task, ResourceType, PermissionAction, NotificationType, NotificationChannel, NotificationFrequency, Notification, NotificationSettings, NotificationTemplate, CreateNotificationInput, UpdateNotificationInput, CreateNotificationSettingsInput, UpdateNotificationSettingsInput, CreateNotificationTemplateInput, UpdateNotificationTemplateInput, } from './supabase-schema';
 export type UUID = string;
 export type ISODateString = string;
 export type JSONValue = string | number | boolean | null | JSONArray | JSONObject;
@@ -105,7 +105,7 @@ export interface BatchOperation<T = any> {
     data: T;
     id?: UUID;
 }
-export interface BatchResult<T = any> {
+export interface BatchResult<T = unknown> {
     success: boolean;
     data?: T;
     error?: AppError;
@@ -166,7 +166,7 @@ export interface StorageConfig {
     allowedMimeTypes: string[];
     publicUrl?: string;
 }
-export interface EdgeFunctionResponse<T = any> {
+export interface EdgeFunctionResponse<T = unknown> {
     data?: T;
     error?: string;
     status: number;
@@ -223,7 +223,7 @@ export interface AuthPayload {
 export interface LoginResponse {
     accessToken: string;
     refreshToken: string;
-    user: any;
+    user: import('./supabase-schema').User;
 }
 export interface OAuthProfile {
     provider: 'google' | 'microsoft' | 'github';
@@ -264,13 +264,13 @@ export interface TaskConflict {
     taskId: string;
     serverVersion: number;
     clientVersion: number;
-    serverData: any;
-    clientData: any | null;
+    serverData: import('./supabase-schema').Task;
+    clientData: import('./supabase-schema').Task | null;
 }
 export interface TaskOperation {
     type: 'CREATE' | 'UPDATE' | 'DELETE';
     taskId?: string;
-    data?: any;
+    data?: Partial<import('./supabase-schema').Task>;
     version?: number;
 }
 export interface LegacyPermission {

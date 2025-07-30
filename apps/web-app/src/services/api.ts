@@ -13,7 +13,7 @@ import type {
 } from '@almus/shared-types/src/supabase-schema';
 
 // API 응답 타입
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T | null;
   error: Error | null;
   success: boolean;
@@ -68,7 +68,7 @@ export interface CreateTeamData {
   name: string;
   description?: string;
   owner_id: string;
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 }
 
 export interface CreateProjectData {
@@ -78,7 +78,7 @@ export interface CreateProjectData {
   owner_id: string;
   start_date?: string;
   end_date?: string;
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 }
 
 // API 에러 클래스

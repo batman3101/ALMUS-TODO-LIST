@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '../../utils/logger';
 import { CollaborativeWorkspace } from './CollaborativeWorkspace';
 import { CommentSystem } from './CommentSystem';
 import { MentionNotifications } from './MentionNotifications';
@@ -55,7 +56,7 @@ export const CollaborationDemo: React.FC = () => {
         setIsConnected(true);
         await updateStatus('ONLINE');
       } catch (error) {
-        console.error('Failed to initialize collaboration demo:', error);
+        logger.error('Failed to initialize collaboration demo:', error);
         setIsConnected(false);
       }
     };
@@ -63,22 +64,22 @@ export const CollaborationDemo: React.FC = () => {
     initializeDemo();
 
     return () => {
-      updateStatus('OFFLINE').catch(console.error);
+      updateStatus('OFFLINE').catch(logger.error);
     };
   }, [user, websocket, updateStatus]);
 
-  const handleDataChange = (data: Record<string, any>) => {
+  const handleDataChange = (data: Record<string, unknown>) => {
     setDemoData(prev => ({ ...prev, ...data }));
   };
 
-  const handleSave = async (data: Record<string, any>) => {
+  const handleSave = async (data: Record<string, unknown>) => {
     // 실제 저장 로직 (API 호출 등)
-    console.log('Saving demo data:', data);
+    logger.log('Saving demo data:', data);
 
     // 시뮬레이션: 저장 완료 후 피드백
     return new Promise(resolve => {
       setTimeout(() => {
-        console.log('Demo data saved successfully');
+        logger.log('Demo data saved successfully');
         resolve(data);
       }, 1000);
     });

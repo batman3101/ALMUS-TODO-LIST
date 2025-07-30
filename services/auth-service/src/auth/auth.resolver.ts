@@ -1,6 +1,6 @@
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
-import type { LoginResponse, User } from '@almus/shared-types';
+import type { LoginResponse, User, UserRole } from '@almus/shared-types';
 import { LoginResponseType, UserType, LoginInputType } from './dto/auth.types';
 
 @Resolver()
@@ -28,10 +28,10 @@ export class AuthResolver {
       id: '1',
       email: 'test@example.com',
       name: 'Test User',
-      role: 'ADMIN' as any,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      role: 'ADMIN' as UserRole,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
   }
 }

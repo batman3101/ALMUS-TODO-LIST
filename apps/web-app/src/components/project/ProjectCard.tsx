@@ -17,12 +17,10 @@ import {
   MoreVertical,
   Edit,
   Trash,
-  Settings,
   UserPlus,
   BarChart3,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
 import {
   Project,

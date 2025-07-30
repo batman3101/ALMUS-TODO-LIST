@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { logger } from '../utils/logger';
 import { supabase } from '../../../../lib/supabase/client';
 import { useAuth } from './useAuth';
 import { FileMetadata, UploadState } from '@almus/shared-types';
@@ -79,7 +80,7 @@ export const useFileUpload = (): UseFileUploadReturn => {
       const fileName = `${Date.now()}_${file.name}`;
       const filePath = `${path}/${fileName}`;
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('files') // Supabase storage bucket name
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -173,7 +174,7 @@ export const useFileUpload = (): UseFileUploadReturn => {
     ) as PromiseRejectedResult[];
 
     if (errorResults.length > 0) {
-      console.error('일부 파일 업로드 실패:', errorResults);
+      logger.error('일부 파일 업로드 실패:', errorResults);
     }
 
     return successResults.map(result => result.value);
@@ -209,7 +210,7 @@ export const useFileUpload = (): UseFileUploadReturn => {
         .remove([fileData.path]);
 
       if (storageError) {
-        console.warn('Storage 파일 삭제 실패:', storageError);
+        logger.warn('Storage 파일 삭제 실패:', storageError);
         // Storage 삭제 실패해도 메타데이터는 삭제 진행
       }
 

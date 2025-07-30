@@ -10,7 +10,7 @@ import { TaskService } from './task.service';
 import type {
   CreateTaskInput,
   UpdateTaskInput,
-  TaskFilterInput,
+  TaskFilters,
   Task,
 } from '@almus/shared-types';
 import {
@@ -36,7 +36,7 @@ export class TaskResolver {
   async tasks(
     @Args('filter', { nullable: true }) filter?: TaskFilterInputType
   ): Promise<Task[]> {
-    return this.taskService.findAll(filter as TaskFilterInput);
+    return this.taskService.findAll(filter as TaskFilters);
   }
 
   @Query(() => TaskType)
@@ -70,8 +70,11 @@ export class TaskResolver {
     @Parent() task: Task
   ): Promise<{ id: string; name: string; email: string } | null> {
     // TODO: 실제 사용자 정보 가져오기
+    if (!task.assignee_id) {
+      return null;
+    }
     return {
-      id: task.assigneeId,
+      id: task.assignee_id,
       name: 'Test User',
       email: 'test@example.com',
     };
@@ -83,7 +86,7 @@ export class TaskResolver {
   ): Promise<{ id: string; name: string; email: string } | null> {
     // TODO: 실제 사용자 정보 가져오기
     return {
-      id: task.createdBy,
+      id: task.created_by,
       name: 'Test User',
       email: 'test@example.com',
     };

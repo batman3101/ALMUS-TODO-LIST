@@ -6,13 +6,13 @@ import React, {
   useMemo,
 } from 'react';
 import { useCollaborativeSession } from '../../hooks/useCollaborativeSession';
+import { logger } from '../../utils/logger';
 import { useUserPresence } from '../../hooks/useUserPresence';
 import {
   OperationalTransform,
   TextOperation,
-  ConflictResolver,
 } from '../../utils/operationalTransform';
-import type { EditOperation, UserPresence } from '../../services/websocket';
+import type { EditOperation } from '../../services/websocket';
 import './CollaborativeTextEditor.css';
 
 interface CollaborativeTextEditorProps {
@@ -80,8 +80,6 @@ export const CollaborativeTextEditor: React.FC<
   const { isOnline } = useUserPresence();
 
   // 로컬 상태 관리
-  const [localOperations, setLocalOperations] = useState<EditOperation[]>([]);
-  const [remoteOperations, setRemoteOperations] = useState<EditOperation[]>([]);
   const [cursors, setCursors] = useState<CursorInfo[]>([]);
   const [selections, setSelections] = useState<SelectionInfo[]>([]);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
@@ -130,15 +128,13 @@ export const CollaborativeTextEditor: React.FC<
   function handleRemoteEditOperation(operation: EditOperation) {
     if (operation.position.fieldPath !== fieldPath) return;
 
-    setRemoteOperations(prev => [...prev, operation]);
-
     // 작업을 텍스트에 적용
     applyRemoteOperation(operation);
   }
 
   // 충돌 감지 처리
   function handleConflictDetected(operations: EditOperation[]) {
-    console.log('Conflict detected:', operations);
+    logger.log('Conflict detected:', operations);
 
     // 타임스탬프 기반으로 충돌 해결
     const sortedOps = operations.sort((a, b) => a.timestamp - b.timestamp);
@@ -170,7 +166,7 @@ export const CollaborativeTextEditor: React.FC<
 
           return newText;
         } catch (error) {
-          console.error('Error applying remote operation:', error);
+          logger.error('Error applying remote operation:', error);
           return currentText;
         }
       });
@@ -244,16 +240,6 @@ export const CollaborativeTextEditor: React.FC<
       };
 
       sendEditOperation(operation);
-
-      setLocalOperations(prev => [
-        ...prev,
-        {
-          ...operation,
-          id: `local_${Date.now()}`,
-          userId: 'current_user',
-          timestamp: Date.now(),
-        },
-      ]);
     },
     [isSessionActive, sendEditOperation, fieldPath]
   );

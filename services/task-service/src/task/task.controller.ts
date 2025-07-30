@@ -13,7 +13,7 @@ import { TaskService } from './task.service';
 import type {
   CreateTaskInput,
   UpdateTaskInput,
-  TaskFilterInput,
+  TaskFilters,
   Task as TaskType,
 } from '@almus/shared-types';
 
@@ -30,7 +30,7 @@ export class TaskController {
   }
 
   @Get()
-  async findAll(@Query() filter?: TaskFilterInput): Promise<TaskType[]> {
+  async findAll(@Query() filter?: TaskFilters): Promise<TaskType[]> {
     return this.taskService.findAll(filter);
   }
 

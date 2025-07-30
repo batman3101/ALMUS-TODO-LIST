@@ -1,14 +1,14 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import React from 'react';
 import { renderHook, waitFor } from '../utils/test-utils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { 
-  useTeamMembers, 
-  useInviteTeamMember, 
-  useRemoveTeamMember, 
-  useUpdateMemberRole 
+import {
+  useTeamMembers,
+  useInviteTeamMember,
+  useRemoveTeamMember,
+  useUpdateMemberRole,
 } from './useTeamMembers';
-import { mockSupabase, createMockUser, createMockTeam } from '../utils/test-utils';
-import React from 'react';
+import { mockSupabase, createMockUser } from '../utils/test-utils';
 
 // Mock Supabase client
 vi.mock('../../../../lib/supabase/client', () => ({
@@ -29,11 +29,9 @@ const createWrapper = () => {
       mutations: { retry: false },
     },
   });
-  
+
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 

@@ -30,7 +30,7 @@ let GoogleStrategy = class GoogleStrategy extends PassportStrategy(Strategy, 'go
             id: profile.id,
             email: emails[0].value,
             name: name.givenName + ' ' + name.familyName,
-            avatar: photos[0].value,
+            avatar: photos?.[0]?.value,
         };
         const user = await this.authService.validateOAuthProfile(oauthProfile);
         return user;

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 import { supabase } from '../../../../lib/supabase/client';
 import type { User } from '../../../../libs/shared-types/src/supabase-schema';
 
@@ -30,7 +31,7 @@ export const useAuth = () => {
         } = await supabase.auth.getSession();
 
         if (error) {
-          console.error('Session error:', error);
+          logger.error('Session error:', error);
           setError(error.message);
           return;
         }
@@ -41,7 +42,7 @@ export const useAuth = () => {
           setUser(null);
         }
       } catch (err) {
-        console.error('Get session error:', err);
+        logger.error('Get session error:', err);
         if (isMounted) {
           setError(
             err instanceof Error ? err.message : '인증 오류가 발생했습니다.'
@@ -63,7 +64,7 @@ export const useAuth = () => {
           .single();
 
         if (error) {
-          console.error('User profile error:', error);
+          logger.error('User profile error:', error);
           setError('사용자 정보를 불러오는데 실패했습니다.');
           return;
         }
@@ -85,7 +86,7 @@ export const useAuth = () => {
           setUser(authUser);
         }
       } catch (err) {
-        console.error('Load user profile error:', err);
+        logger.error('Load user profile error:', err);
         if (isMounted) {
           setError(
             err instanceof Error
@@ -109,7 +110,7 @@ export const useAuth = () => {
           setUser(null);
         }
       } catch (err) {
-        console.error('Auth state change error:', err);
+        logger.error('Auth state change error:', err);
         setError(
           err instanceof Error
             ? err.message
@@ -280,7 +281,7 @@ export const useAuth = () => {
       // 로컬 상태 업데이트
       setUser(prev => (prev ? { ...prev, ...updates } : null));
     } catch (error) {
-      console.error('사용자 정보 업데이트 실패:', error);
+      logger.error('사용자 정보 업데이트 실패:', error);
       throw new Error('사용자 정보 업데이트에 실패했습니다.');
     }
   };

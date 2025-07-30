@@ -5,7 +5,18 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { NotificationType } from '@almus/shared-types';
+import type { NotificationType } from '@almus/shared-types';
+
+// Enum values for TypeORM
+const NotificationTypeEnum = [
+  'TASK_ASSIGNED',
+  'TASK_DUE',
+  'TASK_COMPLETED',
+  'TASK_COMMENT',
+  'TASK_OVERDUE',
+  'MENTION',
+  'SYSTEM_ANNOUNCEMENT'
+] as const;
 
 @Entity('notification_templates')
 export class NotificationTemplate {
@@ -14,7 +25,7 @@ export class NotificationTemplate {
 
   @Column({
     type: 'enum',
-    enum: NotificationType,
+    enum: NotificationTypeEnum,
   })
   type: NotificationType;
 
@@ -28,11 +39,11 @@ export class NotificationTemplate {
   variables: string[];
 
   @Column({ type: 'boolean', default: true })
-  isActive: boolean;
+  is_active: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updated_at: Date;
 }

@@ -8,6 +8,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, } from 'typeorm';
+// Enum values for TypeORM
+const TaskStatusEnum = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
+const TaskPriorityEnum = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 let Task = class Task {
 };
 __decorate([
@@ -31,18 +34,22 @@ __decorate([
     __metadata("design:type", String)
 ], Task.prototype, "teamId", void 0);
 __decorate([
+    Column({ type: 'uuid' }),
+    __metadata("design:type", String)
+], Task.prototype, "projectId", void 0);
+__decorate([
     Column({
         type: 'enum',
-        enum: TaskStatus,
-        default: TaskStatus.TODO,
+        enum: TaskStatusEnum,
+        default: 'TODO',
     }),
     __metadata("design:type", String)
 ], Task.prototype, "status", void 0);
 __decorate([
     Column({
         type: 'enum',
-        enum: TaskPriority,
-        default: TaskPriority.MEDIUM,
+        enum: TaskPriorityEnum,
+        default: 'MEDIUM',
     }),
     __metadata("design:type", String)
 ], Task.prototype, "priority", void 0);
@@ -51,9 +58,25 @@ __decorate([
     __metadata("design:type", Date)
 ], Task.prototype, "dueDate", void 0);
 __decorate([
+    Column({ type: 'timestamp', nullable: true }),
+    __metadata("design:type", Date)
+], Task.prototype, "startDate", void 0);
+__decorate([
+    Column({ type: 'timestamp', nullable: true }),
+    __metadata("design:type", Date)
+], Task.prototype, "endDate", void 0);
+__decorate([
     Column({ type: 'uuid' }),
     __metadata("design:type", String)
 ], Task.prototype, "createdBy", void 0);
+__decorate([
+    Column({ type: 'simple-array', default: '' }),
+    __metadata("design:type", Array)
+], Task.prototype, "dependencies", void 0);
+__decorate([
+    Column({ type: 'int', default: 0 }),
+    __metadata("design:type", Number)
+], Task.prototype, "progress", void 0);
 __decorate([
     Column({ type: 'int', default: 1 }),
     __metadata("design:type", Number)

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from '../../utils/logger';
 import {
   Table,
   TableBody,
@@ -26,17 +27,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
-import {
-  MoreVertical,
-  UserX,
-  Edit,
-  Clock,
-  AlertTriangle,
-  Shield,
-  Calendar,
-} from 'lucide-react';
+import { MoreVertical, UserX, Edit, AlertTriangle, Shield } from 'lucide-react';
 import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
 import {
   ProjectPermission,
@@ -110,7 +102,7 @@ export const ProjectPermissionList: React.FC<ProjectPermissionListProps> = ({
       setShowRevokeDialog(false);
       setSelectedPermission(null);
     } catch (error) {
-      console.error('권한 취소 실패:', error);
+      logger.error('권한 취소 실패:', error);
     } finally {
       setIsRevoking(false);
     }
@@ -127,7 +119,7 @@ export const ProjectPermissionList: React.FC<ProjectPermissionListProps> = ({
       setShowEditModal(false);
       setSelectedPermission(null);
     } catch (error) {
-      console.error('권한 수정 실패:', error);
+      logger.error('권한 수정 실패:', error);
     }
   };
 

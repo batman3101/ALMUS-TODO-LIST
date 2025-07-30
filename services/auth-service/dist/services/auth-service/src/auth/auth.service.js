@@ -20,10 +20,10 @@ let AuthService = class AuthService {
             id: '1',
             email,
             name: 'Test User',
-            role: UserRole.ADMIN,
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            role: 'ADMIN',
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
         };
     }
     async login(email) {
@@ -50,11 +50,11 @@ let AuthService = class AuthService {
             id: profile.id,
             email: profile.email,
             name: profile.name,
-            role: UserRole.EDITOR,
+            role: 'EDITOR',
             avatar: profile.avatar,
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
         };
     }
     async refreshToken(token) {

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 import {
   collection,
   doc,
   addDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
   orderBy,
@@ -20,7 +20,6 @@ import {
   UpdateProjectPermissionInput,
   ProjectRole,
   FIRESTORE_COLLECTIONS,
-  User,
 } from '../types/team';
 import { toast } from '../utils/toast';
 
@@ -69,7 +68,7 @@ export const useProjectPermissions = (projectId: string) => {
         setError(null);
       },
       error => {
-        console.error('프로젝트 권한 로드 실패:', error);
+        logger.error('프로젝트 권한 로드 실패:', error);
         setError('프로젝트 권한을 불러오는데 실패했습니다.');
         setLoading(false);
       }
@@ -137,7 +136,7 @@ export const useProjectPermissions = (projectId: string) => {
       toast.success('프로젝트 권한이 부여되었습니다.');
       return createdPermission;
     } catch (error) {
-      console.error('프로젝트 권한 부여 실패:', error);
+      logger.error('프로젝트 권한 부여 실패:', error);
       toast.error(
         error instanceof Error
           ? error.message
@@ -185,7 +184,7 @@ export const useProjectPermissions = (projectId: string) => {
 
       toast.success('프로젝트 권한이 업데이트되었습니다.');
     } catch (error) {
-      console.error('프로젝트 권한 업데이트 실패:', error);
+      logger.error('프로젝트 권한 업데이트 실패:', error);
       toast.error('프로젝트 권한 업데이트에 실패했습니다.');
       throw error;
     }
@@ -216,7 +215,7 @@ export const useProjectPermissions = (projectId: string) => {
 
       toast.success('프로젝트 권한이 취소되었습니다.');
     } catch (error) {
-      console.error('프로젝트 권한 취소 실패:', error);
+      logger.error('프로젝트 권한 취소 실패:', error);
       toast.error('프로젝트 권한 취소에 실패했습니다.');
       throw error;
     }
@@ -246,7 +245,7 @@ export const useProjectPermissions = (projectId: string) => {
         logData
       );
     } catch (error) {
-      console.error('권한 변경 로그 작성 실패:', error);
+      logger.error('권한 변경 로그 작성 실패:', error);
       // 로그 작성 실패는 주요 작업을 방해하지 않음
     }
   };
@@ -343,7 +342,7 @@ export const useProjectPermissions = (projectId: string) => {
       await batch.commit();
       toast.success(`${inputs.length}명에게 프로젝트 권한이 부여되었습니다.`);
     } catch (error) {
-      console.error('대량 권한 부여 실패:', error);
+      logger.error('대량 권한 부여 실패:', error);
       toast.error('대량 권한 부여에 실패했습니다.');
       throw error;
     }

@@ -1,4 +1,5 @@
 import { supabase } from '../../../../lib/supabase/client';
+import { logger } from '../utils/logger';
 import {
   RealtimeChannel,
   RealtimePostgresChangesPayload,
@@ -56,24 +57,24 @@ class RealtimeService {
     // 전역 실시간 연결 상태 모니터링
     supabase.realtime.onOpen(() => {
       this.isConnected = true;
-      console.log('🔴 Realtime connection opened');
+      logger.log('🔴 Realtime connection opened');
     });
 
     supabase.realtime.onClose(() => {
       this.isConnected = false;
-      console.log('🔴 Realtime connection closed');
+      logger.log('🔴 Realtime connection closed');
     });
 
     supabase.realtime.onError(error => {
       this.isConnected = false;
-      console.error('🔴 Realtime connection error:', error);
+      logger.error('🔴 Realtime connection error:', error);
     });
   }
 
   /**
    * 테이블 변경사항 구독
    */
-  subscribe<T = any>(
+  subscribe<T = unknown>(
     channelName: string,
     config: SubscriptionConfig,
     callback: RealtimeCallback<T>
@@ -87,7 +88,7 @@ class RealtimeService {
     const channel = supabase.channel(channelName);
 
     // 테이블 변경사항 리스너 추가
-    let changeListener = channel.on(
+    channel.on(
       'postgres_changes',
       {
         event: config.event || '*',
@@ -110,7 +111,7 @@ class RealtimeService {
         try {
           callback(realtimePayload);
         } catch (error) {
-          console.error(`실시간 콜백 에러 (${channelName}):`, error);
+          logger.error(`실시간 콜백 에러 (${channelName}):`, error);
         }
       }
     );
@@ -118,11 +119,11 @@ class RealtimeService {
     // 채널 구독 시작
     channel.subscribe(status => {
       if (status === 'SUBSCRIBED') {
-        console.log(`✅ Subscribed to ${channelName} (${config.table})`);
+        logger.log(`✅ Subscribed to ${channelName} (${config.table})`);
       } else if (status === 'CHANNEL_ERROR') {
-        console.error(`❌ Failed to subscribe to ${channelName}`);
+        logger.error(`❌ Failed to subscribe to ${channelName}`);
       } else if (status === 'TIMED_OUT') {
-        console.error(`⏰ Subscription to ${channelName} timed out`);
+        logger.error(`⏰ Subscription to ${channelName} timed out`);
       }
     });
 
@@ -143,7 +144,7 @@ class RealtimeService {
       supabase.removeChannel(channel);
       this.channels.delete(channelName);
       this.subscriptions.delete(channelName);
-      console.log(`🔌 Unsubscribed from ${channelName}`);
+      logger.log(`🔌 Unsubscribed from ${channelName}`);
     }
   }
 
@@ -162,7 +163,7 @@ class RealtimeService {
   subscribeToPresence(
     channelName: string,
     userId: string,
-    userMetadata: Record<string, any> = {}
+    userMetadata: Record<string, unknown> = {}
   ) {
     const channel = supabase.channel(channelName);
 
@@ -170,13 +171,13 @@ class RealtimeService {
     channel
       .on('presence', { event: 'sync' }, () => {
         const presenceState = channel.presenceState();
-        console.log('Presence sync:', presenceState);
+        logger.log('Presence sync:', presenceState);
       })
       .on('presence', { event: 'join' }, ({ newPresences }) => {
-        console.log('User joined:', newPresences);
+        logger.log('User joined:', newPresences);
       })
       .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        console.log('User left:', leftPresences);
+        logger.log('User left:', leftPresences);
       })
       .subscribe(async status => {
         if (status === 'SUBSCRIBED') {
@@ -197,7 +198,7 @@ class RealtimeService {
   /**
    * 브로드캐스트 메시지 전송
    */
-  broadcast(channelName: string, event: string, payload: any): void {
+  broadcast(channelName: string, event: string, payload: unknown): void {
     const channel = this.channels.get(channelName);
     if (channel) {
       channel.send({
@@ -206,7 +207,7 @@ class RealtimeService {
         payload,
       });
     } else {
-      console.warn(`채널 ${channelName}이 존재하지 않습니다.`);
+      logger.warn(`채널 ${channelName}이 존재하지 않습니다.`);
     }
   }
 
@@ -216,7 +217,7 @@ class RealtimeService {
   subscribeToBroadcast(
     channelName: string,
     event: string,
-    callback: (payload: any) => void
+    callback: (payload: unknown) => void
   ): () => void {
     let channel = this.channels.get(channelName);
 
@@ -342,7 +343,7 @@ export class RealtimeHelpers {
   subscribeToCollaboration(
     teamId: string,
     userId: string,
-    userMetadata: Record<string, any> = {}
+    userMetadata: Record<string, unknown> = {}
   ) {
     const channelName = `collaboration-${teamId}`;
 
@@ -358,7 +359,7 @@ export class RealtimeHelpers {
       channelName,
       'cursor-move',
       payload => {
-        console.log('Cursor moved:', payload);
+        logger.log('Cursor moved:', payload);
       }
     );
 
@@ -367,7 +368,7 @@ export class RealtimeHelpers {
       channelName,
       'typing',
       payload => {
-        console.log('Typing status:', payload);
+        logger.log('Typing status:', payload);
       }
     );
 
@@ -385,7 +386,7 @@ export class RealtimeHelpers {
   sendCollaborationEvent(
     teamId: string,
     event: 'cursor-move' | 'typing' | 'selection',
-    payload: any
+    payload: unknown
   ): void {
     this.realtimeService.broadcast(`collaboration-${teamId}`, event, payload);
   }

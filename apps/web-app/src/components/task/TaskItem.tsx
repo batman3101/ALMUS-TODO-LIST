@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import { logger } from '../../utils/logger';
 import { CollaborativeWorkspace } from '../collaboration/CollaborativeWorkspace';
 import { CommentSystem } from '../collaboration/CommentSystem';
-import { MentionNotifications } from '../collaboration/MentionNotifications';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -29,7 +29,6 @@ import {
   Eye,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
 import {
   Task,
@@ -53,7 +52,6 @@ interface TaskItemProps {
   onDelete?: (taskId: string) => void;
   onAssign?: (taskId: string) => void;
   onManagePermissions?: (taskId: string) => void;
-  onAddComment?: (taskId: string) => void;
   enableCollaboration?: boolean;
   showDetailView?: boolean;
 }
@@ -66,7 +64,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   onDelete,
   onAssign,
   onManagePermissions,
-  onAddComment,
   enableCollaboration = false,
   showDetailView = false,
 }) => {
@@ -482,11 +479,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                   }}
                   onDataChange={data => {
                     // 작업 데이터 업데이트 로직
-                    console.log('Task data updated:', data);
+                    logger.log('Task data updated:', data);
                   }}
                   onSave={data => {
                     // 작업 저장 로직
-                    console.log('Task saved:', data);
+                    logger.log('Task saved:', data);
                   }}
                   className="collaborative-task-editor"
                 />

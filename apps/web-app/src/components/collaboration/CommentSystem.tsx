@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { logger } from '../../utils/logger';
 import { useAuth } from '../../hooks/useAuth';
 import { useWebSocket } from '../../services/websocket';
-import { useComments } from '../../hooks/useComments';
 import type {
   Comment as SupabaseComment,
-  CommentReaction,
   CommentType,
 } from '@almus/shared-types';
 
@@ -14,15 +13,7 @@ interface CommentSystemProps {
   className?: string;
 }
 
-interface Comment
-  extends Omit<
-    FirestoreComment,
-    'createdAt' | 'updatedAt' | 'editedAt' | 'deletedAt'
-  > {
-  createdAt: Date;
-  updatedAt: Date;
-  editedAt?: Date;
-  deletedAt?: Date;
+interface Comment extends SupabaseComment {
   author?: {
     id: string;
     name: string;
@@ -49,8 +40,8 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
     Array<{ id: string; name: string; email: string }>
   >([]);
   const [showMentionDropdown, setShowMentionDropdown] = useState(false);
-  const [mentionQuery, setMentionQuery] = useState('');
-  const [cursorPosition, setCursorPosition] = useState(0);
+  const [, setMentionQuery] = useState('');
+  const [, setCursorPosition] = useState(0);
 
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const mentionDropdownRef = useRef<HTMLDivElement>(null);
@@ -65,7 +56,7 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
         try {
           await websocket.joinSession(resourceType, resourceId);
         } catch (error) {
-          console.error('Failed to join comment session:', error);
+          logger.error('Failed to join comment session:', error);
         }
       }
     };
@@ -73,7 +64,7 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
     initializeCollaboration();
 
     return () => {
-      websocket.leaveSession().catch(console.error);
+      websocket.leaveSession().catch(logger.error);
     };
   }, [resourceType, resourceId, websocket]);
 
@@ -82,13 +73,13 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
     const handleCommentAdded = (data: {
       resourceType: string;
       resourceId: string;
-      comment: FirestoreComment;
+      comment: SupabaseComment;
     }) => {
       if (
         data.resourceType === resourceType &&
         data.resourceId === resourceId
       ) {
-        const newComment = transformFirestoreComment(data.comment);
+        const newComment = transformSupabaseComment(data.comment);
         setComments(prev => addCommentToTree(prev, newComment));
       }
     };
@@ -96,13 +87,13 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
     const handleCommentUpdated = (data: {
       resourceType: string;
       resourceId: string;
-      comment: FirestoreComment;
+      comment: SupabaseComment;
     }) => {
       if (
         data.resourceType === resourceType &&
         data.resourceId === resourceId
       ) {
-        const updatedComment = transformFirestoreComment(data.comment);
+        const updatedComment = transformSupabaseComment(data.comment);
         setComments(prev => updateCommentInTree(prev, updatedComment));
       }
     };
@@ -194,37 +185,25 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
 
       setComments(mockComments);
     } catch (error) {
-      console.error('Failed to load comments:', error);
+      logger.error('Failed to load comments:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const transformFirestoreComment = (
-    firestoreComment: FirestoreComment
+  const transformSupabaseComment = (
+    supabaseComment: SupabaseComment
   ): Comment => {
     return {
-      ...firestoreComment,
-      createdAt:
-        firestoreComment.createdAt instanceof Timestamp
-          ? firestoreComment.createdAt.toDate()
-          : new Date(firestoreComment.createdAt as string | number),
-      updatedAt:
-        firestoreComment.updatedAt instanceof Timestamp
-          ? firestoreComment.updatedAt.toDate()
-          : new Date(firestoreComment.updatedAt as string | number),
-      editedAt:
-        firestoreComment.editedAt instanceof Timestamp
-          ? firestoreComment.editedAt.toDate()
-          : firestoreComment.editedAt
-            ? new Date(firestoreComment.editedAt as string | number)
-            : undefined,
-      deletedAt:
-        firestoreComment.deletedAt instanceof Timestamp
-          ? firestoreComment.deletedAt.toDate()
-          : firestoreComment.deletedAt
-            ? new Date(firestoreComment.deletedAt as string | number)
-            : undefined,
+      ...supabaseComment,
+      createdAt: new Date(supabaseComment.createdAt),
+      updatedAt: new Date(supabaseComment.updatedAt),
+      editedAt: supabaseComment.editedAt
+        ? new Date(supabaseComment.editedAt)
+        : undefined,
+      deletedAt: supabaseComment.deletedAt
+        ? new Date(supabaseComment.deletedAt)
+        : undefined,
       replies: [],
     };
   };
@@ -390,7 +369,7 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
       setNewComment('');
       setReplyingTo(null);
     } catch (error) {
-      console.error('Failed to send comment:', error);
+      logger.error('Failed to send comment:', error);
     }
   };
 
@@ -402,7 +381,7 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
       setEditingComment(null);
       setEditContent('');
     } catch (error) {
-      console.error('Failed to edit comment:', error);
+      logger.error('Failed to edit comment:', error);
     }
   };
 
@@ -412,13 +391,13 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
     try {
       websocket.deleteComment(commentId);
     } catch (error) {
-      console.error('Failed to delete comment:', error);
+      logger.error('Failed to delete comment:', error);
     }
   };
 
   const handleReaction = async (commentId: string, emoji: string) => {
     // 실제로는 reaction API 호출
-    console.log('Reaction:', commentId, emoji);
+    logger.log('Reaction:', commentId, emoji);
   };
 
   const renderComment = (comment: Comment, level: number = 0) => {

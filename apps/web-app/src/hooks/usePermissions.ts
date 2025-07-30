@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 import { supabase } from '../../../lib/supabase/client';
 import { useAuth } from './useAuth';
 import {
-  Permission,
   ProjectPermission,
   TaskPermission,
   ProjectRole,
@@ -281,7 +281,7 @@ export const usePermissions = (): UsePermissionsReturn => {
           taskChannel.unsubscribe();
         };
       } catch (error) {
-        console.error('Failed to load permissions:', error);
+        logger.error('Failed to load permissions:', error);
       } finally {
         setLoading(false);
       }
@@ -294,7 +294,7 @@ export const usePermissions = (): UsePermissionsReturn => {
   }, [user]);
 
   // 팀 역할 가져오기
-  const getUserTeamRole = (teamId?: string): TeamRole | null => {
+  const getUserTeamRole = (): TeamRole | null => {
     if (!user) return null;
     // useTeams hook에서 가져온 역할 정보 사용
     // 여기서는 간단히 user의 현재 팀 역할을 반환
