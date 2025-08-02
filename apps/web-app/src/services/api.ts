@@ -6,11 +6,13 @@ import type {
   Project,
   Comment,
   User,
+} from '@almus/shared-types';
+import {
   TaskStatus,
   TaskPriority,
   TeamRole,
   MemberStatus,
-} from '@almus/shared-types/src/supabase-schema';
+} from '@almus/shared-types';
 
 // API 응답 타입
 export interface ApiResponse<T = unknown> {

@@ -1,10 +1,17 @@
 // Supabase 관련 타입 및 스키마 내보내기
 export * from './supabase-schema';
-export type {
+
+// Enums를 명시적으로 re-export하여 충돌 방지
+export {
   TaskStatus,
   TaskPriority,
-  UserRole,
   TeamRole,
+  ProjectStatus,
+  MemberStatus,
+  InvitationStatus
+} from './enums';
+export type {
+  UserRole,
   User,
   Task,
   ResourceType,

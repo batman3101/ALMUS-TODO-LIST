@@ -10,7 +10,7 @@ import {
   PermissionAction,
   ResourceType,
 } from '../types/team';
-import type { TeamRole } from '@almus/shared-types/src/supabase-schema';
+import { TeamRole } from '@almus/shared-types';
 
 // 권한 매트릭스 정의
 const TEAM_PERMISSIONS: Record<TeamRole, Record<PermissionAction, boolean>> = {

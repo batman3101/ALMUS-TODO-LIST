@@ -9,7 +9,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@almus/shared-types': path.resolve(
         __dirname,
-        '../../libs/shared-types/src'
+        '../../libs/shared-types/dist'
       ),
     },
   },

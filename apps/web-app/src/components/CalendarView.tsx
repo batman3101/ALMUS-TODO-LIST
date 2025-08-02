@@ -2,8 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTasks, useUpdateTask } from '../hooks/useTasks';
 import { useTeams } from '../hooks/useTeams';
-import { Task, UpdateTaskInput } from '@almus/shared-types';
-import type { TaskPriority } from '@almus/shared-types/src/supabase-schema';
+import { Task, UpdateTaskInput, TaskPriority } from '@almus/shared-types';
 import EditTaskModal from './EditTaskModal';
 
 interface CalendarViewProps {

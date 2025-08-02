@@ -1,37 +1,9 @@
-// Re-export from the new unified API service
-export { useTeams, useTeam, useCreateTeam } from './useApiService';
+// 새로운 통합 useTeams 훅을 기본으로 export
+export { useTeams } from './useTeamsContext';
 
-// Legacy compatibility exports
-import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
-import type { Team } from '@almus/shared-types';
-
-// Legacy hook for backward compatibility
-export const useCurrentTeam = () => {
-  const { user } = useAuth();
-  const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
-
-  // This would normally be stored in localStorage or context
-  useEffect(() => {
-    if (user) {
-      const savedTeamId = localStorage.getItem(`currentTeam-${user.id}`);
-      if (savedTeamId) {
-        // Load team from API
-        // This is a simplified version - in reality you'd use the API service
-        setCurrentTeam({ id: savedTeamId } as Team);
-      }
-    }
-  }, [user]);
-
-  const switchTeam = (team: Team) => {
-    setCurrentTeam(team);
-    if (user) {
-      localStorage.setItem(`currentTeam-${user.id}`, team.id);
-    }
-  };
-
-  return {
-    currentTeam,
-    switchTeam,
-  };
-};
+// API 서비스에서 개별 훅들도 export (필요한 경우 사용)
+export { 
+  useTeams as useTeamsQuery,
+  useTeam,
+  useCreateTeam 
+} from './useApiService';

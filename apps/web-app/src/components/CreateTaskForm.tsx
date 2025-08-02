@@ -6,11 +6,9 @@ import {
   UpdateTaskInput,
   Task,
   FileMetadata,
-} from '@almus/shared-types';
-import type {
   TaskStatus,
   TaskPriority,
-} from '@almus/shared-types/src/supabase-schema';
+} from '@almus/shared-types';
 import { FileUpload } from './FileUpload';
 import { useAuth } from '../hooks/useAuth';
 import { useTeams } from '../hooks/useTeams';

@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Task, UpdateTaskInput } from '@almus/shared-types';
-import type {
-  TaskStatus,
-  TaskPriority,
-} from '@almus/shared-types/src/supabase-schema';
+import { Task, UpdateTaskInput, TaskStatus, TaskPriority } from '@almus/shared-types';
 import { useNotification } from '../contexts/NotificationContext';
 
 interface EditTaskModalProps {

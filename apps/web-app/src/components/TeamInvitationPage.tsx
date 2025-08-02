@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase/client';
 import { useAuth } from '../hooks/useAuth';
-import type { TeamRole } from '@almus/shared-types/src/supabase-schema';
+import { TeamRole } from '@almus/shared-types';
 
 interface InvitationDetails {
   teamName: string;

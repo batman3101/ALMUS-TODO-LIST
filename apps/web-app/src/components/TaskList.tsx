@@ -4,10 +4,11 @@ import { useTasks, useDeleteTask } from '../hooks/useTasks';
 import { useTeams } from '../hooks/useTeams';
 import { useTaskAuth } from '../hooks/useTaskAuth';
 import { useTheme } from '../contexts/ThemeContext';
+import { TaskStatus, TaskPriority } from '@almus/shared-types';
 import type {
-  TaskStatus,
-  TaskPriority,
-} from '@almus/shared-types/src/supabase-schema';
+  TaskStatus as TaskStatusType,
+  TaskPriority as TaskPriorityType,
+} from '@almus/shared-types';
 import { Task } from '../types/team';
 import { createToast } from '../utils/toast';
 import { useNotification } from '../contexts/NotificationContext';
@@ -31,8 +32,8 @@ const TaskList: React.FC = function TaskList() {
 
   // 필터링 및 검색 상태
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
-  const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>(
+  const [statusFilter, setStatusFilter] = useState<TaskStatusType | 'all'>('all');
+  const [priorityFilter, setPriorityFilter] = useState<TaskPriorityType | 'all'>(
     'all'
   );
   const [sortBy, setSortBy] = useState<
@@ -191,7 +192,7 @@ const TaskList: React.FC = function TaskList() {
     }
   };
 
-  const getStatusText = (status: TaskStatus) => {
+  const getStatusText = (status: TaskStatusType) => {
     switch (status) {
       case TaskStatus.TODO:
         return t('status.todo');
@@ -206,7 +207,7 @@ const TaskList: React.FC = function TaskList() {
     }
   };
 
-  const getPriorityText = (priority: TaskPriority) => {
+  const getPriorityText = (priority: TaskPriorityType) => {
     switch (priority) {
       case TaskPriority.LOW:
         return t('priority.low');

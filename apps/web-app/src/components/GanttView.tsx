@@ -8,6 +8,8 @@ import {
   ZoomLevel,
   GanttViewConfig,
   UpdateTaskInput,
+  TaskStatus,
+  TaskPriority,
 } from '@almus/shared-types';
 import { useTeams } from '../hooks/useTeams';
 import EditTaskModal from './EditTaskModal';
@@ -80,7 +82,7 @@ const GanttView: React.FC = () => {
     endDate: Date
   ) => {
     // 완료된 태스크는 무조건 100%
-    if (task.status === 'DONE') {
+    if (task.status === TaskStatus.DONE) {
       return 100;
     }
 
@@ -113,13 +115,13 @@ const GanttView: React.FC = () => {
     if (!tasks) return [];
 
     return tasks.map((task: Task): GanttTask => {
-      const startDate = task.startDate || task.createdAt;
+      const startDate = task.startDate || task.createdAt || new Date();
       const endDate =
         task.endDate ||
         task.dueDate ||
         new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
       const isDelayed = task.dueDate
-        ? new Date() > task.dueDate && task.status !== 'DONE'
+        ? new Date() > task.dueDate && task.status !== TaskStatus.DONE
         : false;
       const isOverdue = task.dueDate ? new Date() > task.dueDate : false;
 
@@ -656,13 +658,13 @@ const GanttView: React.FC = () => {
 
     const getStatusColor = (status: string) => {
       switch (status) {
-        case 'TODO':
+        case TaskStatus.TODO:
           return 'bg-pink-400 dark:bg-pink-500';
-        case 'IN_PROGRESS':
+        case TaskStatus.IN_PROGRESS:
           return 'bg-blue-500 dark:bg-blue-600';
-        case 'REVIEW':
+        case TaskStatus.REVIEW:
           return 'bg-yellow-500 dark:bg-yellow-600';
-        case 'DONE':
+        case TaskStatus.DONE:
           return 'bg-green-500 dark:bg-green-600';
         default:
           return 'bg-gray-400 dark:bg-gray-500';
@@ -671,13 +673,13 @@ const GanttView: React.FC = () => {
 
     const getPriorityBorder = (priority: string) => {
       switch (priority) {
-        case 'LOW':
+        case TaskPriority.LOW:
           return 'border-l-4 border-l-gray-300';
-        case 'MEDIUM':
+        case TaskPriority.MEDIUM:
           return 'border-l-4 border-l-blue-400';
-        case 'HIGH':
+        case TaskPriority.HIGH:
           return 'border-l-4 border-l-orange-400';
-        case 'URGENT':
+        case TaskPriority.URGENT:
           return 'border-l-4 border-l-red-500';
         default:
           return 'border-l-4 border-l-gray-300';
@@ -910,11 +912,11 @@ const GanttView: React.FC = () => {
                         <div className="flex items-center gap-2 mb-2">
                           <div
                             className={`w-4 h-4 rounded-full flex-shrink-0 ${
-                              task.status === 'TODO'
+                              task.status === TaskStatus.TODO
                                 ? 'bg-pink-400'
-                                : task.status === 'IN_PROGRESS'
+                                : task.status === TaskStatus.IN_PROGRESS
                                   ? 'bg-blue-500'
-                                  : task.status === 'REVIEW'
+                                  : task.status === TaskStatus.REVIEW
                                     ? 'bg-yellow-500'
                                     : 'bg-green-500'
                             }`}
@@ -935,11 +937,11 @@ const GanttView: React.FC = () => {
                         <div className="flex items-center gap-2 text-xs flex-wrap">
                           <span
                             className={`px-2 py-1 rounded text-white font-medium ${
-                              task.priority === 'LOW'
+                              task.priority === TaskPriority.LOW
                                 ? 'bg-gray-400'
-                                : task.priority === 'MEDIUM'
+                                : task.priority === TaskPriority.MEDIUM
                                   ? 'bg-blue-500'
-                                  : task.priority === 'HIGH'
+                                  : task.priority === TaskPriority.HIGH
                                     ? 'bg-orange-500'
                                     : 'bg-red-500'
                             }`}
@@ -948,11 +950,11 @@ const GanttView: React.FC = () => {
                           </span>
                           <span
                             className={`px-2 py-1 rounded text-white font-medium ${
-                              task.status === 'TODO'
+                              task.status === TaskStatus.TODO
                                 ? 'bg-pink-500'
-                                : task.status === 'IN_PROGRESS'
+                                : task.status === TaskStatus.IN_PROGRESS
                                   ? 'bg-blue-600'
-                                  : task.status === 'REVIEW'
+                                  : task.status === TaskStatus.REVIEW
                                     ? 'bg-yellow-600'
                                     : 'bg-green-600'
                             }`}
