@@ -1,0 +1,17 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Material Design In Progress Icon -->
+  <circle cx="12" cy="12" r="10" stroke="#3B82F6" stroke-width="2" fill="none"/>
+  <circle cx="12" cy="12" r="6" fill="#3B82F6" opacity="0.2"/>
+  <path d="M12 6L12 12L16 14" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Rotating animation dots -->
+  <circle cx="18" cy="12" r="1" fill="#3B82F6">
+    <animateTransform attributeName="transform" type="rotate" dur="2s" repeatCount="indefinite" values="0 12 12;360 12 12"/>
+  </circle>
+  <circle cx="16.5" cy="7.5" r="0.8" fill="#3B82F6" opacity="0.7">
+    <animateTransform attributeName="transform" type="rotate" dur="2s" repeatCount="indefinite" values="0 12 12;360 12 12"/>
+  </circle>
+  <circle cx="12" cy="6" r="0.6" fill="#3B82F6" opacity="0.5">
+    <animateTransform attributeName="transform" type="rotate" dur="2s" repeatCount="indefinite" values="0 12 12;360 12 12"/>
+  </circle>
+</svg>

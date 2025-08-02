@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import './i18n'; // i18n 설정 import
 import App from './App';
 import './index.css';
+import './styles/icons.css'; // 아이콘 스타일 import
 
 const queryClient = new QueryClient({
   defaultOptions: {

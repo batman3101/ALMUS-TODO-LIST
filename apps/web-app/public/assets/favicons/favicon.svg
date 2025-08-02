@@ -1,0 +1,27 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- ALMUS Todo List 로고 - Material Design 스타일 -->
+  <rect width="32" height="32" rx="8" fill="#3B82F6"/>
+  
+  <!-- 체크리스트 아이콘 -->
+  <g transform="translate(6, 6)">
+    <!-- 첫 번째 체크박스 -->
+    <rect x="0" y="2" width="3" height="3" rx="0.5" fill="white" opacity="0.9"/>
+    <path d="M1 3.5L1.5 4L2.5 2.5" stroke="#3B82F6" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- 첫 번째 라인 -->
+    <rect x="5" y="2.5" width="15" height="1" fill="white" opacity="0.9"/>
+    
+    <!-- 두 번째 체크박스 -->
+    <rect x="0" y="7" width="3" height="3" rx="0.5" fill="white" opacity="0.9"/>
+    <path d="M1 8.5L1.5 9L2.5 7.5" stroke="#3B82F6" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- 두 번째 라인 -->
+    <rect x="5" y="7.5" width="12" height="1" fill="white" opacity="0.9"/>
+    
+    <!-- 세 번째 체크박스 (미완료) -->
+    <rect x="0" y="12" width="3" height="3" rx="0.5" stroke="white" stroke-width="0.8" fill="none" opacity="0.7"/>
+    
+    <!-- 세 번째 라인 -->
+    <rect x="5" y="12.5" width="8" height="1" fill="white" opacity="0.7"/>
+  </g>
+</svg>

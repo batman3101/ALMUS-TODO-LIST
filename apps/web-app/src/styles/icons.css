@@ -1,0 +1,365 @@
+/**
+ * ALMUS Todo List - Icon Styles
+ * 아이콘 관련 CSS 스타일 정의
+ */
+
+/* SVG 아이콘 기본 스타일 */
+.svg-icon {
+  display: inline-block;
+  vertical-align: middle;
+  fill: currentColor;
+  transition: all 0.2s ease-in-out;
+}
+
+.svg-icon:hover {
+  transform: scale(1.05);
+}
+
+/* 인라인 SVG 아이콘 */
+.inline-svg-icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.inline-svg-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+/* 아이콘 크기 유틸리티 클래스 */
+.icon-xs {
+  width: 12px;
+  height: 12px;
+}
+
+.icon-sm {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-base {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-lg {
+  width: 24px;
+  height: 24px;
+}
+
+.icon-xl {
+  width: 32px;
+  height: 32px;
+}
+
+.icon-2xl {
+  width: 48px;
+  height: 48px;
+}
+
+/* 태스크 상태별 아이콘 스타일 */
+.task-status-icon {
+  transition: all 0.2s ease-in-out;
+}
+
+.task-status-icon.pending {
+  color: #9CA3AF; /* gray-400 */
+  opacity: 0.7;
+}
+
+.task-status-icon.in-progress {
+  color: #3B82F6; /* blue-500 */
+}
+
+.task-status-icon.completed {
+  color: #10B981; /* emerald-500 */
+}
+
+.task-status-icon.overdue {
+  color: #EF4444; /* red-500 */
+  animation: pulse 2s infinite;
+}
+
+/* 우선순위별 아이콘 스타일 */
+.priority-icon {
+  transition: all 0.2s ease-in-out;
+}
+
+.priority-icon.low {
+  color: #10B981; /* emerald-500 */
+}
+
+.priority-icon.medium {
+  color: #F59E0B; /* amber-500 */
+}
+
+.priority-icon.high {
+  color: #EF4444; /* red-500 */
+  filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.3));
+}
+
+/* 아이콘 버튼 스타일 */
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  color: #6B7280; /* gray-500 */
+}
+
+.icon-button:hover {
+  background-color: #F3F4F6; /* gray-100 */
+  color: #374151; /* gray-700 */
+  transform: translateY(-1px);
+}
+
+.icon-button:active {
+  transform: translateY(0);
+}
+
+.icon-button.primary {
+  color: #3B82F6; /* blue-500 */
+}
+
+.icon-button.primary:hover {
+  background-color: #EBF4FF; /* blue-50 */
+  color: #2563EB; /* blue-600 */
+}
+
+.icon-button.success {
+  color: #10B981; /* emerald-500 */
+}
+
+.icon-button.success:hover {
+  background-color: #ECFDF5; /* emerald-50 */
+  color: #059669; /* emerald-600 */
+}
+
+.icon-button.danger {
+  color: #EF4444; /* red-500 */
+}
+
+.icon-button.danger:hover {
+  background-color: #FEF2F2; /* red-50 */
+  color: #DC2626; /* red-600 */
+}
+
+/* 플로팅 액션 버튼 */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  transition: all 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.6);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+/* 아이콘 그리드 레이아웃 */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.icon-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.icon-grid-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.icon-grid-item .icon {
+  margin-bottom: 8px;
+}
+
+.icon-grid-item .label {
+  font-size: 12px;
+  color: #6B7280;
+  text-align: center;
+  word-break: break-word;
+}
+
+/* 아이콘 배지 */
+.icon-badge {
+  position: relative;
+  display: inline-block;
+}
+
+.icon-badge::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #EF4444; /* red-500 */
+  border: 2px solid white;
+}
+
+.icon-badge.success::after {
+  background: #10B981; /* emerald-500 */
+}
+
+.icon-badge.warning::after {
+  background: #F59E0B; /* amber-500 */
+}
+
+.icon-badge.info::after {
+  background: #3B82F6; /* blue-500 */
+}
+
+/* 아이콘 로딩 상태 */
+.icon-loading {
+  animation: spin 1s linear infinite;
+}
+
+/* 아이콘 펄스 애니메이션 */
+.icon-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 키프레임 애니메이션 */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  .icon-button {
+    color: #9CA3AF; /* gray-400 */
+  }
+
+  .icon-button:hover {
+    background-color: #374151; /* gray-700 */
+    color: #D1D5DB; /* gray-300 */
+  }
+
+  .icon-grid-item {
+    background: #1F2937; /* gray-800 */
+    color: #D1D5DB; /* gray-300 */
+  }
+
+  .icon-grid-item .label {
+    color: #9CA3AF; /* gray-400 */
+  }
+}
+
+/* 접근성 개선 */
+.icon-button:focus,
+.fab:focus {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+  .fab {
+    bottom: 16px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .icon-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .icon-grid-item {
+    padding: 8px;
+  }
+}
+
+/* 고대비 모드 지원 */
+@media (prefers-contrast: high) {
+  .icon-button {
+    border: 1px solid currentColor;
+  }
+
+  .task-status-icon.pending {
+    opacity: 1;
+  }
+
+  .fab {
+    border: 2px solid #1D4ED8;
+  }
+}
+
+/* 움직임 최소화 설정 */
+@media (prefers-reduced-motion: reduce) {
+  .svg-icon,
+  .icon-button,
+  .fab,
+  .icon-grid-item,
+  .task-status-icon,
+  .priority-icon {
+    transition: none;
+  }
+
+  .icon-loading,
+  .icon-pulse,
+  .task-status-icon.overdue {
+    animation: none;
+  }
+}
+
+/* 프린트 모드 */
+@media print {
+  .fab {
+    display: none;
+  }
+
+  .icon-button:hover,
+  .icon-grid-item:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}

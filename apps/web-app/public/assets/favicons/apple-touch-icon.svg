@@ -1,0 +1,36 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Apple Touch Icon 180x180 -->
+  <rect width="180" height="180" rx="40" fill="#3B82F6"/>
+  
+  <!-- 체크리스트 아이콘 - 큰 버전 -->
+  <g transform="translate(30, 30)">
+    <!-- 첫 번째 완료된 태스크 -->
+    <rect x="0" y="15" width="20" height="20" rx="4" fill="white" opacity="0.95"/>
+    <path d="M6 25L10 29L18 21" stroke="#3B82F6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- 첫 번째 태스크 텍스트 라인 -->
+    <rect x="30" y="20" width="90" height="6" rx="3" fill="white" opacity="0.95"/>
+    <rect x="30" y="29" width="70" height="4" rx="2" fill="white" opacity="0.7"/>
+    
+    <!-- 두 번째 완료된 태스크 -->
+    <rect x="0" y="50" width="20" height="20" rx="4" fill="white" opacity="0.95"/>
+    <path d="M6 60L10 64L18 56" stroke="#3B82F6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- 두 번째 태스크 텍스트 라인 -->
+    <rect x="30" y="55" width="80" height="6" rx="3" fill="white" opacity="0.95"/>
+    <rect x="30" y="64" width="60" height="4" rx="2" fill="white" opacity="0.7"/>
+    
+    <!-- 세 번째 진행중인 태스크 -->
+    <rect x="0" y="85" width="20" height="20" rx="4" stroke="white" stroke-width="2" fill="none" opacity="0.8"/>
+    <circle cx="10" cy="95" r="3" fill="white" opacity="0.6"/>
+    
+    <!-- 세 번째 태스크 텍스트 라인 -->
+    <rect x="30" y="90" width="75" height="6" rx="3" fill="white" opacity="0.8"/>
+    <rect x="30" y="99" width="50" height="4" rx="2" fill="white" opacity="0.6"/>
+  </g>
+  
+  <!-- ALMUS 텍스트 (선택적) -->
+  <text x="90" y="150" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="600" opacity="0.9">
+    ALMUS
+  </text>
+</svg>
