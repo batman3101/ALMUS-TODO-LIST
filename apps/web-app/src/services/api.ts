@@ -334,8 +334,7 @@ class ApiService {
         .insert({
           team_id: team.id,
           user_id: data.owner_id,
-          role: 'ADMIN',
-          status: 'ACTIVE',
+          role: 'OWNER',
           joined_at: new Date().toISOString(),
         });
 

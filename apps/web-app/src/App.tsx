@@ -160,24 +160,30 @@ function MainApp({
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8">
           <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-dark-900">
-                {t('app.title')}
-              </h1>
-              <p className="text-gray-600 dark:text-dark-600 mt-2">
-                {currentTeam ? (
-                  <span>
-                    현재 팀: <strong>{currentTeam.name}</strong>
-                    {currentTeam && (
-                      <span className="ml-2 text-sm">
-                        ({getRoleLabel(getUserRole(currentTeam.id))})
-                      </span>
-                    )}
-                  </span>
-                ) : (
-                  t('app.subtitle')
-                )}
-              </p>
+            <div className="flex items-center gap-4">
+              {/* 심볼/로고 자리 */}
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+                <img src="/src/assets/images/logo.png" alt="ALMUS Logo" className="w-full h-full object-contain" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-dark-900">
+                  {t('app.title')}
+                </h1>
+                <p className="text-gray-600 dark:text-dark-600 mt-2">
+                  {currentTeam ? (
+                    <span>
+                      현재 팀: <strong>{currentTeam.name}</strong>
+                      {currentTeam && (
+                        <span className="ml-2 text-sm">
+                          ({getRoleLabel(getUserRole(currentTeam.id))})
+                        </span>
+                      )}
+                    </span>
+                  ) : (
+                    t('app.subtitle')
+                  )}
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               {canCreateTask() && (

@@ -76,10 +76,19 @@ export const useTeams = (): TeamsContextValue => {
   
   // 팀 생성
   const createTeam = useCallback(async (data: any) => {
-    await createTeamMutation.mutateAsync({
-      ...data,
-      owner_id: user?.id || ''
-    });
+    if (!user?.id) {
+      throw new Error('사용자 인증이 필요합니다.');
+    }
+
+    // CreateTeamInput을 CreateTeamData로 변환
+    const teamData = {
+      name: data.name,
+      description: data.description,
+      owner_id: user.id,
+      settings: data.settings ? JSON.stringify(data.settings) : undefined
+    };
+
+    return await createTeamMutation.mutateAsync(teamData);
   }, [createTeamMutation, user]);
   
   // 팀 삭제 (실제 구현 필요)

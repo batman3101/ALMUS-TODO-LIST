@@ -26,7 +26,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
   editingTask = null,
 }) => {
   const { user } = useAuth();
-  const { currentTeam } = useTeams();
+  const { currentTeam, teams } = useTeams();
   const { success, error: showError, warning } = useNotification();
   const [formData, setFormData] = useState<CreateTaskInput>({
     title: '',
@@ -85,8 +85,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
       return;
     }
 
-    if (!formData.teamId || !currentTeam?.id) {
-      // TeamId validation failed
+    if (!formData.teamId) {
       showError('팀이 선택되지 않았습니다. 팀을 선택해주세요.');
       return;
     }
@@ -261,6 +260,25 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
             className={inputClassName}
             placeholder={t('task.description')}
           />
+        </div>
+
+        <div>
+          <label htmlFor="team" className={labelClassName}>
+            팀 선택 *
+          </label>
+          <select
+            id="team"
+            value={formData.teamId}
+            onChange={e => handleInputChange('teamId', e.target.value)}
+            className={inputClassName}
+          >
+            <option value="">팀을 선택해주세요</option>
+            {teams.map(team => (
+              <option key={team.id} value={team.id}>
+                {team.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>

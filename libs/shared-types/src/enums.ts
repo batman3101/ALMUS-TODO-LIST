@@ -5,21 +5,21 @@ export const TaskStatus = {
   TODO: 'TODO',
   IN_PROGRESS: 'IN_PROGRESS',
   REVIEW: 'REVIEW',
-  DONE: 'DONE'
+  DONE: 'DONE',
 } as const;
 
 export const TaskPriority = {
   LOW: 'LOW',
   MEDIUM: 'MEDIUM',
   HIGH: 'HIGH',
-  URGENT: 'URGENT'
+  URGENT: 'URGENT',
 } as const;
 
 export const TeamRole = {
   OWNER: 'OWNER',
   ADMIN: 'ADMIN',
   EDITOR: 'EDITOR',
-  VIEWER: 'VIEWER'
+  VIEWER: 'VIEWER',
 } as const;
 
 export const ProjectStatus = {
@@ -27,14 +27,14 @@ export const ProjectStatus = {
   ACTIVE: 'ACTIVE',
   ON_HOLD: 'ON_HOLD',
   COMPLETED: 'COMPLETED',
-  CANCELLED: 'CANCELLED'
+  CANCELLED: 'CANCELLED',
 } as const;
 
 export const MemberStatus = {
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
   INVITED: 'INVITED',
-  REMOVED: 'REMOVED'
+  REMOVED: 'REMOVED',
 } as const;
 
 export const InvitationStatus = {
@@ -42,5 +42,5 @@ export const InvitationStatus = {
   ACCEPTED: 'ACCEPTED',
   REJECTED: 'REJECTED',
   EXPIRED: 'EXPIRED',
-  CANCELLED: 'CANCELLED'
+  CANCELLED: 'CANCELLED',
 } as const;

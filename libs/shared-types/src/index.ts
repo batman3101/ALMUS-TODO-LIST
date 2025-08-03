@@ -8,7 +8,7 @@ export {
   TeamRole,
   ProjectStatus,
   MemberStatus,
-  InvitationStatus
+  InvitationStatus,
 } from './enums';
 export type {
   UserRole,

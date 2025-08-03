@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TaskService } from './task.service';
-import type { TaskStatus, TaskPriority, CreateTaskInput } from '@almus/shared-types';
+import type {
+  TaskStatus,
+  TaskPriority,
+  CreateTaskInput,
+} from '@almus/shared-types';
 
 describe('TaskService', () => {
   let service: TaskService;

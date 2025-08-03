@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TaskController } from './task.controller';
 import { TaskService } from './task.service';
-import type { TaskStatus, TaskPriority, CreateTaskInput, UpdateTaskInput } from '@almus/shared-types';
+import type {
+  TaskStatus,
+  TaskPriority,
+  CreateTaskInput,
+  UpdateTaskInput,
+} from '@almus/shared-types';
 
 describe('TaskController', () => {
   let controller: TaskController;
@@ -21,11 +26,13 @@ describe('TaskController', () => {
       ...createTaskInput,
       createdBy: userId,
     })),
-    updateTask: jest.fn((id: string, updateTaskInput: UpdateTaskInput, userId: string) => ({
-      id,
-      ...updateTaskInput,
-      updatedBy: userId,
-    })),
+    updateTask: jest.fn(
+      (id: string, updateTaskInput: UpdateTaskInput, userId: string) => ({
+        id,
+        ...updateTaskInput,
+        updatedBy: userId,
+      })
+    ),
     removeTask: jest.fn(() => true),
   };
 

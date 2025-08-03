@@ -13,6 +13,8 @@ import { Task } from '../types/team';
 import { createToast } from '../utils/toast';
 import { useNotification } from '../contexts/NotificationContext';
 import CreateTaskForm from './CreateTaskForm';
+import TaskDetailModal from './TaskDetailModal';
+import { Pencil, Trash2, Plus, Eye } from 'lucide-react';
 
 const TaskList: React.FC = function TaskList() {
   const { currentTeam } = useTeams();
@@ -48,6 +50,13 @@ const TaskList: React.FC = function TaskList() {
   // 편집 모달 상태
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  
+  // 태스크 추가 모달 상태
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  
+  // 태스크 상세보기 모달 상태
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [viewingTask, setViewingTask] = useState<Task | null>(null);
 
   // 필터링 및 정렬된 태스크 목록
   const filteredAndSortedTasks = useMemo(() => {
@@ -153,6 +162,20 @@ const TaskList: React.FC = function TaskList() {
     setShowEditModal(false);
   };
 
+  const handleCreateClose = () => {
+    setShowCreateModal(false);
+  };
+
+  const handleView = (task: Task) => {
+    setViewingTask(task);
+    setShowDetailModal(true);
+  };
+
+  const handleDetailClose = () => {
+    setViewingTask(null);
+    setShowDetailModal(false);
+  };
+
   const handleSort = (column: typeof sortBy) => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -251,9 +274,18 @@ const TaskList: React.FC = function TaskList() {
       <div className="bg-white dark:bg-dark-100 rounded-lg shadow transition-colors duration-200">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-300">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-900">
-              {t('task.taskList')} ({filteredAndSortedTasks.length}개)
-            </h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-900">
+                {t('task.taskList')} ({filteredAndSortedTasks.length}개)
+              </h2>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                태스크 추가
+              </button>
+            </div>
 
             {/* 검색 및 필터 */}
             <div className="flex flex-col sm:flex-row gap-3">
@@ -446,27 +478,31 @@ const TaskList: React.FC = function TaskList() {
                       : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-3">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleView(task)}
+                        className="inline-flex items-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded transition-all duration-200"
+                        title="상세보기"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                       {canUpdateTask(task) && (
                         <button
                           onClick={() => handleEdit(task)}
-                          className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors duration-200"
+                          className="inline-flex items-center p-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-all duration-200"
+                          title="편집"
                         >
-                          편집
+                          <Pencil className="w-4 h-4" />
                         </button>
                       )}
                       {canDeleteTask(task) && (
                         <button
                           onClick={() => handleDelete(task.id)}
-                          className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-200"
+                          className="inline-flex items-center p-1.5 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-all duration-200"
+                          title="삭제"
                         >
-                          {t('task.deleteTask')}
+                          <Trash2 className="w-4 h-4" />
                         </button>
-                      )}
-                      {!canUpdateTask(task) && !canDeleteTask(task) && (
-                        <span className="text-gray-400 dark:text-dark-400">
-                          -
-                        </span>
                       )}
                     </div>
                   </td>
@@ -580,6 +616,52 @@ const TaskList: React.FC = function TaskList() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 태스크 추가 모달 */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-300">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
+                새 태스크 추가
+              </h2>
+              <button
+                onClick={handleCreateClose}
+                className="text-gray-400 hover:text-gray-600 dark:text-dark-400 dark:hover:text-dark-600 transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <CreateTaskForm
+                onTaskCreated={handleCreateClose}
+                isModal={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 태스크 상세보기 모달 */}
+      {showDetailModal && viewingTask && (
+        <TaskDetailModal
+          task={viewingTask}
+          isOpen={showDetailModal}
+          onClose={handleDetailClose}
+        />
       )}
     </>
   );

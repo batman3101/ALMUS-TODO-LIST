@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Noto+Emoji&display=swap');
+
 body {
   margin: 0;
   font-family:
@@ -9,6 +11,12 @@ body {
     'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Noto Emoji 폰트를 이모지에 적용 */
+.emoji {
+  font-family: 'Noto Emoji', sans-serif;
+  font-variation-settings: 'EMOQ' 1;
 }
 
 code {

@@ -4,6 +4,8 @@ import { useTasks, useUpdateTask } from '../hooks/useTasks';
 import { useTeams } from '../hooks/useTeams';
 import { Task, UpdateTaskInput, TaskPriority } from '@almus/shared-types';
 import EditTaskModal from './EditTaskModal';
+import CreateTaskForm from './CreateTaskForm';
+import { Plus } from 'lucide-react';
 
 interface CalendarViewProps {
   className?: string;
@@ -26,6 +28,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
   // 모달 상태 관리
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // 드래그 및 리사이즈 상태 관리
   const [dragState, setDragState] = useState<{
@@ -56,6 +60,17 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
   const handleEditModalClose = () => {
     setEditingTask(null);
     setShowEditModal(false);
+  };
+
+  const handleCreateModalClose = () => {
+    setShowCreateModal(false);
+    setSelectedDate(null);
+  };
+
+  // 날짜 클릭 핸들러 - 태스크 추가
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    setShowCreateModal(true);
   };
 
   // 태스크 업데이트 핸들러
@@ -383,9 +398,18 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
     >
       {/* 헤더 */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-dark-300">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-          캘린더 뷰
-        </h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
+            캘린더 뷰
+          </h2>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            태스크 추가
+          </button>
+        </div>
 
         <div className="flex items-center gap-4">
           <button
@@ -462,7 +486,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
                       key={`${weekIndex}-${dayIndex}`}
                       className={`p-2 border-r border-b border-gray-200 dark:border-dark-300 ${dayIndex === 6 ? 'border-r-0' : ''} ${
                         !isCurrentMonth ? 'bg-gray-50 dark:bg-dark-200' : ''
-                      }`}
+                      } cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-200 transition-colors`}
+                      onClick={() => handleDateClick(date)}
                     >
                       {/* 날짜 */}
                       <div
@@ -576,6 +601,44 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
         onClose={handleEditModalClose}
         onSave={handleTaskSave}
       />
+
+      {/* 태스크 추가 모달 */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-300">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
+                새 태스크 추가 {selectedDate && `- ${selectedDate.toLocaleDateString()}`}
+              </h2>
+              <button
+                onClick={handleCreateModalClose}
+                className="text-gray-400 hover:text-gray-600 dark:text-dark-400 dark:hover:text-dark-600 transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <CreateTaskForm
+                onTaskCreated={handleCreateModalClose}
+                isModal={true}
+                initialData={selectedDate ? { startDate: selectedDate, dueDate: selectedDate } : undefined}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

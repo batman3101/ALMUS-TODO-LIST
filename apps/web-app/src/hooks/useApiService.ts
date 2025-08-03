@@ -72,7 +72,7 @@ export const useTask = (id: string) => {
 
 export const useCreateTask = () => {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotification();
+  const { success, error } = useNotification();
 
   return useMutation({
     mutationFn: (data: CreateTaskData) => apiService.createTask(data),
@@ -87,11 +87,11 @@ export const useCreateTask = () => {
         queryKey: QUERY_KEYS.projects(variables.team_id),
       });
 
-      showSuccess('태스크가 성공적으로 생성되었습니다.');
+      success('태스크가 성공적으로 생성되었습니다.');
       return response.data;
     },
     onError: (error: ApiError) => {
-      showError(`태스크 생성 실패: ${error.message}`);
+      error(`태스크 생성 실패: ${error.message}`);
       throw error;
     },
   });
@@ -99,7 +99,7 @@ export const useCreateTask = () => {
 
 export const useUpdateTask = () => {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotification();
+  const { success, error } = useNotification();
 
   return useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: UpdateTaskData }) =>
@@ -115,11 +115,11 @@ export const useUpdateTask = () => {
       // 관련 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
 
-      showSuccess('태스크가 성공적으로 업데이트되었습니다.');
+      success('태스크가 성공적으로 업데이트되었습니다.');
       return response.data;
     },
     onError: (error: ApiError) => {
-      showError(`태스크 업데이트 실패: ${error.message}`);
+      error(`태스크 업데이트 실패: ${error.message}`);
       throw error;
     },
   });
@@ -127,7 +127,7 @@ export const useUpdateTask = () => {
 
 export const useDeleteTask = () => {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotification();
+  const { success, error } = useNotification();
 
   return useMutation({
     mutationFn: (id: string) => apiService.deleteTask(id),
@@ -143,10 +143,10 @@ export const useDeleteTask = () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
 
-      showSuccess('태스크가 성공적으로 삭제되었습니다.');
+      success('태스크가 성공적으로 삭제되었습니다.');
     },
     onError: (error: ApiError) => {
-      showError(`태스크 삭제 실패: ${error.message}`);
+      error(`태스크 삭제 실패: ${error.message}`);
       throw error;
     },
   });
@@ -187,7 +187,7 @@ export const useTeam = (id: string) => {
 
 export const useCreateTeam = () => {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotification();
+  const { success, error: showError } = useNotification();
   const { user } = useAuth();
 
   return useMutation({
@@ -202,7 +202,7 @@ export const useCreateTeam = () => {
         queryKey: QUERY_KEYS.teams(user?.id || ''),
       });
 
-      showSuccess('팀이 성공적으로 생성되었습니다.');
+      success('팀이 성공적으로 생성되었습니다.');
       return response.data;
     },
     onError: (error: ApiError) => {
@@ -230,7 +230,7 @@ export const useTeamMembers = (teamId: string, filters?: TeamMemberFilters) => {
 
 export const useInviteTeamMember = () => {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotification();
+  const { success, error } = useNotification();
 
   return useMutation({
     mutationFn: ({
@@ -250,11 +250,11 @@ export const useInviteTeamMember = () => {
       // 팀 멤버 목록 무효화
       queryClient.invalidateQueries({ queryKey: ['team-members', teamId] });
 
-      showSuccess('팀 멤버 초대가 전송되었습니다.');
+      success('팀 멤버 초대가 전송되었습니다.');
       return response.data;
     },
     onError: (error: ApiError) => {
-      showError(`멤버 초대 실패: ${error.message}`);
+      error(`멤버 초대 실패: ${error.message}`);
       throw error;
     },
   });
@@ -262,7 +262,7 @@ export const useInviteTeamMember = () => {
 
 export const useUpdateMemberRole = () => {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotification();
+  const { success, error } = useNotification();
 
   return useMutation({
     mutationFn: ({ memberId, role }: { memberId: string; role: any }) =>
@@ -275,11 +275,11 @@ export const useUpdateMemberRole = () => {
       // 팀 멤버 관련 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: ['team-members'] });
 
-      showSuccess('멤버 역할이 업데이트되었습니다.');
+      success('멤버 역할이 업데이트되었습니다.');
       return response.data;
     },
     onError: (error: ApiError) => {
-      showError(`역할 업데이트 실패: ${error.message}`);
+      error(`역할 업데이트 실패: ${error.message}`);
       throw error;
     },
   });
@@ -287,7 +287,7 @@ export const useUpdateMemberRole = () => {
 
 export const useRemoveMember = () => {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotification();
+  const { success, error } = useNotification();
 
   return useMutation({
     mutationFn: (memberId: string) => apiService.removeMember(memberId),
@@ -299,10 +299,10 @@ export const useRemoveMember = () => {
       // 팀 멤버 관련 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: ['team-members'] });
 
-      showSuccess('멤버가 팀에서 제거되었습니다.');
+      success('멤버가 팀에서 제거되었습니다.');
     },
     onError: (error: ApiError) => {
-      showError(`멤버 제거 실패: ${error.message}`);
+      error(`멤버 제거 실패: ${error.message}`);
       throw error;
     },
   });
@@ -326,7 +326,7 @@ export const useProjects = (teamId: string) => {
 
 export const useCreateProject = () => {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotification();
+  const { success, error } = useNotification();
 
   return useMutation({
     mutationFn: (data: CreateProjectData) => apiService.createProject(data),
@@ -340,11 +340,11 @@ export const useCreateProject = () => {
         queryKey: QUERY_KEYS.projects(variables.team_id),
       });
 
-      showSuccess('프로젝트가 성공적으로 생성되었습니다.');
+      success('프로젝트가 성공적으로 생성되었습니다.');
       return response.data;
     },
     onError: (error: ApiError) => {
-      showError(`프로젝트 생성 실패: ${error.message}`);
+      error(`프로젝트 생성 실패: ${error.message}`);
       throw error;
     },
   });
@@ -368,7 +368,7 @@ export const useComments = (resourceType: string, resourceId: string) => {
 
 export const useCreateComment = () => {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotification();
+  const { success, error } = useNotification();
 
   return useMutation({
     mutationFn: (data: {
@@ -388,11 +388,11 @@ export const useCreateComment = () => {
         queryKey: QUERY_KEYS.comments(resource_type, resource_id),
       });
 
-      showSuccess('댓글이 추가되었습니다.');
+      success('댓글이 추가되었습니다.');
       return response.data;
     },
     onError: (error: ApiError) => {
-      showError(`댓글 추가 실패: ${error.message}`);
+      error(`댓글 추가 실패: ${error.message}`);
       throw error;
     },
   });

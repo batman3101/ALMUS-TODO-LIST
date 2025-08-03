@@ -48,7 +48,10 @@
       "mcp__playwright-mcp__browser_navigate",
       "mcp__playwright-mcp__browser_click",
       "mcp__playwright-mcp__browser_wait_for",
-      "mcp__playwright-mcp__browser_close"
+      "mcp__playwright-mcp__browser_close",
+      "Bash(npx vite-bundle-analyzer:*)",
+      "mcp__playwright-mcp__browser_type",
+      "mcp__playwright-mcp__browser_snapshot"
     ],
     "deny": []
   }

@@ -12,6 +12,10 @@ import type { Task } from '@almus/shared-types';
 import { TaskStatus, TaskPriority } from '@almus/shared-types';
 import { createToast } from '../utils/toast';
 import CreateTaskForm from './CreateTaskForm';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { useDeleteTask } from '../hooks/useTasks';
+import { useTaskAuth } from '../hooks/useTaskAuth';
+import { useNotification } from '../contexts/NotificationContext';
 
 interface KanbanViewProps {
   className?: string;
@@ -36,6 +40,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     teamId: currentTeam?.id || '',
   });
   const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
+  const { canUpdateTask, canDeleteTask } = useTaskAuth();
+  const { showConfirm } = useNotification();
 
   const [wipLimits, setWipLimits] = useState<Record<TaskStatus, number>>({
     [TaskStatus.TODO]: 10,
@@ -47,6 +54,10 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
   // 편집 모달 상태
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  
+  // 태스크 추가 모달 상태
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<TaskStatus | null>(null);
 
   // 컬럼 정의
   const columns: Column[] = useMemo(
@@ -189,9 +200,42 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     setShowEditModal(true);
   };
 
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+    setShowEditModal(true);
+  };
+
   const handleEditClose = () => {
     setEditingTask(null);
     setShowEditModal(false);
+  };
+
+  const handleCreateClose = () => {
+    setShowCreateModal(false);
+    setSelectedStatus(null);
+  };
+
+  const handleAddTask = (status: TaskStatus) => {
+    setSelectedStatus(status);
+    setShowCreateModal(true);
+  };
+
+  const handleDelete = async (taskId: string) => {
+    const confirmed = await showConfirm({
+      title: '태스크 삭제',
+      message: '이 태스크를 삭제하시겠습니까?',
+      confirmText: '삭제',
+      cancelText: '취소',
+      variant: 'danger',
+    });
+    if (confirmed) {
+      try {
+        await deleteTaskMutation.mutateAsync(taskId);
+        toast.success('태스크가 삭제되었습니다.');
+      } catch (error) {
+        toast.error('태스크 삭제에 실패했습니다.');
+      }
+    }
   };
 
   const getPriorityColor = (priority: TaskPriority) => {
@@ -253,9 +297,18 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
       <div className={`${className}`}>
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white dark:bg-dark-100 rounded-t-lg border-b border-gray-200 dark:border-dark-300 transition-colors duration-200 gap-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-            칸반 보드
-          </h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
+              칸반 보드
+            </h2>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              태스크 추가
+            </button>
+          </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <span className="text-sm text-gray-600 dark:text-dark-600 whitespace-nowrap">
               WIP 제한 설정:
@@ -311,6 +364,13 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                         {column.title}
                       </h3>
                       <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => handleAddTask(column.id)}
+                          className="p-1 text-gray-600 dark:text-dark-600 hover:text-gray-900 dark:hover:text-dark-900 hover:bg-gray-200 dark:hover:bg-dark-300 rounded transition-colors"
+                          title={`${column.title}에 태스크 추가`}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
                         <span className="text-sm text-gray-600 dark:text-dark-600">
                           {columnTasks.length}
                           {wipLimits[column.id] && `/${wipLimits[column.id]}`}
@@ -400,30 +460,34 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                       >
                                         {task.priority}
                                       </span>
-                                      {/* 편집 버튼 */}
-                                      <button
-                                        onClick={e => {
-                                          e.stopPropagation();
-                                          handleTaskClick(task, e);
-                                        }}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-100 dark:hover:bg-dark-200 cursor-pointer"
-                                        title="편집"
-                                        type="button"
-                                      >
-                                        <svg
-                                          className="w-3 h-3 text-gray-400 hover:text-gray-600"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                          />
-                                        </svg>
-                                      </button>
+                                      <div className="flex items-center gap-1">
+                                        {/* 편집 버튼 */}
+                                        {canUpdateTask(task) && (
+                                          <button
+                                            onClick={e => {
+                                              e.stopPropagation();
+                                              handleEdit(task);
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-400"
+                                            title="편집"
+                                          >
+                                            <Pencil className="w-3 h-3" />
+                                          </button>
+                                        )}
+                                        {/* 삭제 버튼 */}
+                                        {canDeleteTask(task) && (
+                                          <button
+                                            onClick={e => {
+                                              e.stopPropagation();
+                                              handleDelete(task.id);
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 cursor-pointer text-red-600 dark:text-red-400"
+                                            title="삭제"
+                                          >
+                                            <Trash2 className="w-3 h-3" />
+                                          </button>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
 
@@ -538,6 +602,45 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                 onTaskCreated={handleEditClose}
                 isModal={true}
                 editingTask={editingTask}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 태스크 추가 모달 */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-300">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
+                새 태스크 추가
+                {selectedStatus && ` - ${columns.find(c => c.id === selectedStatus)?.title}`}
+              </h2>
+              <button
+                onClick={handleCreateClose}
+                className="text-gray-400 hover:text-gray-600 dark:text-dark-400 dark:hover:text-dark-600 transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <CreateTaskForm
+                onTaskCreated={handleCreateClose}
+                isModal={true}
+                initialData={selectedStatus ? { status: selectedStatus } : undefined}
               />
             </div>
           </div>
