@@ -40,14 +40,18 @@ export const useTeams = (): TeamsContextValue => {
   
   // 초기 팀 설정
   useEffect(() => {
-    if (user && teams.length > 0 && !currentTeamId) {
-      const savedTeamId = localStorage.getItem(`currentTeam-${user.id}`);
-      const teamToSelect = teams.find(t => t.id === savedTeamId) || teams[0];
-      
-      if (teamToSelect) {
-        setCurrentTeamId(teamToSelect.id);
-        localStorage.setItem(`currentTeam-${user.id}`, teamToSelect.id);
+    if (user && !currentTeamId) {
+      // 팀이 있는 경우
+      if (teams.length > 0) {
+        const savedTeamId = localStorage.getItem(`currentTeam-${user.id}`);
+        const teamToSelect = teams.find(t => t.id === savedTeamId) || teams[0];
+        
+        if (teamToSelect) {
+          setCurrentTeamId(teamToSelect.id);
+          localStorage.setItem(`currentTeam-${user.id}`, teamToSelect.id);
+        }
       }
+      // 팀이 없는 경우 - 기본 팀 생성은 사용자가 명시적으로 요청할 때만
     }
   }, [user, teams, currentTeamId]);
   

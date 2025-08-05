@@ -53,7 +53,10 @@
       "mcp__playwright-mcp__browser_type",
       "mcp__playwright-mcp__browser_snapshot",
       "WebFetch(domain:supabase.com)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl:*)",
+      "mcp__ide__executeCode"
     ],
     "deny": []
   }

@@ -1,3 +1,5 @@
+// TODO: Migrate from Firebase to Supabase
+// This file needs to be refactored to use Supabase instead of Firebase
 import { useState, useEffect } from 'react';
 import { logger } from '../utils/logger';
 import {

@@ -126,7 +126,7 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
     setIsLoading(true);
     try {
       // useComments 훅을 사용하여 실제 댓글 로드
-      // 임시로 빈 배열로 설정 (실제 구현에서는 Firebase에서 로드)
+      // 임시로 빈 배열로 설정 (실제 구현에서는 Supabase에서 로드)
       const mockComments: Comment[] = [
         {
           id: '1',

@@ -257,7 +257,14 @@ class ApiService {
   // =================== Team API ===================
   async getTeams(userId: string): Promise<ApiResponse<Team[]>> {
     return this.executeQuery(async () => {
-      return supabase
+      console.log('Getting teams for user:', userId);
+      
+      // 먼저 사용자가 멤버인 팀 ID들을 가져옴
+      const teamIds = await this.getUserTeamIds(userId);
+      console.log('User team IDs:', teamIds);
+      
+      // 쿼리 빌드
+      let query = supabase
         .from('teams')
         .select(
           `
@@ -272,11 +279,18 @@ class ApiService {
           )
         `
         )
-        .or(
-          `owner_id.eq.${userId},id.in.(${await this.getUserTeamIds(userId)})`
-        )
         .eq('is_active', true)
         .order('created_at', { ascending: false });
+      
+      // owner이거나 member인 팀만 필터링
+      if (teamIds) {
+        query = query.or(`owner_id.eq.${userId},id.in.(${teamIds})`);
+      } else {
+        // 팀 ID가 없으면 owner인 팀만 조회
+        query = query.eq('owner_id', userId);
+      }
+      
+      return query;
     });
   }
 

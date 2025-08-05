@@ -168,10 +168,10 @@ const LoginForm: React.FC = () => {
 
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-dark-600">
-              테스트 계정: admin@almus.com / password123
+              테스트 계정: zetooo1972@gmail.com / youkillme-1972
             </p>
             <p className="text-xs text-gray-500 dark:text-dark-500 mt-1">
-              계정이 없다면 위 정보로 회원가입하세요
+              위 계정으로 로그인하세요 (이미 생성됨)
             </p>
           </div>
         </form>
