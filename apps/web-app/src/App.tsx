@@ -4,7 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { StagewiseToolbar } from '@stagewise/toolbar-react';
 import ReactPlugin from '@stagewise-plugins/react';
 import { QueryProvider } from './providers/QueryProvider';
-import { ThemeProvider } from './contexts/ThemeContext';
+
 import { NotificationProvider } from './contexts/NotificationContext';
 import { useAuth } from './hooks/useAuth';
 import { useTaskAuth } from './hooks/useTaskAuth';
@@ -18,6 +18,7 @@ import { TeamManagement } from './components/TeamManagement';
 import ViewSelector, { ViewType } from './components/ViewSelector';
 import LanguageSelector from './components/LanguageSelector';
 import ThemeToggle from './components/ThemeToggle';
+import { useTheme } from './contexts/ThemeContext';
 import LoginForm from './components/LoginForm';
 import { TeamRole } from './types/team';
 
@@ -25,6 +26,7 @@ function App() {
   const [currentView, setCurrentView] = useState<ViewType>('list');
   const [showCreateTask, setShowCreateTask] = useState(false);
   const { loading, isAuthenticated } = useAuth();
+  const { theme } = useTheme();
 
   // 사용자가 로그인했을 때 샘플 데이터 초기화 - Supabase 마이그레이션으로 주석 처리
   // useEffect(() => {
@@ -51,30 +53,28 @@ function App() {
 
   if (loading) {
     return (
-      <ThemeProvider>
-        <div className="min-h-screen bg-gray-50 dark:bg-dark-50 flex items-center justify-center transition-colors duration-200">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600 dark:text-dark-600">로딩 중...</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-dark-50 flex items-center justify-center transition-colors duration-200">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-dark-600">로딩 중...</p>
         </div>
-      </ThemeProvider>
+      </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <ThemeProvider>
+      <>
         <StagewiseToolbar config={{ plugins: [ReactPlugin] }} />
         <NotificationProvider>
           <LoginForm />
         </NotificationProvider>
-      </ThemeProvider>
+      </>
     );
   }
 
   return (
-    <ThemeProvider>
+    <>
       <StagewiseToolbar config={{ plugins: [ReactPlugin] }} />
       <NotificationProvider>
         <QueryProvider>
@@ -118,7 +118,7 @@ function App() {
           },
         }}
       />
-    </ThemeProvider>
+    </>
   );
 }
 
@@ -137,6 +137,7 @@ function MainApp({
   renderCurrentView: () => React.ReactNode;
 }) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const { canCreateTask } = useTaskAuth();
   const { currentTeam, getUserRole } = useTeams();
 
@@ -162,8 +163,13 @@ function MainApp({
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center gap-4">
               {/* 심볼/로고 자리 */}
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-                <img src="/src/assets/images/logo.png" alt="ALMUS Logo" className="w-full h-full object-contain" />
+              <div className="w-12 h-12 rounded-lg overflow-hidden">
+                <img
+                  id="logo-image"
+                  src={theme === 'dark' ? '/assets/logos/A symbol BLUE-02.png' : '/assets/logos/A symbol black-02.png'}
+                  alt="ALMUS Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-dark-900">

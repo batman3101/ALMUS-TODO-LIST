@@ -51,7 +51,9 @@
       "mcp__playwright-mcp__browser_close",
       "Bash(npx vite-bundle-analyzer:*)",
       "mcp__playwright-mcp__browser_type",
-      "mcp__playwright-mcp__browser_snapshot"
+      "mcp__playwright-mcp__browser_snapshot",
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": []
   }
