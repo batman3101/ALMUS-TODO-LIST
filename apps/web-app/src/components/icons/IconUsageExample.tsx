@@ -40,8 +40,10 @@ export const IconUsageExample: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">아이콘 사용 예시</h1>
-      
+      <h1 className="text-3xl font-bold mb-8 text-gray-800">
+        아이콘 사용 예시
+      </h1>
+
       {/* 네비게이션 바 예시 */}
       <section className="mb-8">
         <h2 className="text-xl font-semibold mb-4">네비게이션 바</h2>
@@ -52,7 +54,12 @@ export const IconUsageExample: React.FC = () => {
                 <Icon name="menu" category="navigation" size={24} />
               </button>
               <div className="flex items-center space-x-2">
-                <SvgIcon name="home" category="navigation" size={24} className="text-blue-600" />
+                <SvgIcon
+                  name="home"
+                  category="navigation"
+                  size={24}
+                  className="text-blue-600"
+                />
                 <span className="font-semibold text-gray-800">ALMUS</span>
               </div>
             </div>
@@ -75,22 +82,36 @@ export const IconUsageExample: React.FC = () => {
       <section className="mb-8">
         <h2 className="text-xl font-semibold mb-4">태스크 리스트</h2>
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          {sampleTasks.map((task) => (
-            <div key={task.id} className="flex items-center p-4 border-b border-gray-100 hover:bg-gray-50">
+          {sampleTasks.map(task => (
+            <div
+              key={task.id}
+              className="flex items-center p-4 border-b border-gray-100 hover:bg-gray-50"
+            >
               <div className="flex items-center space-x-3 flex-1">
                 <TaskStatusIcon status={task.status} />
                 <div className="flex-1">
-                  <h3 className={`font-medium ${task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                  <h3
+                    className={`font-medium ${task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'}`}
+                  >
                     {task.title}
                   </h3>
                   <div className="flex items-center space-x-4 mt-1">
                     <div className="flex items-center space-x-1">
                       <PriorityIcon priority={task.priority} />
-                      <span className="text-sm text-gray-500 capitalize">{task.priority}</span>
+                      <span className="text-sm text-gray-500 capitalize">
+                        {task.priority}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <SvgIcon name="calendar-days" category="task-management" size={16} className="text-gray-400" />
-                      <span className="text-sm text-gray-500">{task.dueDate}</span>
+                      <SvgIcon
+                        name="calendar-days"
+                        category="task-management"
+                        size={16}
+                        className="text-gray-400"
+                      />
+                      <span className="text-sm text-gray-500">
+                        {task.dueDate}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -114,7 +135,12 @@ export const IconUsageExample: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <button className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-              <SvgIcon name="add-task" category="task-management" size={20} className="text-white" />
+              <SvgIcon
+                name="add-task"
+                category="task-management"
+                size={20}
+                className="text-white"
+              />
               <span>새 태스크</span>
             </button>
             <button className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
@@ -164,7 +190,12 @@ export const IconUsageExample: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <SvgIcon name="team" category="social" size={24} className="text-blue-600" />
+              <SvgIcon
+                name="team"
+                category="social"
+                size={24}
+                className="text-blue-600"
+              />
               <h3 className="text-lg font-medium">프론트엔드 개발팀</h3>
             </div>
             <div className="flex items-center space-x-2">
@@ -188,7 +219,12 @@ export const IconUsageExample: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <Icon name="owner" category="team" size={16} className="text-amber-500" />
+                <Icon
+                  name="owner"
+                  category="team"
+                  size={16}
+                  className="text-amber-500"
+                />
                 <span className="text-sm text-gray-500">팀 리더</span>
               </div>
             </div>
@@ -203,7 +239,12 @@ export const IconUsageExample: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <Icon name="admin" category="team" size={16} className="text-blue-500" />
+                <Icon
+                  name="admin"
+                  category="team"
+                  size={16}
+                  className="text-blue-500"
+                />
                 <span className="text-sm text-gray-500">관리자</span>
               </div>
             </div>
@@ -213,7 +254,12 @@ export const IconUsageExample: React.FC = () => {
 
       {/* 플로팅 액션 버튼 */}
       <button className="fab">
-        <SvgIcon name="add-task" category="task-management" size={24} className="text-white" />
+        <SvgIcon
+          name="add-task"
+          category="task-management"
+          size={24}
+          className="text-white"
+        />
       </button>
     </div>
   );

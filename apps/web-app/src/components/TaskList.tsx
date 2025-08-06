@@ -34,10 +34,12 @@ const TaskList: React.FC = function TaskList() {
 
   // 필터링 및 검색 상태
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<TaskStatusType | 'all'>('all');
-  const [priorityFilter, setPriorityFilter] = useState<TaskPriorityType | 'all'>(
+  const [statusFilter, setStatusFilter] = useState<TaskStatusType | 'all'>(
     'all'
   );
+  const [priorityFilter, setPriorityFilter] = useState<
+    TaskPriorityType | 'all'
+  >('all');
   const [sortBy, setSortBy] = useState<
     'title' | 'dueDate' | 'priority' | 'status' | 'createdAt'
   >('createdAt');
@@ -50,10 +52,10 @@ const TaskList: React.FC = function TaskList() {
   // 편집 모달 상태
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  
+
   // 태스크 추가 모달 상태
   const [showCreateModal, setShowCreateModal] = useState(false);
-  
+
   // 태스크 상세보기 모달 상태
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [viewingTask, setViewingTask] = useState<Task | null>(null);

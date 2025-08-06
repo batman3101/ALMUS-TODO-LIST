@@ -93,7 +93,8 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
       setErrors({});
     } catch (error: any) {
       console.error('팀 생성 오류:', error);
-      const errorMessage = error?.message || '팀 생성에 실패했습니다. 다시 시도해주세요.';
+      const errorMessage =
+        error?.message || '팀 생성에 실패했습니다. 다시 시도해주세요.';
       setErrors({ submit: errorMessage });
     } finally {
       setIsLoading(false);

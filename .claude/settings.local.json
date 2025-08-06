@@ -56,7 +56,10 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:localhost)",
       "Bash(curl:*)",
-      "mcp__ide__executeCode"
+      "mcp__ide__executeCode",
+      "Bash(timeout 10 npm run dev)",
+      "Bash(timeout 8 npm start)",
+      "Bash(timeout 8 npm run dev)"
     ],
     "deny": []
   }

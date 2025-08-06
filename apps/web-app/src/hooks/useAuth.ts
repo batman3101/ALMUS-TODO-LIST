@@ -22,6 +22,15 @@ export const useAuth = () => {
 
   useEffect(() => {
     let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    // Add timeout protection (10 seconds max)
+    timeoutId = setTimeout(() => {
+      if (isMounted) {
+        logger.warn('Auth initialization timeout - setting loading to false');
+        setLoading(false);
+      }
+    }, 10000);
 
     const getSession = async () => {
       try {
@@ -51,94 +60,46 @@ export const useAuth = () => {
       } finally {
         if (isMounted) {
           setLoading(false);
+          clearTimeout(timeoutId);
         }
       }
     };
 
-    const loadUserProfile = async (userId: string) => {
+    const loadUserProfile = async (_userId: string) => {
       try {
-        const { data: userProfile, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', userId)
-          .single();
+        // Supabase Auth에서 사용자 정보 가져오기
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser();
 
-        if (error) {
-          // 프로필이 없는 경우 새로 생성
-          if (error.code === 'PGRST116') {
-            logger.info('User profile not found, creating new profile');
-            
-            // Auth 세션에서 사용자 정보 가져오기
-            const { data: { user: authUser } } = await supabase.auth.getUser();
-            
-            if (authUser) {
-              const newProfile = {
-                id: userId,
-                email: authUser.email!,
-                name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || '사용자',
-                role: 'VIEWER' as const,
-                is_active: true,
-                current_team_id: null,
-                avatar: null,
-                avatar_url: authUser.user_metadata?.avatar_url || null,
-                last_login_at: new Date().toISOString(),
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              };
-              
-              const { data: createdProfile, error: createError } = await supabase
-                .from('users')
-                .insert(newProfile)
-                .select()
-                .single();
-                
-              if (createError) {
-                logger.error('Failed to create user profile:', createError);
-                setError('사용자 프로필 생성에 실패했습니다.');
-                return;
-              }
-              
-              // 생성된 프로필로 계속 진행
-              if (createdProfile && isMounted) {
-                const authUser: AuthUser = {
-                  ...createdProfile,
-                  uid: createdProfile.id,
-                  displayName: createdProfile.name,
-                  photoURL: createdProfile.avatar,
-                  teamId: createdProfile.current_team_id || 'default-team',
-                  projectIds: [],
-                  lastLoginAt: createdProfile.last_login_at
-                    ? new Date(createdProfile.last_login_at)
-                    : undefined,
-                  createdAt: new Date(createdProfile.created_at),
-                  updatedAt: new Date(createdProfile.updated_at),
-                };
-                setUser(authUser);
-              }
-              return;
-            }
-          } else {
-            logger.error('User profile error:', error);
-            setError('사용자 정보를 불러오는데 실패했습니다.');
-            return;
-          }
-        }
-
-        if (userProfile && isMounted) {
-          const authUser: AuthUser = {
-            ...userProfile,
-            uid: userProfile.id,
-            displayName: userProfile.name,
-            photoURL: userProfile.avatar,
-            teamId: userProfile.current_team_id || 'default-team',
-            projectIds: [], // TODO: Load from user's projects
-            lastLoginAt: userProfile.last_login_at
-              ? new Date(userProfile.last_login_at)
-              : undefined,
-            createdAt: new Date(userProfile.created_at),
-            updatedAt: new Date(userProfile.updated_at),
+        if (authUser && isMounted) {
+          // Auth 정보만 사용하여 AuthUser 객체 생성
+          const user: AuthUser = {
+            id: authUser.id,
+            uid: authUser.id,
+            email: authUser.email!,
+            name:
+              authUser.user_metadata?.name ||
+              authUser.email?.split('@')[0] ||
+              '사용자',
+            displayName:
+              authUser.user_metadata?.name ||
+              authUser.email?.split('@')[0] ||
+              '사용자',
+            role: 'VIEWER' as const,
+            is_active: true,
+            current_team_id: null,
+            avatar: null,
+            photoURL: null,
+            teamId: 'default-team',
+            projectIds: [],
+            last_login_at: new Date().toISOString(),
+            created_at: authUser.created_at,
+            updated_at: new Date().toISOString(),
+            createdAt: new Date(authUser.created_at),
+            updatedAt: new Date(),
           };
-          setUser(authUser);
+          setUser(user);
         }
       } catch (err) {
         logger.error('Load user profile error:', err);
@@ -179,6 +140,7 @@ export const useAuth = () => {
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);
@@ -197,13 +159,7 @@ export const useAuth = () => {
         throw error;
       }
 
-      if (data.user) {
-        // Update last login time
-        await supabase
-          .from('users')
-          .update({ last_login_at: new Date().toISOString() })
-          .eq('id', data.user.id);
-      }
+      // public.users 테이블 업데이트 제거 - Supabase Auth만 사용
 
       return data;
     } catch (err: any) {

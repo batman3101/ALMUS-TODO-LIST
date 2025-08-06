@@ -2,8 +2,8 @@
 export { useTeams } from './useTeamsContext';
 
 // API 서비스에서 개별 훅들도 export (필요한 경우 사용)
-export { 
+export {
   useTeams as useTeamsQuery,
   useTeam,
-  useCreateTeam 
+  useCreateTeam,
 } from './useApiService';

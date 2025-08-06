@@ -54,7 +54,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
   // 편집 모달 상태
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  
+
   // 태스크 추가 모달 상태
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus | null>(null);
@@ -615,7 +615,8 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
             <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-300">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
                 새 태스크 추가
-                {selectedStatus && ` - ${columns.find(c => c.id === selectedStatus)?.title}`}
+                {selectedStatus &&
+                  ` - ${columns.find(c => c.id === selectedStatus)?.title}`}
               </h2>
               <button
                 onClick={handleCreateClose}
@@ -640,7 +641,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
               <CreateTaskForm
                 onTaskCreated={handleCreateClose}
                 isModal={true}
-                initialData={selectedStatus ? { status: selectedStatus } : undefined}
+                initialData={
+                  selectedStatus ? { status: selectedStatus } : undefined
+                }
               />
             </div>
           </div>

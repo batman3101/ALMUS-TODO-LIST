@@ -12,7 +12,7 @@ import {
   Clock,
   AlertCircle,
   Flag,
-  
+
   // Navigation Icons
   Menu,
   Home,
@@ -23,7 +23,7 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  
+
   // Status Icons
   Pending,
   PlayCircle,
@@ -31,7 +31,7 @@ import {
   XCircle,
   AlertTriangle,
   Info,
-  
+
   // Action Icons
   Save,
   X,
@@ -39,7 +39,7 @@ import {
   Download,
   Share,
   Copy,
-  
+
   // Social & Communication Icons
   Mail,
   Bell,
@@ -47,14 +47,14 @@ import {
   UserPlus,
   MessageCircle,
   Share2,
-  
+
   // File & Data Icons
   FileText,
   File,
   Folder,
   Image,
   Paperclip,
-  
+
   // UI Elements
   Search,
   Filter,
@@ -62,32 +62,31 @@ import {
   MoreHorizontal,
   Eye,
   EyeOff,
-  
+
   // Team & Collaboration
   Crown,
   Shield,
   Globe,
   Lock,
   Unlock,
-  
+
   // Date & Time
   CalendarDays,
   ClockIcon,
   Timer,
-  
+
   // Productivity
   Target,
   TrendingUp,
   BarChart,
   PieChart,
-  
+
   // System
   Refresh,
   Power,
   Wifi,
   WifiOff,
-  
-  type LucideIcon
+  type LucideIcon,
 } from 'lucide-react';
 
 export interface IconProps {
@@ -112,7 +111,7 @@ export const iconRegistry = {
     overdue: AlertCircle,
     priority: Flag,
   },
-  
+
   // Navigation
   navigation: {
     menu: Menu,
@@ -125,7 +124,7 @@ export const iconRegistry = {
     down: ChevronDown,
     up: ChevronUp,
   },
-  
+
   // Status
   status: {
     pending: Pending,
@@ -135,7 +134,7 @@ export const iconRegistry = {
     warning: AlertTriangle,
     info: Info,
   },
-  
+
   // Actions
   actions: {
     save: Save,
@@ -145,7 +144,7 @@ export const iconRegistry = {
     share: Share,
     copy: Copy,
   },
-  
+
   // Social
   social: {
     email: Mail,
@@ -155,7 +154,7 @@ export const iconRegistry = {
     message: MessageCircle,
     share: Share2,
   },
-  
+
   // Files
   files: {
     document: FileText,
@@ -164,7 +163,7 @@ export const iconRegistry = {
     image: Image,
     attachment: Paperclip,
   },
-  
+
   // UI
   ui: {
     search: Search,
@@ -174,7 +173,7 @@ export const iconRegistry = {
     show: Eye,
     hide: EyeOff,
   },
-  
+
   // Team
   team: {
     owner: Crown,
@@ -183,14 +182,14 @@ export const iconRegistry = {
     private: Lock,
     unlock: Unlock,
   },
-  
+
   // Time
   time: {
     calendar: CalendarDays,
     clock: ClockIcon,
     timer: Timer,
   },
-  
+
   // Analytics
   analytics: {
     target: Target,
@@ -198,7 +197,7 @@ export const iconRegistry = {
     barChart: BarChart,
     pieChart: PieChart,
   },
-  
+
   // System
   system: {
     refresh: Refresh,
@@ -217,7 +216,7 @@ export const Icon: React.FC<{
   color?: string;
 }> = ({ name, category, size = 24, className = '', color }) => {
   let IconComponent: LucideIcon;
-  
+
   if (category && iconRegistry[category]) {
     IconComponent = (iconRegistry[category] as any)[name];
   } else {
@@ -229,52 +228,58 @@ export const Icon: React.FC<{
       }
     }
   }
-  
+
   if (!IconComponent) {
     console.warn(`Icon "${name}" not found in registry`);
-    return <div className={`inline-block w-${size/4} h-${size/4} bg-gray-300 ${className}`} />;
+    return (
+      <div
+        className={`inline-block w-${size / 4} h-${size / 4} bg-gray-300 ${className}`}
+      />
+    );
   }
-  
-  return (
-    <IconComponent
-      size={size}
-      className={className}
-      color={color}
-    />
-  );
+
+  return <IconComponent size={size} className={className} color={color} />;
 };
 
 // Predefined icon combinations for common use cases
-export const TaskStatusIcon: React.FC<{ status: 'pending' | 'in_progress' | 'completed' | 'overdue'; className?: string }> = ({ status, className }) => {
+export const TaskStatusIcon: React.FC<{
+  status: 'pending' | 'in_progress' | 'completed' | 'overdue';
+  className?: string;
+}> = ({ status, className }) => {
   const iconMap = {
     pending: iconRegistry.task.pending,
     in_progress: iconRegistry.task.inProgress,
     completed: iconRegistry.task.completed,
     overdue: iconRegistry.task.overdue,
   };
-  
+
   const colorMap = {
     pending: 'text-gray-400',
     in_progress: 'text-blue-500',
     completed: 'text-green-500',
     overdue: 'text-red-500',
   };
-  
+
   const IconComponent = iconMap[status];
   const colorClass = colorMap[status];
-  
-  return <IconComponent className={`${colorClass} ${className || ''}`} size={20} />;
+
+  return (
+    <IconComponent className={`${colorClass} ${className || ''}`} size={20} />
+  );
 };
 
-export const PriorityIcon: React.FC<{ priority: 'low' | 'medium' | 'high'; className?: string }> = ({ priority, className }) => {
+export const PriorityIcon: React.FC<{
+  priority: 'low' | 'medium' | 'high';
+  className?: string;
+}> = ({ priority, className }) => {
   const colorMap = {
     low: 'text-green-500',
     medium: 'text-yellow-500',
     high: 'text-red-500',
   };
-  
+
   const colorClass = colorMap[priority];
-  
+
   return <Flag className={`${colorClass} ${className || ''}`} size={16} />;
 };
 

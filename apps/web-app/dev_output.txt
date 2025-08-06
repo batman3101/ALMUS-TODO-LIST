@@ -1,0 +1,21 @@
+
+> @almus/web-app@1.0.0 dev
+> vite
+
+Port 3000 is in use, trying another one...
+Port 3001 is in use, trying another one...
+Port 3002 is in use, trying another one...
+Port 3003 is in use, trying another one...
+
+  [32m[1mVITE[22m v4.5.14[39m  [2mready in [0m[1m840[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m3004[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://10.5.0.2:[1m3004[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.1.13:[1m3004[22m/[39m
+npm error Lifecycle script `dev` failed with error:
+npm error code 143
+npm error path C:\WORK\app_management\ALMUS ToDo List\apps\web-app
+npm error workspace @almus/web-app@1.0.0
+npm error location C:\WORK\app_management\ALMUS ToDo List\apps\web-app
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c vite

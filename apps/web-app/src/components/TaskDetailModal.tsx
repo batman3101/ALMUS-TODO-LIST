@@ -101,7 +101,9 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               >
                 {getStatusText(task.status)}
               </span>
-              <span className={`text-sm font-medium ${getPriorityColor(task.priority)}`}>
+              <span
+                className={`text-sm font-medium ${getPriorityColor(task.priority)}`}
+              >
                 <AlertCircle className="w-4 h-4 inline mr-1" />
                 {getPriorityText(task.priority)}
               </span>
@@ -145,8 +147,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             {/* 팀 */}
             <div>
               <h3 className="text-sm font-medium text-gray-700 dark:text-dark-700 mb-2 flex items-center">
-                <Tag className="w-4 h-4 mr-1" />
-                팀
+                <Tag className="w-4 h-4 mr-1" />팀
               </h3>
               <p className="text-gray-900 dark:text-dark-900">
                 {task.teamId || '-'}

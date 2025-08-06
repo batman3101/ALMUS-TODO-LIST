@@ -83,7 +83,7 @@ export const useMentions = ({
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, email, avatar_url')
+        .select('id, name, email')
         .eq('id', userId)
         .single();
 
@@ -94,7 +94,7 @@ export const useMentions = ({
           id: data.id,
           name: data.name,
           email: data.email,
-          avatar: data.avatar_url,
+          avatar: null,
         };
         userCache.set(userId, userData);
         return userData;
@@ -299,7 +299,7 @@ export const useMentions = ({
         // 현재 사용자가 속한 팀의 멤버들을 검색
         const { data, error } = await supabase
           .from('users')
-          .select('id, name, email, avatar_url')
+          .select('id, name, email')
           .ilike('name', `%${searchQuery}%`)
           .limit(10);
 
@@ -310,7 +310,7 @@ export const useMentions = ({
             id: user.id,
             name: user.name || '',
             email: user.email || '',
-            avatar: user.avatar_url,
+            avatar: null,
           })) || [];
 
         // 현재 사용자는 제외

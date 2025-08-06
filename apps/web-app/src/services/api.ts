@@ -140,7 +140,7 @@ class ApiService {
         .select(
           `
           *,
-          assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url),
+          assignee:users!tasks_assignee_id_fkey(id, name, email),
           project:projects(id, name),
           team:teams(id, name)
         `
@@ -186,15 +186,15 @@ class ApiService {
         .select(
           `
           *,
-          assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url),
-          created_by_user:users!tasks_created_by_fkey(id, name, email, avatar_url),
+          assignee:users!tasks_assignee_id_fkey(id, name, email),
+          created_by_user:users!tasks_created_by_fkey(id, name, email),
           project:projects(id, name),
           team:teams(id, name),
           comments(
             id,
             content,
             created_at,
-            author:users!comments_author_id_fkey(id, name, email, avatar_url)
+            author:users!comments_author_id_fkey(id, name, email)
           )
         `
         )
@@ -215,7 +215,7 @@ class ApiService {
         .select(
           `
           *,
-          assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url),
+          assignee:users!tasks_assignee_id_fkey(id, name, email),
           project:projects(id, name),
           team:teams(id, name)
         `
@@ -239,7 +239,7 @@ class ApiService {
         .select(
           `
           *,
-          assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url),
+          assignee:users!tasks_assignee_id_fkey(id, name, email),
           project:projects(id, name),
           team:teams(id, name)
         `
@@ -258,30 +258,30 @@ class ApiService {
   async getTeams(userId: string): Promise<ApiResponse<Team[]>> {
     return this.executeQuery(async () => {
       console.log('Getting teams for user:', userId);
-      
+
       // 먼저 사용자가 멤버인 팀 ID들을 가져옴
       const teamIds = await this.getUserTeamIds(userId);
       console.log('User team IDs:', teamIds);
-      
+
       // 쿼리 빌드
       let query = supabase
         .from('teams')
         .select(
           `
           *,
-          owner:users!teams_owner_id_fkey(id, name, email, avatar_url),
+          owner:users!teams_owner_id_fkey(id, name, email),
           members:team_members(
             id,
             role,
             status,
             joined_at,
-            user:users!team_members_user_id_fkey(id, name, email, avatar_url)
+            user:users!team_members_user_id_fkey(id, name, email)
           )
         `
         )
         .eq('is_active', true)
         .order('created_at', { ascending: false });
-      
+
       // owner이거나 member인 팀만 필터링
       if (teamIds) {
         query = query.or(`owner_id.eq.${userId},id.in.(${teamIds})`);
@@ -289,7 +289,7 @@ class ApiService {
         // 팀 ID가 없으면 owner인 팀만 조회
         query = query.eq('owner_id', userId);
       }
-      
+
       return query;
     });
   }
@@ -311,13 +311,13 @@ class ApiService {
         .select(
           `
           *,
-          owner:users!teams_owner_id_fkey(id, name, email, avatar_url),
+          owner:users!teams_owner_id_fkey(id, name, email),
           members:team_members(
             id,
             role,
             status,
             joined_at,
-            user:users!team_members_user_id_fkey(id, name, email, avatar_url)
+            user:users!team_members_user_id_fkey(id, name, email)
           ),
           projects(id, name, status, created_at)
         `
@@ -373,7 +373,7 @@ class ApiService {
         .select(
           `
           *,
-          user:users!team_members_user_id_fkey(id, name, email, avatar_url),
+          user:users!team_members_user_id_fkey(id, name, email),
           team:teams(id, name)
         `
         )
@@ -426,7 +426,7 @@ class ApiService {
         .select(
           `
           *,
-          user:users!team_members_user_id_fkey(id, name, email, avatar_url)
+          user:users!team_members_user_id_fkey(id, name, email)
         `
         )
         .single();
@@ -447,7 +447,7 @@ class ApiService {
         .select(
           `
           *,
-          owner:users!projects_owner_id_fkey(id, name, email, avatar_url),
+          owner:users!projects_owner_id_fkey(id, name, email),
           team:teams(id, name),
           tasks_count:tasks(count)
         `
@@ -469,7 +469,7 @@ class ApiService {
         .select(
           `
           *,
-          owner:users!projects_owner_id_fkey(id, name, email, avatar_url),
+          owner:users!projects_owner_id_fkey(id, name, email),
           team:teams(id, name)
         `
         )
@@ -491,7 +491,7 @@ class ApiService {
           author:users!comments_author_id_fkey(id, name, email, avatar_url),
           replies:comments!parent_comment_id(
             *,
-            author:users!comments_author_id_fkey(id, name, email, avatar_url)
+            author:users!comments_author_id_fkey(id, name, email)
           )
         `
         )
@@ -532,7 +532,7 @@ class ApiService {
     return this.executeQuery(async () => {
       let query = supabase
         .from('users')
-        .select('id, name, email, avatar_url')
+        .select('id, name, email')
         .order('name', { ascending: true });
 
       if (search) {

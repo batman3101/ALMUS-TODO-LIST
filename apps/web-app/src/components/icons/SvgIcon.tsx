@@ -17,16 +17,16 @@ export const SvgIcon: React.FC<SvgIconProps> = ({
   category = '',
   size = 24,
   className = '',
-  color
+  color,
 }) => {
-  const iconPath = category 
+  const iconPath = category
     ? `/assets/icons/${category}/${name}.svg`
     : `/assets/icons/${name}.svg`;
 
   const style: React.CSSProperties = {
     width: size,
     height: size,
-    ...(color && { color })
+    ...(color && { color }),
   };
 
   return (
@@ -35,7 +35,7 @@ export const SvgIcon: React.FC<SvgIconProps> = ({
       alt={`${name} icon`}
       className={`svg-icon ${className}`}
       style={style}
-      onError={(e) => {
+      onError={e => {
         console.warn(`SVG icon not found: ${iconPath}`);
         e.currentTarget.style.display = 'none';
       }}
@@ -50,12 +50,12 @@ export const InlineSvgIcon: React.FC<SvgIconProps & { svg: string }> = ({
   svg,
   size = 24,
   className = '',
-  color
+  color,
 }) => {
   const style: React.CSSProperties = {
     width: size,
     height: size,
-    ...(color && { fill: color })
+    ...(color && { fill: color }),
   };
 
   return (

@@ -608,7 +608,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
           <div className="bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-300">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-                새 태스크 추가 {selectedDate && `- ${selectedDate.toLocaleDateString()}`}
+                새 태스크 추가{' '}
+                {selectedDate && `- ${selectedDate.toLocaleDateString()}`}
               </h2>
               <button
                 onClick={handleCreateModalClose}
@@ -633,7 +634,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
               <CreateTaskForm
                 onTaskCreated={handleCreateModalClose}
                 isModal={true}
-                initialData={selectedDate ? { startDate: selectedDate, dueDate: selectedDate } : undefined}
+                initialData={
+                  selectedDate
+                    ? { startDate: selectedDate, dueDate: selectedDate }
+                    : undefined
+                }
               />
             </div>
           </div>

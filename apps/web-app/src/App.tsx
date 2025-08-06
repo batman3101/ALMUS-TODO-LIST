@@ -26,7 +26,6 @@ function App() {
   const [currentView, setCurrentView] = useState<ViewType>('list');
   const [showCreateTask, setShowCreateTask] = useState(false);
   const { loading, isAuthenticated } = useAuth();
-  const { theme } = useTheme();
 
   // 사용자가 로그인했을 때 샘플 데이터 초기화 - Supabase 마이그레이션으로 주석 처리
   // useEffect(() => {
@@ -53,10 +52,12 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-dark-50 flex items-center justify-center transition-colors duration-200">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors duration-200">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-dark-600">로딩 중...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">
+            인증 확인 중...
+          </p>
         </div>
       </div>
     );
@@ -138,8 +139,19 @@ function MainApp({
 }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { user: authUser } = useAuth();
   const { canCreateTask } = useTaskAuth();
-  const { currentTeam, getUserRole, isLoading: isLoadingTeams, teams, createTeam } = useTeams();
+  const {
+    currentTeam,
+    getUserRole,
+    isLoading: isLoadingTeams,
+    teams,
+    createTeam,
+  } = useTeams();
+
+  // Debug logs - remove in production
+  // console.log('MainApp - user:', user);
+  // console.log('MainApp - teams:', teams);
 
   const getRoleLabel = (role: TeamRole | null) => {
     switch (role) {
@@ -156,8 +168,22 @@ function MainApp({
     }
   };
 
+  // 팀 로딩 중 표시
+  if (isLoadingTeams) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors duration-200">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">
+            팀 정보 로딩 중...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // 팀이 없는 경우 팀 생성 UI 표시
-  if (!isLoadingTeams && teams.length === 0) {
+  if (teams.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-dark-50 transition-colors duration-200">
         <div className="container mx-auto px-4 py-8">
@@ -176,11 +202,11 @@ function MainApp({
                   try {
                     await createTeam({
                       name: '나의 첫 팀',
-                      description: '기본 팀입니다'
+                      description: '기본 팀입니다',
                     });
                     window.location.reload();
                   } catch (error) {
-                    console.error('팀 생성 오류:', error);
+                    // console.error('팀 생성 오류:', error);
                   }
                 }}
                 className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-dark-100 transition-colors duration-200"
@@ -204,7 +230,11 @@ function MainApp({
               <div className="w-12 h-12 rounded-lg overflow-hidden">
                 <img
                   id="logo-image"
-                  src={theme === 'dark' ? '/assets/logos/A symbol BLUE-02.png' : '/assets/logos/A symbol black-02.png'}
+                  src={
+                    theme === 'dark'
+                      ? '/assets/logos/A symbol BLUE-02.png'
+                      : '/assets/logos/A symbol black-02.png'
+                  }
                   alt="ALMUS Logo"
                   className="w-full h-full object-cover"
                 />
