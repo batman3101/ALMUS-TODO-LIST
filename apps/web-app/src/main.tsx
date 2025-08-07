@@ -11,13 +11,28 @@ import { ThemeProvider } from './contexts/ThemeContext';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx errors
+        if (error?.status >= 400 && error?.status < 500) {
+          return false;
+        }
+        return failureCount < 2; // Max 2 retries for other errors
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff with max 5s
       refetchOnWindowFocus: false,
+      refetchOnReconnect: 'always', // Always refetch when reconnecting
       staleTime: 5 * 60 * 1000, // 5분간 데이터를 신선하게 유지
       gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+      networkMode: 'offlineFirst', // Better offline handling
     },
     mutations: {
-      retry: 1,
+      retry: (failureCount, error: any) => {
+        // Don't retry mutations on client errors
+        if (error?.status >= 400 && error?.status < 500) {
+          return false;
+        }
+        return failureCount < 1; // Max 1 retry for mutations
+      },
       networkMode: 'online',
     },
   },

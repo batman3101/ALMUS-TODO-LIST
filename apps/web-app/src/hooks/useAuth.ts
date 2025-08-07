@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { logger } from '../utils/logger';
 import { supabase } from '../../../../lib/supabase/client';
+import { testSupabaseConnection, validateSupabaseConfig } from '../../../../lib/supabase/connection-test';
 import type { User } from '../../../../libs/shared-types/src/supabase-schema';
 
 export interface AuthUser extends User {
@@ -24,16 +25,49 @@ export const useAuth = () => {
     let isMounted = true;
     let timeoutId: ReturnType<typeof setTimeout>;
 
-    // Add timeout protection (10 seconds max)
-    timeoutId = setTimeout(() => {
-      if (isMounted) {
-        logger.warn('Auth initialization timeout - setting loading to false');
-        setLoading(false);
-      }
-    }, 10000);
+    // Add timeout protection with exponential backoff
+    const INITIAL_TIMEOUT = 3000; // 3초로 단축
+    const setTimeoutWithRetry = (attempt = 0) => {
+      const timeout = INITIAL_TIMEOUT * Math.pow(1.5, attempt); // 지수 백오프
+      timeoutId = setTimeout(() => {
+        if (isMounted && attempt < 2) {
+          logger.warn(`Auth initialization timeout - retry ${attempt + 1}/2`);
+          clearTimeout(timeoutId);
+          setTimeoutWithRetry(attempt + 1);
+          getSession(attempt + 1);
+        } else if (isMounted) {
+          logger.error('Auth initialization failed after retries');
+          setError('인증 서버 연결에 실패했습니다. 네트워크를 확인하고 페이지를 새로고침해주세요.');
+          setLoading(false);
+        }
+      }, timeout);
+    };
+    
+    setTimeoutWithRetry();
 
-    const getSession = async () => {
+    const getSession = async (retryCount = 0) => {
       try {
+        logger.info('Attempting to get session...', { retryCount });
+        
+        // 첫 번째 시도에서만 연결 상태 검사
+        if (retryCount === 0) {
+          const configValidation = validateSupabaseConfig();
+          if (!configValidation.isValid) {
+            logger.error('Supabase 설정 오류:', configValidation.issues);
+            setError(`설정 오류: ${configValidation.issues.join(', ')}`);
+            return;
+          }
+          
+          const connectionTest = await testSupabaseConnection();
+          if (!connectionTest.isConnected) {
+            logger.error('Supabase 연결 실패:', connectionTest.error);
+            setError(connectionTest.error || '데이터베이스에 연결할 수 없습니다.');
+            return;
+          }
+          
+          logger.info('Supabase 연결 테스트 성공');
+        }
+        
         const {
           data: { session },
           error,
@@ -41,12 +75,26 @@ export const useAuth = () => {
 
         if (error) {
           logger.error('Session error:', error);
+          
+          // 네트워크 오류인 경우 재시도
+          if (retryCount < 2 && (
+            error.message.includes('Network') || 
+            error.message.includes('Failed to fetch') ||
+            error.message.includes('timeout')
+          )) {
+            logger.warn(`Retrying session request (${retryCount + 1}/2)...`);
+            setTimeout(() => getSession(retryCount + 1), 1000 * (retryCount + 1));
+            return;
+          }
+          
           setError(error.message);
           return;
         }
 
         if (session?.user && isMounted) {
-          await loadUserProfile(session.user.id);
+          // 헬퍼 함수로 사용자 정보 생성
+          const user = createAuthUser(session.user);
+          setUser(user);
         } else if (isMounted) {
           setUser(null);
         }
@@ -65,52 +113,33 @@ export const useAuth = () => {
       }
     };
 
-    const loadUserProfile = async (_userId: string) => {
-      try {
-        // Supabase Auth에서 사용자 정보 가져오기
-        const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser();
-
-        if (authUser && isMounted) {
-          // Auth 정보만 사용하여 AuthUser 객체 생성
-          const user: AuthUser = {
-            id: authUser.id,
-            uid: authUser.id,
-            email: authUser.email!,
-            name:
-              authUser.user_metadata?.name ||
-              authUser.email?.split('@')[0] ||
-              '사용자',
-            displayName:
-              authUser.user_metadata?.name ||
-              authUser.email?.split('@')[0] ||
-              '사용자',
-            role: 'VIEWER' as const,
-            is_active: true,
-            current_team_id: null,
-            avatar: null,
-            photoURL: null,
-            teamId: 'default-team',
-            projectIds: [],
-            last_login_at: new Date().toISOString(),
-            created_at: authUser.created_at,
-            updated_at: new Date().toISOString(),
-            createdAt: new Date(authUser.created_at),
-            updatedAt: new Date(),
-          };
-          setUser(user);
-        }
-      } catch (err) {
-        logger.error('Load user profile error:', err);
-        if (isMounted) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : '사용자 정보 로딩 오류가 발생했습니다.'
-          );
-        }
-      }
+    // loadUserProfile 함수를 제거하고 사용자 정보를 직접 생성하는 헬퍼 함수로 대체
+    const createAuthUser = (authUser: any): AuthUser => {
+      return {
+        id: authUser.id,
+        uid: authUser.id,
+        email: authUser.email!,
+        name:
+          authUser.user_metadata?.name ||
+          authUser.email?.split('@')[0] ||
+          '사용자',
+        displayName:
+          authUser.user_metadata?.name ||
+          authUser.email?.split('@')[0] ||
+          '사용자',
+        role: 'VIEWER' as const,
+        is_active: true,
+        current_team_id: null,
+        avatar: null,
+        photoURL: null,
+        teamId: 'default-team',
+        projectIds: [],
+        last_login_at: new Date().toISOString(),
+        created_at: authUser.created_at,
+        updated_at: new Date().toISOString(),
+        createdAt: new Date(authUser.created_at),
+        updatedAt: new Date(),
+      };
     };
 
     // Set up auth state listener
@@ -121,7 +150,9 @@ export const useAuth = () => {
 
       try {
         if (event === 'SIGNED_IN' && session?.user) {
-          await loadUserProfile(session.user.id);
+          // 헬퍼 함수로 사용자 정보 생성
+          const user = createAuthUser(session.user);
+          setUser(user);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
         }

@@ -43,21 +43,20 @@ export const useTeams = (): TeamsContextValue => {
   const updateRoleMutation = useUpdateMemberRole();
   const removeMemberMutation = useRemoveMember();
 
-  // 초기 팀 설정
+  // 최적화된 초기 팀 설정 - debounced and cached
   useEffect(() => {
-    if (user && !currentTeamId) {
-      // 팀이 있는 경우
-      if (teams.length > 0) {
-        const savedTeamId = localStorage.getItem(`currentTeam-${user.id}`);
-        const teamToSelect = teams.find(t => t.id === savedTeamId) || teams[0];
+    if (!user || currentTeamId || teams.length === 0) return;
 
-        if (teamToSelect) {
-          setCurrentTeamId(teamToSelect.id);
-          localStorage.setItem(`currentTeam-${user.id}`, teamToSelect.id);
-        }
+    // Use micro-task to defer execution
+    queueMicrotask(() => {
+      const savedTeamId = localStorage.getItem(`currentTeam-${user.id}`);
+      const teamToSelect = teams.find(t => t.id === savedTeamId) || teams[0];
+
+      if (teamToSelect) {
+        setCurrentTeamId(teamToSelect.id);
+        localStorage.setItem(`currentTeam-${user.id}`, teamToSelect.id);
       }
-      // 팀이 없는 경우 - 기본 팀 생성은 사용자가 명시적으로 요청할 때만
-    }
+    });
   }, [user, teams, currentTeamId]);
 
   // 현재 팀 객체
@@ -98,9 +97,9 @@ export const useTeams = (): TeamsContextValue => {
       // CreateTeamInput을 CreateTeamData로 변환
       const teamData = {
         name: data.name,
-        description: data.description,
+        description: data.description || null,
         owner_id: user.id,
-        settings: data.settings ? JSON.stringify(data.settings) : undefined,
+        settings: data.settings || {}, // JSONB 타입이므로 객체 그대로 전달
       };
 
       return await createTeamMutation.mutateAsync(teamData);

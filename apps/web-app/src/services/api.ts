@@ -273,7 +273,6 @@ class ApiService {
           members:team_members(
             id,
             role,
-            status,
             joined_at,
             user:users!team_members_user_id_fkey(id, name, email)
           )
@@ -315,7 +314,6 @@ class ApiService {
           members:team_members(
             id,
             role,
-            status,
             joined_at,
             user:users!team_members_user_id_fkey(id, name, email)
           ),
