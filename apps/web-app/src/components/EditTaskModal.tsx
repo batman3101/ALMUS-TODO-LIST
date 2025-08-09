@@ -7,6 +7,7 @@ import {
   TaskPriority,
 } from '@almus/shared-types';
 import { useNotification } from '../contexts/NotificationContext';
+import { useTeamMembers } from '../hooks/useApiService';
 
 interface EditTaskModalProps {
   isOpen: boolean;
@@ -23,6 +24,11 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const { success, error: showError } = useNotification();
+  
+  // 팀 멤버 목록 조회
+  const { data: teamMembers = [], isLoading: loadingMembers } = useTeamMembers(
+    task?.team_id || ''
+  );
 
   const [formData, setFormData] = useState<UpdateTaskInput>({
     title: '',
@@ -169,13 +175,19 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-dark-700 mb-1">
               {t('task.assignee')}
             </label>
-            <input
-              type="text"
+            <select
               value={formData.assigneeId}
               onChange={e => handleInputChange('assigneeId', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-50 text-gray-900 dark:text-dark-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="담당자를 입력하세요"
-            />
+              disabled={loadingMembers}
+            >
+              <option value="">담당자를 선택하세요</option>
+              {teamMembers.map(member => (
+                <option key={member.user.id} value={member.user.id}>
+                  {member.user.name || member.user.email}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* 상태 및 우선순위 */}

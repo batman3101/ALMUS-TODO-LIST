@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { useFileUpload } from '../hooks/useFileUpload';
 import { FileMetadata } from '@almus/shared-types';
+import { useNotification } from '../contexts/NotificationContext';
 
 interface FileUploadProps {
   path: string;
@@ -26,19 +27,25 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const { uploadFile, uploadMultipleFiles, uploadState, resetUploadState } =
     useFileUpload();
+  const { success, error: showError, info } = useNotification();
 
   const handleFileSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(event.target.files || []);
+      if (files.length > 0) {
+        info(`${files.length}개 파일이 선택되었습니다.`);
+      }
       setSelectedFiles(files);
     },
-    []
+    [info]
   );
 
   const handleUpload = useCallback(async () => {
     if (selectedFiles.length === 0) return;
 
     try {
+      info(`파일 업로드를 시작합니다... (${selectedFiles.length}개 파일)`);
+      
       if (multiple) {
         const results = await uploadMultipleFiles(
           selectedFiles,
@@ -53,17 +60,23 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         );
 
         if (successResults.length > 0) {
+          success(`${successResults.length}개 파일이 성공적으로 업로드되었습니다!`);
           onUploadComplete?.(successResults);
         }
         if (errorResults.length > 0) {
-          onUploadError?.('일부 파일 업로드에 실패했습니다.');
+          const errorMessage = `${errorResults.length}개 파일 업로드에 실패했습니다.`;
+          showError(errorMessage);
+          onUploadError?.(errorMessage);
         }
       } else {
         const result = await uploadFile(selectedFiles[0], path, metadata);
         if (result.id) {
+          success(`파일 "${selectedFiles[0].name}"이 성공적으로 업로드되었습니다!`);
           onUploadComplete?.(result);
         } else {
-          onUploadError?.('업로드 실패');
+          const errorMessage = '파일 업로드에 실패했습니다.';
+          showError(errorMessage);
+          onUploadError?.(errorMessage);
         }
       }
 
@@ -74,7 +87,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       }
       resetUploadState();
     } catch (error) {
-      onUploadError?.(error instanceof Error ? error.message : '업로드 실패');
+      const errorMessage = error instanceof Error ? error.message : '파일 업로드 중 오류가 발생했습니다.';
+      showError(errorMessage);
+      onUploadError?.(errorMessage);
     }
   }, [
     selectedFiles,
@@ -86,13 +101,19 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     onUploadComplete,
     onUploadError,
     resetUploadState,
+    success,
+    showError,
+    info,
   ]);
 
   const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     const files = Array.from(event.dataTransfer.files);
+    if (files.length > 0) {
+      info(`드래그로 ${files.length}개 파일이 선택되었습니다.`);
+    }
     setSelectedFiles(files);
-  }, []);
+  }, [info]);
 
   const handleDragOver = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
@@ -215,19 +236,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         </div>
       )}
 
-      {/* 에러 메시지 */}
-      {uploadState.error && (
-        <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-          {uploadState.error}
-        </div>
-      )}
-
-      {/* 성공 메시지 */}
-      {uploadState.downloadURL && (
-        <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-          파일이 성공적으로 업로드되었습니다!
-        </div>
-      )}
+      {/* 기존 브라우저 알림 제거 - 토스트 알림으로 대체됨 */}
     </div>
   );
 };

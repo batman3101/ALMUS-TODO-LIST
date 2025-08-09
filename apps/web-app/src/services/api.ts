@@ -212,13 +212,20 @@ class ApiService {
     return this.executeQuery(async () => {
       console.log('Creating task with data:', data);
       
-      const result = await supabase
-        .from('tasks')
-        .insert({
+      // 데이터 정리 - undefined나 null 값 제거
+      const cleanData = Object.fromEntries(
+        Object.entries({
           ...data,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        })
+        }).filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      );
+      
+      console.log('Cleaned task data:', cleanData);
+      
+      const result = await supabase
+        .from('tasks')
+        .insert(cleanData)
         .select(
           `
           *,
@@ -230,6 +237,11 @@ class ApiService {
         .single();
         
       console.log('Task creation result:', result);
+      
+      if (result.error) {
+        console.error('Task creation error details:', result.error);
+      }
+      
       return result;
     });
   }
@@ -736,6 +748,50 @@ class ApiService {
       return supabase.rpc('get_user_task_stats', {
         user_id: userId,
       });
+    });
+  }
+
+  // =================== File Management API ===================
+  async updateFileMetadata(
+    fileId: string,
+    updates: {
+      task_id?: string;
+      project_id?: string;
+      team_id?: string;
+      name?: string;
+    }
+  ): Promise<ApiResponse<any>> {
+    return this.executeQuery(async () => {
+      const payload = {
+        ...updates,
+        updated_at: new Date().toISOString(),
+      };
+
+      return supabase
+        .from('file_metadata')
+        .update(payload)
+        .eq('id', fileId)
+        .select()
+        .single();
+    });
+  }
+
+  async getTaskFiles(taskId: string): Promise<ApiResponse<any[]>> {
+    return this.executeQuery(async () => {
+      return supabase
+        .from('file_metadata')
+        .select('*')
+        .eq('task_id', taskId)
+        .order('created_at', { ascending: false });
+    });
+  }
+
+  async deleteFileMetadata(fileId: string): Promise<ApiResponse<void>> {
+    return this.executeQuery(async () => {
+      return supabase
+        .from('file_metadata')
+        .delete()
+        .eq('id', fileId);
     });
   }
 }

@@ -29,6 +29,23 @@ export interface UseFileUploadReturn {
   resetUploadState: () => void;
 }
 
+// 파일명을 URL-safe하게 변환하는 함수
+const sanitizeFileName = (fileName: string): string => {
+  // 파일 확장자 분리
+  const lastDotIndex = fileName.lastIndexOf('.');
+  const name = lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
+  const extension = lastDotIndex !== -1 ? fileName.substring(lastDotIndex) : '';
+  
+  // 이름 부분만 변환 (한글, 공백, 특수문자 제거 및 변환)
+  const safeName = name
+    .replace(/[^\w\-._]/g, '_')  // 영문, 숫자, -, _, . 외의 모든 문자를 _로 변환
+    .replace(/_{2,}/g, '_')       // 연속된 _를 하나로 변환
+    .replace(/^_+|_+$/g, '')      // 시작과 끝의 _를 제거
+    .substring(0, 100);           // 최대 100자로 제한
+  
+  return safeName + extension;
+};
+
 export const useFileUpload = (): UseFileUploadReturn => {
   const { user } = useAuth();
   const [uploadState, setUploadState] = useState<UploadState>({
@@ -77,18 +94,24 @@ export const useFileUpload = (): UseFileUploadReturn => {
 
     try {
       // Supabase Storage에 파일 업로드
-      const fileName = `${Date.now()}_${file.name}`;
+      const safeFileName = sanitizeFileName(file.name);
+      const fileName = `${Date.now()}_${safeFileName}`;
       const filePath = `${path}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      console.log('파일 업로드 시도:', { filePath, fileName, fileSize: file.size, fileType: file.type });
+      
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('files') // Supabase storage bucket name
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false,
         });
 
+      console.log('Storage 업로드 결과:', { uploadError, uploadData });
+
       if (uploadError) {
-        throw uploadError;
+        console.error('Storage 업로드 에러:', uploadError);
+        throw new Error(`파일 저장 실패: ${uploadError.message}`);
       }
 
       // 공개 URL 가져오기
@@ -98,32 +121,37 @@ export const useFileUpload = (): UseFileUploadReturn => {
 
       // Supabase DB에 메타데이터 저장
       const fileMetadata = {
-        name: file.name,
+        name: file.name, // 원본 파일명 저장 (사용자에게 표시용)
         size: file.size,
         type: file.type,
         url: urlData.publicUrl,
         bucket: 'files',
-        path: filePath,
-        uploader_id: user.id,
-        uploader_name: user.displayName || user.email || 'Unknown',
-        task_id: metadata?.taskId,
-        project_id: metadata?.projectId,
-        team_id: metadata?.teamId || user.teamId || '',
+        path: filePath, // 실제 저장된 경로 (sanitized된 파일명)
+        uploader_id: user.uid || user.id,
+        uploader_name: user.displayName || user.name || user.email || 'Unknown',
+        task_id: metadata?.taskId || null,
+        project_id: metadata?.projectId || null,
+        team_id: metadata?.teamId || metadata?.team_id || null,
         version: 1,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
+      console.log('DB 메타데이터 저장 시도:', fileMetadata);
+      
       const { data: dbData, error: dbError } = await supabase
         .from('file_metadata')
         .insert([fileMetadata])
         .select()
         .single();
 
+      console.log('DB 저장 결과:', { dbData, dbError });
+
       if (dbError) {
+        console.error('DB 저장 에러:', dbError);
         // 업로드된 파일 삭제 후 에러 throw
         await supabase.storage.from('files').remove([filePath]);
-        throw dbError;
+        throw new Error(`파일 정보 저장 실패: ${dbError.message}`);
       }
 
       setUploadState({
@@ -200,7 +228,8 @@ export const useFileUpload = (): UseFileUploadReturn => {
       }
 
       // 권한 확인 (업로더 또는 팀 관리자만 삭제 가능)
-      if (fileData.uploader_id !== user.id && user.role !== 'ADMIN') {
+      const userId = user.uid || user.id;
+      if (fileData.uploader_id !== userId && user.role !== 'ADMIN') {
         return { success: false, error: '파일을 삭제할 권한이 없습니다.' };
       }
 

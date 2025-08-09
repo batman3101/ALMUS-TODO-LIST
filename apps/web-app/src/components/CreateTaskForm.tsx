@@ -12,6 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useTeams } from '../hooks/useTeams';
 import { useTeamMembers } from '../hooks/useTeamMembers';
 import { useNotification } from '../contexts/NotificationContext';
+import { apiService } from '../services/api';
 
 interface CreateTaskFormProps {
   onTaskCreated?: () => void;
@@ -173,17 +174,34 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
         // 생성 모드
         const createData = {
           title: formData.title,
-          description: formData.description,
-          assignee_id: formData.assignee_id,
+          description: formData.description || null,
+          assignee_id: formData.assignee_id || null,
           status: formData.status,
           priority: formData.priority,
           team_id: formData.team_id,
           created_by: formData.created_by,
-          project_id: formData.project_id,
-          start_date: formData.start_date ? formData.start_date.toISOString() : undefined,
-          due_date: formData.due_date ? formData.due_date.toISOString() : undefined,
+          project_id: formData.project_id || null,
+          start_date: formData.start_date ? formData.start_date.toISOString() : null,
+          due_date: formData.due_date ? formData.due_date.toISOString() : null,
         };
-        await createTaskMutation.mutateAsync(createData);
+        
+        console.log('태스크 생성 데이터:', createData);
+        console.log('Status:', formData.status, 'Priority:', formData.priority);
+        const newTask = await createTaskMutation.mutateAsync(createData);
+        
+        // 업로드된 파일들을 새로 생성된 태스크와 연결
+        if (uploadedFiles.length > 0 && newTask) {
+          try {
+            // 파일 메타데이터 업데이트 - task_id 연결
+            const updatePromises = uploadedFiles.map(file => 
+              apiService.updateFileMetadata(file.id, { task_id: newTask.id })
+            );
+            await Promise.all(updatePromises);
+          } catch (fileUpdateError) {
+            console.error('파일 메타데이터 업데이트 실패:', fileUpdateError);
+            // 파일 연결 실패해도 태스크 생성은 성공으로 처리
+          }
+        }
         setFormData({
           title: '',
           description: '',
@@ -196,6 +214,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
           created_by: user?.uid || '',
           project_id: undefined,
         });
+        setUploadedFiles([]); // 업로드된 파일 목록 초기화
         success(t('task.taskCreated'));
       }
       onTaskCreated?.();
@@ -217,15 +236,19 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
     }));
   };
 
-  const handleFileUploadComplete = (result: { metadata: FileMetadata }) => {
-    if (result.metadata) {
+  const handleFileUploadComplete = (result: { metadata: FileMetadata } | FileMetadata[]) => {
+    if (Array.isArray(result)) {
+      // 다중 파일 업로드 결과
+      setUploadedFiles(prev => [...prev, ...result]);
+    } else if (result.metadata) {
+      // 단일 파일 업로드 결과
       setUploadedFiles(prev => [...prev, result.metadata]);
     }
   };
 
   const handleFileUploadError = (error: string) => {
-    // File upload error is shown to user
-    showError(`파일 업로드 실패: ${error}`);
+    // 파일 업로드 에러는 이미 FileUpload 컴포넌트에서 토스트로 표시됨
+    console.error('파일 업로드 실패:', error);
   };
 
   const getStatusText = (status: TaskStatus) => {
