@@ -17,6 +17,7 @@ import { TeamManagement } from './components/TeamManagement';
 import ViewSelector, { ViewType } from './components/ViewSelector';
 import LanguageSelector from './components/LanguageSelector';
 import ThemeToggle from './components/ThemeToggle';
+import LogoutButton from './components/LogoutButton';
 import { useTheme } from './contexts/ThemeContext';
 import LoginForm from './components/LoginForm';
 import { TeamRole } from './types/team';
@@ -273,6 +274,7 @@ function MainApp({
             <div className="flex items-center gap-3">
               <ThemeToggle />
               <LanguageSelector />
+              <LogoutButton />
             </div>
           </div>
         </header>

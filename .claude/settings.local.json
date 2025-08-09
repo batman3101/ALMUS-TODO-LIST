@@ -61,7 +61,9 @@
       "Bash(timeout 8 npm start)",
       "Bash(timeout 8 npm run dev)",
       "Bash(timeout 60s npm run test:e2e)",
-      "Bash(timeout 30s npm run test:e2e)"
+      "Bash(timeout 30s npm run test:e2e)",
+      "Bash(npx tsx:*)",
+      "Bash(move:*)"
     ],
     "deny": []
   }

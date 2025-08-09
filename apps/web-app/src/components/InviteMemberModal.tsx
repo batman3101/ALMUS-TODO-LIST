@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Mail, UserPlus, Shield, Edit, Eye } from 'lucide-react';
 import { Team, TeamRole, InviteTeamMemberInput } from '../types/team';
-import { useTeams } from '../hooks/useTeams';
+import { useInviteTeamMember } from '../hooks/useApiService';
 
 interface InviteMemberModalProps {
   isOpen: boolean;
@@ -38,8 +38,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   onClose,
   team,
 }) => {
-  const { inviteTeamMember } = useTeams();
-  const [isLoading, setIsLoading] = useState(false);
+  const inviteTeamMemberMutation = useInviteTeamMember();
   const [formData, setFormData] = useState<InviteTeamMemberInput>({
     teamId: team.id,
     email: '',
@@ -72,9 +71,12 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 
     if (!validateForm()) return;
 
-    setIsLoading(true);
     try {
-      await inviteTeamMember(formData);
+      await inviteTeamMemberMutation.mutateAsync({
+        teamId: formData.teamId,
+        email: formData.email,
+        role: formData.role,
+      });
       onClose();
       // Reset form
       setFormData({
@@ -84,11 +86,10 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
         message: '',
       });
       setErrors({});
-    } catch (error) {
+    } catch (error: any) {
       // Error is shown to user in the UI
-      setErrors({ submit: '멤버 초대에 실패했습니다. 다시 시도해주세요.' });
-    } finally {
-      setIsLoading(false);
+      const errorMessage = error?.message || '멤버 초대에 실패했습니다. 다시 시도해주세요.';
+      setErrors({ submit: errorMessage });
     }
   };
 
@@ -158,7 +159,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
                     : 'border-gray-300 dark:border-gray-600'
                 }`}
                 placeholder="example@company.com"
-                disabled={isLoading}
+                disabled={inviteTeamMemberMutation.isPending}
               />
             </div>
             {errors.email && (
@@ -192,7 +193,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
                         handleInputChange('role', e.target.value as TeamRole)
                       }
                       className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                      disabled={isLoading}
+                      disabled={inviteTeamMemberMutation.isPending}
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -226,7 +227,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
                   : 'border-gray-300 dark:border-gray-600'
               }`}
               placeholder="팀에 함께하게 되어 기쁩니다! 궁금한 점이 있으면 언제든지 연락해주세요."
-              disabled={isLoading}
+              disabled={inviteTeamMemberMutation.isPending}
             />
             {errors.message && (
               <p className="text-red-500 text-sm mt-1">{errors.message}</p>
@@ -261,7 +262,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
               type="button"
               onClick={onClose}
               className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              disabled={isLoading}
+              disabled={inviteTeamMemberMutation.isPending}
             >
               취소
             </button>
@@ -269,10 +270,10 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               disabled={
-                isLoading || team.memberCount >= team.settings.maxMembers
+                inviteTeamMemberMutation.isPending || team.memberCount >= team.settings.maxMembers
               }
             >
-              {isLoading ? '초대 중...' : '초대 보내기'}
+              {inviteTeamMemberMutation.isPending ? '초대 중...' : '초대 보내기'}
             </button>
           </div>
         </form>

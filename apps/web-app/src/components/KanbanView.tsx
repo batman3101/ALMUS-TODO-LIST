@@ -8,11 +8,18 @@ import {
 import { useTasks, useUpdateTask } from '../hooks/useTasks';
 import { useTeams } from '../hooks/useTeams';
 import { useTheme } from '../contexts/ThemeContext';
-import type { Task } from '@almus/shared-types';
+import type { Task, User, Team, Project } from '@almus/shared-types';
+
+// API에서 관련 정보를 포함해서 가져온 Task 타입
+interface TaskWithRelations extends Task {
+  assignee?: Pick<User, 'id' | 'name' | 'email'>;
+  team?: Pick<Team, 'id' | 'name'>;
+  project?: Pick<Project, 'id' | 'name'>;
+}
 import { TaskStatus, TaskPriority } from '@almus/shared-types';
 import { createToast } from '../utils/toast';
 import CreateTaskForm from './CreateTaskForm';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, CalendarCheck } from 'lucide-react';
 import { useDeleteTask } from '../hooks/useTasks';
 import { useTaskAuth } from '../hooks/useTaskAuth';
 import { useNotification } from '../contexts/NotificationContext';
@@ -55,7 +62,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
   });
 
   // 편집 모달 상태
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<TaskWithRelations | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
   // 태스크 추가 모달 상태
@@ -95,10 +102,10 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
 
   // 컬럼별 태스크 그룹화
   const tasksByColumn = useMemo(() => {
-    if (!tasks) return {} as Record<TaskStatus, Task[]>;
+    if (!tasks) return {} as Record<TaskStatus, TaskWithRelations[]>;
 
     const grouped = tasks.reduce(
-      (acc: Record<TaskStatus, Task[]>, task: Task) => {
+      (acc: Record<TaskStatus, TaskWithRelations[]>, task: TaskWithRelations) => {
         const status = task.status;
         if (!acc[status]) {
           acc[status] = [];
@@ -106,14 +113,14 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
         acc[status].push(task);
         return acc;
       },
-      {} as Record<TaskStatus, Task[]>
+      {} as Record<TaskStatus, TaskWithRelations[]>
     );
 
     // 각 컬럼을 생성일 기준으로 정렬
     Object.keys(grouped).forEach(status => {
       grouped[status as TaskStatus].sort((a, b) => {
-        const dateA = a.createdAt || new Date(0);
-        const dateB = b.createdAt || new Date(0);
+        const dateA = new Date(a.created_at || 0);
+        const dateB = new Date(b.created_at || 0);
         return dateB.getTime() - dateA.getTime();
       });
     });
@@ -158,7 +165,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     }
 
     try {
-      const task = tasks?.find((t: Task) => t.id === draggableId);
+      const task = tasks?.find((t: TaskWithRelations) => t.id === draggableId);
       if (!task) {
         toast.error('태스크를 찾을 수 없습니다.');
         return;
@@ -195,7 +202,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     }));
   };
 
-  const handleTaskClick = (task: Task, event: React.MouseEvent) => {
+  const handleTaskClick = (task: TaskWithRelations, event: React.MouseEvent) => {
     // 드래그 중이거나 드래그 핸들 클릭이 아닌 경우에만 편집 모달 열기
     event.stopPropagation();
 
@@ -203,7 +210,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     setShowEditModal(true);
   };
 
-  const handleEdit = (task: Task) => {
+  const handleEdit = (task: TaskWithRelations) => {
     setEditingTask(task);
     setShowEditModal(true);
   };
@@ -256,6 +263,21 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     }
   };
 
+  const getPriorityText = (priority: TaskPriority) => {
+    switch (priority) {
+      case TaskPriority.LOW:
+        return '낮음';
+      case TaskPriority.MEDIUM:
+        return '보통';
+      case TaskPriority.HIGH:
+        return '높음';
+      case TaskPriority.URGENT:
+        return '긴급';
+      default:
+        return '보통';
+    }
+  };
+
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('ko-KR', {
       month: 'short',
@@ -263,10 +285,10 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     });
   };
 
-  const isTaskOverdue = (task: Task) => {
-    if (!task.dueDate) return false;
+  const isTaskOverdue = (task: TaskWithRelations) => {
+    if (!task.due_date) return false;
     return (
-      new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE
+      new Date(task.due_date) < new Date() && task.status !== TaskStatus.DONE
     );
   };
 
@@ -398,7 +420,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                             </div>
                           )}
 
-                          {!isLoading && !hasError && columnTasks.length > 0 && columnTasks.map((task: Task, index: number) => (
+                          {!isLoading && !hasError && columnTasks.length > 0 && columnTasks.map((task: TaskWithRelations, index: number) => (
                             <Draggable
                               key={task.id}
                               draggableId={task.id}
@@ -460,7 +482,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                       <span
                                         className={`text-xs font-medium px-2 py-1 rounded-full ${getPriorityColor(task.priority)} bg-current/10`}
                                       >
-                                        {task.priority}
+                                        {getPriorityText(task.priority)}
                                       </span>
                                       <div className="flex items-center gap-1">
                                         {/* 편집 버튼 */}
@@ -506,23 +528,41 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                   )}
 
                                   {/* 태스크 메타데이터 */}
-                                  <div className="flex items-center justify-between text-xs">
-                                    <div className="flex items-center gap-2">
-                                      {task.dueDate && (
-                                        <span
-                                          className={`${
+                                  <div className="space-y-1">
+                                    <div className="flex items-center justify-between text-xs">
+                                      <div className="flex flex-col gap-1">
+                                        {/* 시작일 */}
+                                        {task.start_date && (
+                                          <div className="flex items-center gap-1 text-gray-500 dark:text-dark-500">
+                                            <Calendar className="w-3 h-3" />
+                                            <span>시작: {formatDate(task.start_date)}</span>
+                                          </div>
+                                        )}
+                                        {/* 마감일 */}
+                                        {task.due_date && (
+                                          <div className={`flex items-center gap-1 ${
                                             isTaskOverdue(task)
                                               ? 'text-red-600 font-medium'
                                               : 'text-gray-500 dark:text-dark-500'
-                                          }`}
-                                        >
-                                          📅 {formatDate(task.dueDate)}
-                                        </span>
-                                      )}
+                                          }`}>
+                                            <CalendarCheck className="w-3 h-3" />
+                                            <span>마감: {formatDate(task.due_date)}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <span className="text-gray-400 dark:text-dark-400 truncate ml-2 max-w-20">
+                                        👤 {task.assignee?.name || '미지정'}
+                                      </span>
                                     </div>
-                                    <span className="text-gray-400 dark:text-dark-400 truncate ml-2 max-w-20">
-                                      {task.assigneeId}
-                                    </span>
+                                    {/* 추가 메타데이터 - 팀과 생성일 */}
+                                    <div className="flex items-center justify-between text-xs text-gray-400 dark:text-dark-400">
+                                      <span className="truncate">
+                                        🏢 {task.team?.name || '팀 미지정'}
+                                      </span>
+                                      <span className="ml-2 flex-shrink-0">
+                                        {formatDate(task.created_at)}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               )}

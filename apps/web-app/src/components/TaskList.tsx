@@ -91,8 +91,8 @@ const TaskList: React.FC = function TaskList() {
           bValue = b.title.toLowerCase();
           break;
         case 'dueDate':
-          aValue = a.dueDate || new Date(0);
-          bValue = b.dueDate || new Date(0);
+          aValue = a.due_date || new Date(0);
+          bValue = b.due_date || new Date(0);
           break;
         case 'priority': {
           const priorityOrder = {
@@ -118,8 +118,8 @@ const TaskList: React.FC = function TaskList() {
         }
         case 'createdAt':
         default:
-          aValue = a.createdAt || new Date(0);
-          bValue = b.createdAt || new Date(0);
+          aValue = a.created_at || new Date(0);
+          bValue = b.created_at || new Date(0);
           break;
       }
 
@@ -477,13 +477,13 @@ const TaskList: React.FC = function TaskList() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-900">
-                      {task.startDate
-                        ? new Date(task.startDate).toLocaleDateString()
+                      {task.start_date
+                        ? new Date(task.start_date).toLocaleDateString()
                         : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-900">
-                      {task.dueDate
-                        ? new Date(task.dueDate).toLocaleDateString()
+                      {task.due_date
+                        ? new Date(task.due_date).toLocaleDateString()
                         : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

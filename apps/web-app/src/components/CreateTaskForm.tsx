@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCreateTask, useUpdateTask } from '../hooks/useTasks';
 import {
-  CreateTaskInput,
-  UpdateTaskInput,
   Task,
   FileMetadata,
   TaskStatus,
@@ -12,6 +10,7 @@ import {
 import { FileUpload } from './FileUpload';
 import { useAuth } from '../hooks/useAuth';
 import { useTeams } from '../hooks/useTeams';
+import { useTeamMembers } from '../hooks/useTeamMembers';
 import { useNotification } from '../contexts/NotificationContext';
 
 interface CreateTaskFormProps {
@@ -28,15 +27,17 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
   const { user } = useAuth();
   const { currentTeam, teams } = useTeams();
   const { success, error: showError, warning } = useNotification();
-  const [formData, setFormData] = useState<CreateTaskInput>({
+  const [formData, setFormData] = useState({
     title: '',
     description: '',
-    assigneeId: '',
+    assignee_id: '',
     status: TaskStatus.TODO,
     priority: TaskPriority.MEDIUM,
-    startDate: undefined,
-    dueDate: undefined,
-    teamId: currentTeam?.id || '',
+    start_date: undefined as Date | undefined,
+    due_date: undefined as Date | undefined,
+    team_id: currentTeam?.id || '',
+    created_by: user?.uid || '',
+    project_id: undefined as string | undefined,
   });
 
   const [uploadedFiles, setUploadedFiles] = useState<FileMetadata[]>([]);
@@ -44,6 +45,22 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
   const createTaskMutation = useCreateTask();
   const updateTaskMutation = useUpdateTask();
   const { t } = useTranslation();
+  
+  // 선택된 팀의 멤버 목록 가져오기
+  const { data: teamMembers } = useTeamMembers(formData.team_id || '');
+  
+  // 디버깅을 위한 로그
+  useEffect(() => {
+    if (teamMembers) {
+      console.log('Team Members:', teamMembers);
+    }
+    if (user) {
+      console.log('Current User:', user);
+    }
+    if (teams) {
+      console.log('Teams:', teams);
+    }
+  }, [teamMembers, user, teams]);
 
   const isEditing = !!editingTask;
 
@@ -53,19 +70,22 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
       setFormData({
         title: editingTask.title,
         description: editingTask.description || '',
-        assigneeId: editingTask.assigneeId,
+        assignee_id: editingTask.assignee_id || editingTask.assigneeId,
         status: editingTask.status,
         priority: editingTask.priority,
-        startDate: editingTask.startDate,
-        dueDate: editingTask.dueDate,
-        teamId: editingTask.teamId,
+        start_date: editingTask.start_date || editingTask.startDate ? new Date(editingTask.start_date || editingTask.startDate) : undefined,
+        due_date: editingTask.due_date || editingTask.dueDate ? new Date(editingTask.due_date || editingTask.dueDate) : undefined,
+        team_id: editingTask.team_id || editingTask.teamId,
+        created_by: user?.uid || '',
+        project_id: editingTask.project_id || editingTask.projectId,
       });
     } else if (currentTeam?.id) {
       // 새 태스크 생성 모드
       setFormData(prev => ({
         ...prev,
-        teamId: currentTeam.id,
-        assigneeId: user?.uid || '', // 기본적으로 자신을 할당자로 설정
+        team_id: currentTeam.id,
+        assignee_id: user?.uid || '', // 기본적으로 자신을 할당자로 설정
+        created_by: user?.uid || '',
       }));
     }
   }, [user, currentTeam, editingTask]);
@@ -75,24 +95,24 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
 
     // Form data is validated below
 
-    if (!formData.title.trim()) {
+    if (!formData.title?.trim()) {
       showError(t('task.titleRequired'));
       return;
     }
 
-    if (!formData.assigneeId.trim()) {
+    if (!formData.assignee_id?.trim()) {
       showError(t('task.assigneeRequired'));
       return;
     }
 
-    if (!formData.teamId) {
+    if (!formData.team_id) {
       showError('팀이 선택되지 않았습니다. 팀을 선택해주세요.');
       return;
     }
 
     // 시작일과 마감일 유효성 검사
-    if (formData.startDate && formData.dueDate) {
-      if (formData.startDate > formData.dueDate) {
+    if (formData.start_date && formData.due_date) {
+      if (formData.start_date > formData.due_date) {
         warning('시작일은 마감일보다 이전이어야 합니다.');
         return;
       }
@@ -100,16 +120,43 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
 
     try {
       if (isEditing && editingTask) {
-        // 편집 모드
-        const updateData: UpdateTaskInput = {
-          title: formData.title,
-          description: formData.description,
-          assigneeId: formData.assigneeId,
-          status: formData.status,
-          priority: formData.priority,
-          startDate: formData.startDate,
-          dueDate: formData.dueDate,
-        };
+        // 편집 모드 - 변경된 필드만 포함
+        const updateData: any = {};
+        
+        if (formData.title !== editingTask.title) {
+          updateData.title = formData.title;
+        }
+        if (formData.description !== editingTask.description) {
+          updateData.description = formData.description;
+        }
+        if (formData.assignee_id !== (editingTask.assignee_id || editingTask.assigneeId)) {
+          updateData.assignee_id = formData.assignee_id;
+        }
+        if (formData.status !== editingTask.status) {
+          updateData.status = formData.status;
+        }
+        if (formData.priority !== editingTask.priority) {
+          updateData.priority = formData.priority;
+        }
+        if (formData.project_id !== (editingTask.project_id || editingTask.projectId)) {
+          updateData.project_id = formData.project_id || null;
+        }
+        
+        const newStartDate = formData.start_date ? formData.start_date.toISOString() : null;
+        const oldStartDate = editingTask.start_date || editingTask.startDate;
+        const oldStartDateISO = oldStartDate ? new Date(oldStartDate).toISOString() : null;
+        if (newStartDate !== oldStartDateISO) {
+          updateData.start_date = newStartDate;
+        }
+        
+        const newDueDate = formData.due_date ? formData.due_date.toISOString() : null;
+        const oldDueDate = editingTask.due_date || editingTask.dueDate;
+        const oldDueDateISO = oldDueDate ? new Date(oldDueDate).toISOString() : null;
+        if (newDueDate !== oldDueDateISO) {
+          updateData.due_date = newDueDate;
+          updateData.end_date = newDueDate; // end_date도 함께 업데이트
+        }
+        console.log('About to update task:', editingTask.id, updateData);
         await updateTaskMutation.mutateAsync({
           id: editingTask.id,
           updates: updateData,
@@ -117,16 +164,30 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
         success('태스크가 성공적으로 수정되었습니다.');
       } else {
         // 생성 모드
-        await createTaskMutation.mutateAsync(formData);
+        const createData = {
+          title: formData.title,
+          description: formData.description,
+          assignee_id: formData.assignee_id,
+          status: formData.status,
+          priority: formData.priority,
+          team_id: formData.team_id,
+          created_by: formData.created_by,
+          project_id: formData.project_id,
+          start_date: formData.start_date ? formData.start_date.toISOString() : undefined,
+          due_date: formData.due_date ? formData.due_date.toISOString() : undefined,
+        };
+        await createTaskMutation.mutateAsync(createData);
         setFormData({
           title: '',
           description: '',
-          assigneeId: '',
+          assignee_id: '',
           status: TaskStatus.TODO,
           priority: TaskPriority.MEDIUM,
-          startDate: undefined,
-          dueDate: undefined,
-          teamId: currentTeam?.id || '',
+          start_date: undefined,
+          due_date: undefined,
+          team_id: currentTeam?.id || '',
+          created_by: user?.uid || '',
+          project_id: undefined,
         });
         success(t('task.taskCreated'));
       }
@@ -140,10 +201,10 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
   };
 
   const handleInputChange = (
-    field: keyof CreateTaskInput,
+    field: keyof typeof formData,
     value: string | Date | undefined | TaskStatus | TaskPriority
   ) => {
-    setFormData((prev: CreateTaskInput) => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -268,8 +329,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
           </label>
           <select
             id="team"
-            value={formData.teamId}
-            onChange={e => handleInputChange('teamId', e.target.value)}
+            value={formData.team_id}
+            onChange={e => handleInputChange('team_id', e.target.value)}
             className={inputClassName}
           >
             <option value="">팀을 선택해주세요</option>
@@ -285,14 +346,27 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
           <label htmlFor="assignee" className={labelClassName}>
             {t('task.assignee')} *
           </label>
-          <input
-            type="text"
+          <select
             id="assignee"
-            value={formData.assigneeId}
-            onChange={e => handleInputChange('assigneeId', e.target.value)}
+            value={formData.assignee_id}
+            onChange={e => handleInputChange('assignee_id', e.target.value)}
             className={inputClassName}
-            placeholder={t('task.assignee')}
-          />
+          >
+            <option value="">담당자를 선택해주세요</option>
+            {!formData.team_id && <option disabled>팀을 먼저 선택해주세요</option>}
+            {formData.team_id && (
+              <>
+                <option value={user?.uid || user?.id || ''}>{user?.displayName || user?.email || '나 (현재 사용자)'}</option>
+                {teamMembers && teamMembers
+                  .filter(member => member.user_id !== user?.uid && member.user_id !== user?.id)
+                  .map(member => (
+                    <option key={member.user_id} value={member.user_id}>
+                      {member.user?.name || member.user?.email || `사용자 ${member.user_id}`}
+                    </option>
+                  ))}
+              </>
+            )}
+          </select>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -346,13 +420,13 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
               type="date"
               id="startDate"
               value={
-                formData.startDate
-                  ? new Date(formData.startDate).toISOString().split('T')[0]
+                formData.start_date
+                  ? new Date(formData.start_date).toISOString().split('T')[0]
                   : ''
               }
               onChange={e =>
                 handleInputChange(
-                  'startDate',
+                  'start_date',
                   e.target.value ? new Date(e.target.value) : undefined
                 )
               }
@@ -368,13 +442,13 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
               type="date"
               id="dueDate"
               value={
-                formData.dueDate
-                  ? new Date(formData.dueDate).toISOString().split('T')[0]
+                formData.due_date
+                  ? new Date(formData.due_date).toISOString().split('T')[0]
                   : ''
               }
               onChange={e =>
                 handleInputChange(
-                  'dueDate',
+                  'due_date',
                   e.target.value ? new Date(e.target.value) : undefined
                 )
               }

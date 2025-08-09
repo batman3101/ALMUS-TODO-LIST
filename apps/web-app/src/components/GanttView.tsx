@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { useTasks, useUpdateTask } from '../hooks/useTasks';
@@ -25,14 +25,15 @@ const GanttView: React.FC = () => {
 
   const [config, setConfig] = useState<GanttViewConfig>(() => {
     const now = getCurrentDate();
+    // 일 단위 뷰에 적합한 날짜 범위: 현재 월의 이전달부터 다음달까지 (3개월 범위)
     return {
-      zoomLevel: ZoomLevel.WEEK,
+      zoomLevel: ZoomLevel.DAY, // 기본값을 일 단위로 변경
       showDependencies: true,
       showProgress: true,
       showDelayedTasks: true,
       dateRange: {
-        start: new Date(now.getFullYear(), now.getMonth() - 1, 1),
-        end: new Date(now.getFullYear(), now.getMonth() + 2, 0),
+        start: new Date(now.getFullYear(), now.getMonth() - 1, 1), // 이전달 1일
+        end: new Date(now.getFullYear(), now.getMonth() + 2, 0),   // 다음달 마지막날
       },
     };
   });
@@ -118,15 +119,44 @@ const GanttView: React.FC = () => {
     if (!tasks) return [];
 
     return tasks.map((task: Task): GanttTask => {
-      const startDate = task.startDate || task.createdAt || new Date();
-      const endDate =
-        task.endDate ||
-        task.dueDate ||
-        new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const isDelayed = task.dueDate
-        ? new Date() > task.dueDate && task.status !== TaskStatus.DONE
+      // Task의 실제 필드명 사용 (snake_case)
+      const taskStartDate = task.start_date ? new Date(task.start_date) : null;
+      const taskEndDate = task.end_date ? new Date(task.end_date) : null;
+      const taskDueDate = task.due_date ? new Date(task.due_date) : null;
+      const taskCreatedAt = new Date(task.created_at);
+      
+      // 시작일 결정 로직
+      let startDate: Date;
+      if (taskStartDate) {
+        startDate = taskStartDate;
+      } else if (task.status === TaskStatus.TODO) {
+        // TODO 상태라면 오늘을 시작일로 설정
+        startDate = new Date();
+      } else {
+        // 다른 상태라면 생성일을 시작일로 사용
+        startDate = taskCreatedAt;
+      }
+      
+      // 종료일 결정 로직
+      let endDate: Date;
+      if (taskEndDate) {
+        endDate = taskEndDate;
+      } else if (taskDueDate) {
+        endDate = taskDueDate;
+      } else {
+        // 기본값: 시작일로부터 7일 후 (또는 우선도에 따라 다르게)
+        const defaultDuration = task.priority === TaskPriority.URGENT ? 3 :
+                               task.priority === TaskPriority.HIGH ? 5 :
+                               task.priority === TaskPriority.MEDIUM ? 7 : 14;
+        endDate = new Date(startDate.getTime() + defaultDuration * 24 * 60 * 60 * 1000);
+      }
+      
+      // 지연/연체 상태 확인
+      const now = new Date();
+      const isDelayed = taskDueDate
+        ? now > taskDueDate && task.status !== TaskStatus.DONE
         : false;
-      const isOverdue = task.dueDate ? new Date() > task.dueDate : false;
+      const isOverdue = taskDueDate ? now > taskDueDate : false;
 
       // 계산된 진행률 적용
       const calculatedProgress = calculateTaskProgress(
@@ -148,7 +178,7 @@ const GanttView: React.FC = () => {
         progress: calculatedProgress,
         status: task.status,
         priority: task.priority,
-        assigneeId: task.assigneeId,
+        assigneeId: task.assignee_id || '', // snake_case로 수정
         dependencies: task.dependencies || [],
         isDelayed,
         isOverdue,
@@ -549,6 +579,48 @@ const GanttView: React.FC = () => {
     }
   }, [config.dateRange, config.zoomLevel]);
 
+  // 컴포넌트 마운트시 자동으로 오늘 날짜로 스크롤
+  useEffect(() => {
+    // 데이터가 로드되고 차트가 렌더링된 후에 스크롤
+    const timer = setTimeout(() => {
+      scrollToToday();
+    }, 100); // 짧은 지연을 두어 DOM이 완전히 렌더링된 후 실행
+
+    return () => clearTimeout(timer);
+  }, [scrollToToday]); // scrollToToday가 변경될 때마다 실행
+
+  // 상태 텍스트 헬퍼 함수
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case TaskStatus.TODO:
+        return '시작 전';
+      case TaskStatus.IN_PROGRESS:
+        return '진행중';
+      case TaskStatus.REVIEW:
+        return '검토중';
+      case TaskStatus.DONE:
+        return '완료';
+      default:
+        return status;
+    }
+  };
+
+  // 우선순위 텍스트 헬퍼 함수
+  const getPriorityText = (priority: string) => {
+    switch (priority) {
+      case TaskPriority.LOW:
+        return '낮음';
+      case TaskPriority.MEDIUM:
+        return '보통';
+      case TaskPriority.HIGH:
+        return '높음';
+      case TaskPriority.URGENT:
+        return '긴급';
+      default:
+        return priority;
+    }
+  };
+
   const renderTimeline = () => {
     const { start, end } = config.dateRange;
 
@@ -734,7 +806,7 @@ const GanttView: React.FC = () => {
               기간: {format(task.startDate, 'MM/dd')} -{' '}
               {format(task.endDate, 'MM/dd')}
             </div>
-            <div>상태: {task.status}</div>
+            <div>상태: {getStatusText(task.status)}</div>
             <div>진행률: {task.progress}%</div>
             {task.isDelayed && <div className="text-red-400">지연됨</div>}
           </div>
@@ -959,7 +1031,7 @@ const GanttView: React.FC = () => {
                                     : 'bg-red-500'
                             }`}
                           >
-                            {task.priority}
+                            {getPriorityText(task.priority)}
                           </span>
                           <span
                             className={`px-2 py-1 rounded text-white font-medium ${
@@ -972,7 +1044,7 @@ const GanttView: React.FC = () => {
                                     : 'bg-green-600'
                             }`}
                           >
-                            {task.status}
+                            {getStatusText(task.status)}
                           </span>
                           {task.isDelayed && (
                             <span className="px-2 py-1 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded font-medium">

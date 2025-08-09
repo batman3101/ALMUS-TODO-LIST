@@ -42,11 +42,11 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
       setFormData({
         title: task.title || '',
         description: task.description || '',
-        assigneeId: task.assigneeId || '',
+        assigneeId: task.assignee_id || '',
         status: task.status,
         priority: task.priority,
-        startDate: task.startDate ? new Date(task.startDate) : undefined,
-        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+        startDate: task.start_date ? new Date(task.start_date) : undefined,
+        dueDate: task.due_date ? new Date(task.due_date) : undefined,
       });
     }
   }, [task]);
@@ -62,7 +62,18 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      await onSave(task.id, formData);
+      // camelCase를 snake_case로 변환하여 API 호출
+      const apiData = {
+        title: formData.title,
+        description: formData.description,
+        assignee_id: formData.assigneeId,
+        status: formData.status,
+        priority: formData.priority,
+        start_date: formData.startDate ? formData.startDate.toISOString() : undefined,
+        due_date: formData.dueDate ? formData.dueDate.toISOString() : undefined,
+      };
+      
+      await onSave(task.id, apiData);
       success('태스크가 성공적으로 수정되었습니다.');
       onClose();
     } catch (error) {

@@ -49,6 +49,7 @@ export interface CreateTaskData {
   project_id?: string;
   assignee_id?: string;
   created_by: string;
+  start_date?: string;
   due_date?: string;
   estimated_hours?: number;
   tags?: string[];
@@ -60,9 +61,13 @@ export interface UpdateTaskData {
   status?: TaskStatus;
   priority?: TaskPriority;
   assignee_id?: string;
+  project_id?: string;
+  start_date?: string;
   due_date?: string;
+  end_date?: string;
   estimated_hours?: number;
   actual_hours?: number;
+  progress?: number;
   tags?: string[];
 }
 
@@ -140,7 +145,7 @@ class ApiService {
         .select(
           `
           *,
-          assignee:users(id, name, email),
+          assignee:users!tasks_assignee_id_fkey(id, name, email),
           project:projects(id, name),
           team:teams!tasks_team_id_fkey(id, name)
         `
@@ -186,7 +191,7 @@ class ApiService {
         .select(
           `
           *,
-          assignee:users(id, name, email),
+          assignee:users!tasks_assignee_id_fkey(id, name, email),
           created_by_user:users!tasks_created_by_fkey(id, name, email),
           project:projects(id, name),
           team:teams!tasks_team_id_fkey(id, name),
@@ -205,7 +210,9 @@ class ApiService {
 
   async createTask(data: CreateTaskData): Promise<ApiResponse<Task>> {
     return this.executeQuery(async () => {
-      return supabase
+      console.log('Creating task with data:', data);
+      
+      const result = await supabase
         .from('tasks')
         .insert({
           ...data,
@@ -215,12 +222,15 @@ class ApiService {
         .select(
           `
           *,
-          assignee:users(id, name, email),
+          assignee:users!tasks_assignee_id_fkey(id, name, email),
           project:projects(id, name),
           team:teams!tasks_team_id_fkey(id, name)
         `
         )
         .single();
+        
+      console.log('Task creation result:', result);
+      return result;
     });
   }
 
@@ -229,22 +239,36 @@ class ApiService {
     data: UpdateTaskData
   ): Promise<ApiResponse<Task>> {
     return this.executeQuery(async () => {
-      return supabase
+      console.log('Updating task with data:', { id, data });
+      
+      // undefined 값 제거
+      const cleanData = Object.fromEntries(
+        Object.entries(data).filter(([_, value]) => value !== undefined)
+      );
+      
+      const payload = {
+        ...cleanData,
+        updated_at: new Date().toISOString(),
+      };
+      
+      console.log('Final update payload:', payload);
+      
+      const result = await supabase
         .from('tasks')
-        .update({
-          ...data,
-          updated_at: new Date().toISOString(),
-        })
+        .update(payload)
         .eq('id', id)
         .select(
           `
           *,
-          assignee:users(id, name, email),
+          assignee:users!tasks_assignee_id_fkey(id, name, email),
           project:projects(id, name),
           team:teams!tasks_team_id_fkey(id, name)
         `
         )
         .single();
+        
+      console.log('Task update result:', result);
+      return result;
     });
   }
 
@@ -294,13 +318,25 @@ class ApiService {
   }
 
   private async getUserTeamIds(userId: string): Promise<string> {
-    const { data } = await supabase
+    console.log('Getting team IDs for user:', userId);
+    
+    const { data, error } = await supabase
       .from('team_members')
       .select('team_id')
       .eq('user_id', userId)
       .eq('status', 'ACTIVE');
 
-    return data?.map(tm => tm.team_id).join(',') || '';
+    console.log('Team members query result:', { data, error, userId });
+
+    if (error) {
+      console.error('Error fetching team members:', error);
+      return '';
+    }
+
+    const teamIds = data?.map(tm => tm.team_id).join(',') || '';
+    console.log('Extracted team IDs:', teamIds);
+    
+    return teamIds;
   }
 
   async getTeam(id: string): Promise<ApiResponse<Team>> {
@@ -347,6 +383,7 @@ class ApiService {
           team_id: team.id,
           user_id: data.owner_id,
           role: 'OWNER',
+          status: 'ACTIVE',
           joined_at: new Date().toISOString(),
         });
 
@@ -403,6 +440,16 @@ class ApiService {
     filters: TeamMemberFilters = {}
   ): Promise<ApiResponse<TeamMember[]>> {
     return this.executeQuery(async () => {
+      // 먼저 팀 정보를 가져와서 오너 ID 확인
+      const { data: team, error: teamError } = await supabase
+        .from('teams')
+        .select('id, name, owner_id')
+        .eq('id', teamId)
+        .single();
+
+      if (teamError) throw teamError;
+
+      // 팀 멤버 가져오기
       let query = supabase
         .from('team_members')
         .select(
@@ -428,7 +475,35 @@ class ApiService {
         );
       }
 
-      return query;
+      const { data: members, error: membersError } = await query;
+      if (membersError) throw membersError;
+
+      // 오너 정보 가져오기
+      const { data: owner, error: ownerError } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .eq('id', team.owner_id)
+        .single();
+
+      if (!ownerError && owner) {
+        // 오너가 멤버 목록에 없으면 추가
+        const ownerInMembers = members?.some(m => m.user_id === owner.id);
+        if (!ownerInMembers) {
+          const ownerMember: any = {
+            id: `owner-${owner.id}`,
+            team_id: teamId,
+            user_id: owner.id,
+            role: 'OWNER',
+            status: 'ACTIVE',
+            joined_at: new Date().toISOString(),
+            user: owner,
+            team: { id: team.id, name: team.name }
+          };
+          return { data: [ownerMember, ...(members || [])], error: null };
+        }
+      }
+
+      return { data: members, error: null };
     });
   }
 
@@ -438,11 +513,32 @@ class ApiService {
     role: TeamRole
   ): Promise<ApiResponse<any>> {
     return this.executeQuery(async () => {
-      return supabase.rpc('invite_team_member', {
-        team_id: teamId,
-        email,
-        role,
+      console.log('Inviting member:', { teamId, email, role });
+      
+      // 현재 사용자 ID 가져오기 (초대한 사람)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new ApiError('인증되지 않은 사용자입니다.', 'UNAUTHORIZED');
+      }
+
+      // 새로운 RPC 함수 호출
+      const { data, error } = await supabase.rpc('invite_team_member', {
+        p_team_id: teamId,
+        p_email: email,
+        p_role: role,
+        p_invited_by: user.id
       });
+
+      if (error) {
+        console.error('Error inviting team member:', error);
+        throw new ApiError(error.message || '팀 멤버 초대에 실패했습니다.', 'INVITE_FAILED');
+      }
+
+      if (!data.success) {
+        throw new ApiError(data.message, 'INVITE_FAILED');
+      }
+
+      return { data: data, error: null };
     });
   }
 
@@ -589,7 +685,34 @@ class ApiService {
         throw new ApiError('사용자를 찾을 수 없습니다', 'USER_NOT_FOUND');
       }
 
-      return supabase.from('users').select('*').eq('id', user.id).single();
+      // users 테이블에서 사용자 정보 가져오기
+      const { data: dbUser, error: dbError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      // 사용자가 없으면 생성
+      if (dbError && dbError.code === 'PGRST116') {
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            avatar: user.user_metadata?.avatar_url || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        return { data: newUser, error: null };
+      }
+
+      if (dbError) throw dbError;
+      return { data: dbUser, error: null };
     });
   }
 

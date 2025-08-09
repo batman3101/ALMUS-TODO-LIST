@@ -73,7 +73,7 @@ export const useTask = (id: string) => {
 
 export const useCreateTask = () => {
   const queryClient = useQueryClient();
-  const { success, error } = useNotification();
+  const { success, error: showError } = useNotification();
 
   return useMutation({
     mutationFn: (data: CreateTaskData) => apiService.createTask(data),
@@ -92,7 +92,7 @@ export const useCreateTask = () => {
       return response.data;
     },
     onError: (error: ApiError) => {
-      error(`태스크 생성 실패: ${error.message}`);
+      showError(`태스크 생성 실패: ${error.message}`);
       throw error;
     },
   });
@@ -100,7 +100,7 @@ export const useCreateTask = () => {
 
 export const useUpdateTask = () => {
   const queryClient = useQueryClient();
-  const { success, error } = useNotification();
+  const { success, error: showError } = useNotification();
 
   return useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: UpdateTaskData }) =>
@@ -120,7 +120,7 @@ export const useUpdateTask = () => {
       return response.data;
     },
     onError: (error: ApiError) => {
-      error(`태스크 업데이트 실패: ${error.message}`);
+      showError(`태스크 업데이트 실패: ${error.message}`);
       throw error;
     },
   });
@@ -128,7 +128,7 @@ export const useUpdateTask = () => {
 
 export const useDeleteTask = () => {
   const queryClient = useQueryClient();
-  const { success, error } = useNotification();
+  const { success, error: showError } = useNotification();
 
   return useMutation({
     mutationFn: (id: string) => apiService.deleteTask(id),
@@ -147,7 +147,7 @@ export const useDeleteTask = () => {
       success('태스크가 성공적으로 삭제되었습니다.');
     },
     onError: (error: ApiError) => {
-      error(`태스크 삭제 실패: ${error.message}`);
+      showError(`태스크 삭제 실패: ${error.message}`);
       throw error;
     },
   });
@@ -289,7 +289,7 @@ export const useTeamMembers = (teamId: string, filters?: TeamMemberFilters) => {
 
 export const useInviteTeamMember = () => {
   const queryClient = useQueryClient();
-  const { success, error } = useNotification();
+  const { success, error: showError } = useNotification();
 
   return useMutation({
     mutationFn: ({
@@ -313,7 +313,7 @@ export const useInviteTeamMember = () => {
       return response.data;
     },
     onError: (error: ApiError) => {
-      error(`멤버 초대 실패: ${error.message}`);
+      showError(`멤버 초대 실패: ${error.message}`);
       throw error;
     },
   });
@@ -321,7 +321,7 @@ export const useInviteTeamMember = () => {
 
 export const useUpdateMemberRole = () => {
   const queryClient = useQueryClient();
-  const { success, error } = useNotification();
+  const { success, error: showError } = useNotification();
 
   return useMutation({
     mutationFn: ({ memberId, role }: { memberId: string; role: any }) =>
@@ -338,7 +338,7 @@ export const useUpdateMemberRole = () => {
       return response.data;
     },
     onError: (error: ApiError) => {
-      error(`역할 업데이트 실패: ${error.message}`);
+      showError(`역할 업데이트 실패: ${error.message}`);
       throw error;
     },
   });
@@ -346,7 +346,7 @@ export const useUpdateMemberRole = () => {
 
 export const useRemoveMember = () => {
   const queryClient = useQueryClient();
-  const { success, error } = useNotification();
+  const { success, error: showError } = useNotification();
 
   return useMutation({
     mutationFn: (memberId: string) => apiService.removeMember(memberId),
@@ -361,7 +361,7 @@ export const useRemoveMember = () => {
       success('멤버가 팀에서 제거되었습니다.');
     },
     onError: (error: ApiError) => {
-      error(`멤버 제거 실패: ${error.message}`);
+      showError(`멤버 제거 실패: ${error.message}`);
       throw error;
     },
   });
@@ -385,7 +385,7 @@ export const useProjects = (teamId: string) => {
 
 export const useCreateProject = () => {
   const queryClient = useQueryClient();
-  const { success, error } = useNotification();
+  const { success, error: showError } = useNotification();
 
   return useMutation({
     mutationFn: (data: CreateProjectData) => apiService.createProject(data),
@@ -403,7 +403,7 @@ export const useCreateProject = () => {
       return response.data;
     },
     onError: (error: ApiError) => {
-      error(`프로젝트 생성 실패: ${error.message}`);
+      showError(`프로젝트 생성 실패: ${error.message}`);
       throw error;
     },
   });
@@ -427,7 +427,7 @@ export const useComments = (resourceType: string, resourceId: string) => {
 
 export const useCreateComment = () => {
   const queryClient = useQueryClient();
-  const { success, error } = useNotification();
+  const { success, error: showError } = useNotification();
 
   return useMutation({
     mutationFn: (data: {
@@ -451,7 +451,7 @@ export const useCreateComment = () => {
       return response.data;
     },
     onError: (error: ApiError) => {
-      error(`댓글 추가 실패: ${error.message}`);
+      showError(`댓글 추가 실패: ${error.message}`);
       throw error;
     },
   });

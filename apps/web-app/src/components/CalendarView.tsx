@@ -99,8 +99,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
       dragType,
       taskId: task.id,
       startX: e.clientX,
-      originalStartDate: task.startDate ? new Date(task.startDate) : null,
-      originalEndDate: task.dueDate ? new Date(task.dueDate) : null,
+      originalStartDate: task.start_date ? new Date(task.start_date) : null,
+      originalEndDate: task.due_date ? new Date(task.due_date) : null,
     });
 
     // 전역 마우스 이벤트 리스너 추가
@@ -129,7 +129,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
 
     // 현재 편집 중인 태스크 찾기
     const task = tasks?.find(t => t.id === dragState.taskId);
-    if (!task || !task.startDate || !task.dueDate) return;
+    if (!task || !task.start_date || !task.due_date) return;
 
     let newStartDate = new Date(dragState.originalStartDate!);
     let newEndDate = new Date(dragState.originalEndDate!);
@@ -273,6 +273,20 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
     return { weeks, firstDay, lastDay };
   }, [currentDate]);
 
+  // 날짜를 로컬 날짜 기준으로 정규화하는 헬퍼 함수
+  const normalizeToLocalDate = (date: Date): Date => {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  };
+
+  // 날짜 간 차이를 정확히 계산하는 헬퍼 함수
+  const getDayDifference = (startDate: Date, endDate: Date): number => {
+    // 로컬 날짜로 정규화하여 시간대 문제 해결
+    const start = normalizeToLocalDate(startDate);
+    const end = normalizeToLocalDate(endDate);
+    const diffTime = end.getTime() - start.getTime();
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
+  };
+
   // 주별로 연속된 태스크 막대를 계산
   const weeklyTaskBars = useMemo(() => {
     if (!tasks || tasks.length === 0) return [];
@@ -300,30 +314,60 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
 
       // 각 태스크에 대해 이번 주와 겹치는 부분 확인
       tasks.forEach((task: Task) => {
-        if (task.startDate && task.dueDate) {
-          const taskStart = new Date(task.startDate);
-          const taskEnd = new Date(task.dueDate);
+        if (task.start_date || task.due_date) {
+          const taskStartOriginal = task.start_date ? new Date(task.start_date) : new Date(task.due_date!);
+          const taskEndOriginal = task.due_date ? new Date(task.due_date) : new Date(task.start_date!);
+          
+          // 시간대 문제를 해결하기 위해 로컬 날짜로 정규화
+          const taskStart = normalizeToLocalDate(taskStartOriginal);
+          const taskEnd = normalizeToLocalDate(taskEndOriginal);
+          const normalizedWeekStart = normalizeToLocalDate(weekStartDate);
+          const normalizedWeekEnd = normalizeToLocalDate(weekEndDate);
 
-          // 태스크가 이번 주와 겹치는지 확인
-          if (taskStart <= weekEndDate && taskEnd >= weekStartDate) {
-            // 주 내에서의 시작/끝 요일 계산
+          // 디버깅: 8월 9일 태스크 확인
+          if (task.title.includes('test') || task.start_date?.includes('2025-08-09')) {
+            console.log('🔍 Debug Task (Normalized):', {
+              title: task.title,
+              start_date: task.start_date,
+              due_date: task.due_date,
+              taskStartOriginal: taskStartOriginal.toISOString(),
+              taskEndOriginal: taskEndOriginal.toISOString(),
+              taskStart: taskStart.toISOString(),
+              taskEnd: taskEnd.toISOString(),
+              normalizedWeekStart: normalizedWeekStart.toISOString(),
+              normalizedWeekEnd: normalizedWeekEnd.toISOString(),
+              taskStartLocal: taskStart.toLocaleDateString(),
+              taskEndLocal: taskEnd.toLocaleDateString(),
+              weekStartLocal: normalizedWeekStart.toLocaleDateString(),
+              weekEndLocal: normalizedWeekEnd.toLocaleDateString(),
+            });
+          }
+
+          // 태스크가 이번 주와 겹치는지 확인 (정규화된 날짜로 비교)
+          if (taskStart <= normalizedWeekEnd && taskEnd >= normalizedWeekStart) {
+            // 주 내에서의 시작/끝 요일 계산 (시간대 문제 해결)
             let startDay = 0;
             let endDay = 6;
 
             // 태스크 시작일이 이번 주 내에 있으면 정확한 요일 계산
-            if (taskStart >= weekStartDate) {
-              startDay = Math.floor(
-                (taskStart.getTime() - weekStartDate.getTime()) /
-                  (1000 * 60 * 60 * 24)
-              );
+            if (taskStart >= normalizedWeekStart) {
+              startDay = getDayDifference(normalizedWeekStart, taskStart);
             }
 
             // 태스크 끝일이 이번 주 내에 있으면 정확한 요일 계산
-            if (taskEnd <= weekEndDate) {
-              endDay = Math.floor(
-                (taskEnd.getTime() - weekStartDate.getTime()) /
-                  (1000 * 60 * 60 * 24)
-              );
+            if (taskEnd <= normalizedWeekEnd) {
+              endDay = getDayDifference(normalizedWeekStart, taskEnd);
+            }
+
+            // 디버깅: 8월 9일 태스크 위치 계산
+            if (task.title.includes('test') || task.start_date?.includes('2025-08-09')) {
+              console.log('📍 Task Position:', {
+                title: task.title,
+                startDay,
+                endDay,
+                finalStartDay: Math.max(0, startDay),
+                finalEndDay: Math.min(6, endDay),
+              });
             }
 
             taskBars.push({
@@ -332,6 +376,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
               endDay: Math.min(6, endDay),
               row: currentRow++,
             });
+          } else {
+            // 디버깅: 8월 9일 태스크가 주와 겹치지 않는 경우
+            if (task.title.includes('test') || task.start_date?.includes('2025-08-09')) {
+              console.log('❌ Task NOT in week:', {
+                title: task.title,
+                taskStartLessEqual: taskStart <= normalizedWeekEnd,
+                taskEndGreaterEqual: taskEnd >= normalizedWeekStart,
+              });
+            }
           }
         }
       });
@@ -550,7 +603,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
                           height: '24px',
                           zIndex: 10,
                         }}
-                        title={`${task.title} (${new Date(task.startDate!).toLocaleDateString()} - ${new Date(task.dueDate!).toLocaleDateString()})`}
+                        title={`${task.title} (${task.start_date ? new Date(task.start_date).toLocaleDateString() : '시작일 없음'} - ${task.due_date ? new Date(task.due_date).toLocaleDateString() : '마감일 없음'})`}
                       >
                         {/* 왼쪽 리사이즈 핸들 */}
                         <div

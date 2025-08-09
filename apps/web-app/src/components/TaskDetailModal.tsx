@@ -140,7 +140,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 담당자
               </h3>
               <p className="text-gray-900 dark:text-dark-900">
-                {task.assigneeId || '-'}
+                {task.assignee?.name || '-'}
               </p>
             </div>
 
@@ -150,7 +150,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 <Tag className="w-4 h-4 mr-1" />팀
               </h3>
               <p className="text-gray-900 dark:text-dark-900">
-                {task.teamId || '-'}
+                {task.team?.name || '-'}
               </p>
             </div>
 
@@ -161,7 +161,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 시작일
               </h3>
               <p className="text-gray-900 dark:text-dark-900">
-                {formatDate(task.startDate)}
+                {formatDate(task.start_date)}
               </p>
             </div>
 
@@ -172,7 +172,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 마감일
               </h3>
               <p className="text-gray-900 dark:text-dark-900">
-                {formatDate(task.dueDate)}
+                {formatDate(task.due_date)}
               </p>
             </div>
           </div>
@@ -182,12 +182,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500 dark:text-dark-500">
               <div>
                 <span className="font-medium">생성일:</span>{' '}
-                {formatDate(task.createdAt)}
+                {formatDate(task.created_at)}
               </div>
-              {task.updatedAt && task.updatedAt !== task.createdAt && (
+              {task.updated_at && task.updated_at !== task.created_at && (
                 <div>
                   <span className="font-medium">수정일:</span>{' '}
-                  {formatDate(task.updatedAt)}
+                  {formatDate(task.updated_at)}
                 </div>
               )}
             </div>

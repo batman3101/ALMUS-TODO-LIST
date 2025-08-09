@@ -67,9 +67,16 @@ export const useTeams = (): TeamsContextValue => {
     });
   }, [user, teams, currentTeamId]);
 
-  // 현재 팀 객체
+  // 현재 팀 객체 (memberCount 포함)
   const currentTeam = useMemo(() => {
-    return teams.find(t => t.id === currentTeamId) || null;
+    const team = teams.find(t => t.id === currentTeamId);
+    if (!team) return null;
+    
+    // memberCount 추가 (team.members가 있으면 그 길이, 없으면 0)
+    return {
+      ...team,
+      memberCount: team.members?.length || 0
+    };
   }, [teams, currentTeamId]);
 
   // 현재 팀의 멤버들
@@ -77,9 +84,12 @@ export const useTeams = (): TeamsContextValue => {
     return teamMembers || [];
   }, [teamMembers]);
 
-  // 사용자가 속한 팀들만 필터링
+  // 사용자가 속한 팀들만 필터링 (memberCount 포함)
   const userTeams = useMemo(() => {
-    return teams; // 실제로는 사용자가 멤버인 팀만 필터링해야 함
+    return teams.map(team => ({
+      ...team,
+      memberCount: team.members?.length || 0
+    }));
   }, [teams]);
 
   // 팀 전환
@@ -197,7 +207,7 @@ export const useTeams = (): TeamsContextValue => {
   );
 
   return {
-    teams,
+    teams: userTeams, // memberCount가 포함된 userTeams 사용
     userTeams,
     currentTeam,
     currentTeamMembers,
