@@ -14,7 +14,8 @@ import { createToast } from '../utils/toast';
 import { useNotification } from '../contexts/NotificationContext';
 import CreateTaskForm from './CreateTaskForm';
 import TaskDetailModal from './TaskDetailModal';
-import { Pencil, Trash2, Plus, Eye } from 'lucide-react';
+import { Pencil, Trash2, Plus, Eye, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 const TaskList: React.FC = function TaskList() {
   const { currentTeam } = useTeams();
@@ -251,6 +252,61 @@ const TaskList: React.FC = function TaskList() {
     }
   };
 
+  // Excel 내보내기 함수
+  const exportToExcel = () => {
+    try {
+      // Excel용 데이터 변환
+      const excelData = filteredAndSortedTasks.map((task, index) => ({
+        '순번': index + 1,
+        '제목': task.title,
+        '설명': task.description || '',
+        '담당자': task.assignee?.name || task.assignee?.email || '',
+        '상태': getStatusText(task.status),
+        '우선순위': getPriorityText(task.priority),
+        '시작일': task.start_date ? new Date(task.start_date).toLocaleDateString('ko-KR') : '',
+        '마감일': task.due_date ? new Date(task.due_date).toLocaleDateString('ko-KR') : '',
+        '생성일': task.created_at ? new Date(task.created_at).toLocaleDateString('ko-KR') : '',
+        '수정일': task.updated_at ? new Date(task.updated_at).toLocaleDateString('ko-KR') : ''
+      }));
+
+      // 워크북 생성
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(excelData);
+
+      // 열 너비 자동 조정
+      const colWidths = [
+        { wch: 5 },   // 순번
+        { wch: 20 },  // 제목
+        { wch: 30 },  // 설명
+        { wch: 15 },  // 담당자
+        { wch: 10 },  // 상태
+        { wch: 10 },  // 우선순위
+        { wch: 12 },  // 시작일
+        { wch: 12 },  // 마감일
+        { wch: 12 },  // 생성일
+        { wch: 12 }   // 수정일
+      ];
+      ws['!cols'] = colWidths;
+
+      // 워크시트 추가
+      XLSX.utils.book_append_sheet(wb, ws, '태스크 목록');
+
+      // 파일명 생성 (현재 날짜 포함)
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('ko-KR').replace(/\./g, '-').replace(/ /g, '');
+      const teamName = currentTeam?.name || '전체';
+      const fileName = `${teamName}_태스크목록_${dateStr}.xlsx`;
+
+      // Excel 파일 다운로드
+      XLSX.writeFile(wb, fileName);
+
+      toast.success(`Excel 파일이 다운로드되었습니다: ${fileName}`);
+    } catch (error) {
+      console.error('Excel 내보내기 오류:', error);
+      toast.error('Excel 파일 내보내기에 실패했습니다.');
+    }
+  };
+
   return (
     <>
       <div className="bg-white dark:bg-dark-100 rounded-lg shadow transition-colors duration-200">
@@ -266,6 +322,15 @@ const TaskList: React.FC = function TaskList() {
               >
                 <Plus className="w-4 h-4 mr-1" />
                 태스크 추가
+              </button>
+              <button
+                onClick={exportToExcel}
+                disabled={filteredAndSortedTasks.length === 0}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-100 hover:bg-gray-50 dark:hover:bg-dark-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Excel로 내보내기"
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Excel 내보내기
               </button>
             </div>
 

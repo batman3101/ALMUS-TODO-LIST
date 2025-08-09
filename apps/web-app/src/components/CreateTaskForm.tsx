@@ -60,7 +60,14 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
     if (teams) {
       console.log('Teams:', teams);
     }
-  }, [teamMembers, user, teams]);
+    if (formData.team_id) {
+      const selectedTeam = teams.find(t => t.id === formData.team_id);
+      console.log('Selected Team:', selectedTeam);
+      console.log('Owner ID:', selectedTeam?.owner_id);
+      console.log('Current User ID:', user?.uid || user?.id);
+      console.log('Is Current User Owner:', selectedTeam?.owner_id === (user?.uid || user?.id));
+    }
+  }, [teamMembers, user, teams, formData.team_id]);
 
   const isEditing = !!editingTask;
 
@@ -354,18 +361,57 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
           >
             <option value="">담당자를 선택해주세요</option>
             {!formData.team_id && <option disabled>팀을 먼저 선택해주세요</option>}
-            {formData.team_id && (
-              <>
-                <option value={user?.uid || user?.id || ''}>{user?.displayName || user?.email || '나 (현재 사용자)'}</option>
-                {teamMembers && teamMembers
-                  .filter(member => member.user_id !== user?.uid && member.user_id !== user?.id)
-                  .map(member => (
-                    <option key={member.user_id} value={member.user_id}>
-                      {member.user?.name || member.user?.email || `사용자 ${member.user_id}`}
+            {formData.team_id && (() => {
+              const selectedTeam = teams.find(t => t.id === formData.team_id);
+              const ownerId = selectedTeam?.owner_id;
+              const currentUserId = user?.uid || user?.id;
+              const isCurrentUserOwner = ownerId === currentUserId;
+              
+              // 모든 가능한 담당자 목록 생성
+              const assigneeOptions = [];
+              
+              // 1. 현재 사용자 추가
+              if (currentUserId) {
+                const currentUserLabel = isCurrentUserOwner 
+                  ? `${user?.displayName || user?.name || user?.email || '나'} (팀 소유자)`
+                  : `${user?.displayName || user?.name || user?.email || '나'} (현재 사용자)`;
+                
+                assigneeOptions.push(
+                  <option key={currentUserId} value={currentUserId}>
+                    {currentUserLabel}
+                  </option>
+                );
+              }
+              
+              // 2. 소유자 추가 (현재 사용자가 아닌 경우)
+              if (ownerId && !isCurrentUserOwner) {
+                // 팀 멤버에서 소유자 정보 찾기
+                const ownerMember = teamMembers?.find(member => member.user_id === ownerId);
+                const ownerName = ownerMember?.user?.name || ownerMember?.user?.email || '팀 소유자';
+                
+                assigneeOptions.push(
+                  <option key={ownerId} value={ownerId}>
+                    {ownerName} (팀 소유자)
+                  </option>
+                );
+              }
+              
+              // 3. 다른 팀 멤버들 추가
+              teamMembers?.forEach(member => {
+                const memberId = member.user_id;
+                
+                // 현재 사용자와 소유자는 이미 추가했으므로 제외
+                if (memberId !== currentUserId && memberId !== ownerId) {
+                  assigneeOptions.push(
+                    <option key={memberId} value={memberId}>
+                      {member.user?.name || member.user?.email || `사용자 ${memberId}`}
                     </option>
-                  ))}
-              </>
-            )}
+                  );
+                }
+              });
+              
+              return assigneeOptions;
+            })()}
           </select>
         </div>
 

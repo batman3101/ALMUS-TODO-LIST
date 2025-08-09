@@ -10,10 +10,12 @@ import {
   Mail,
   Search,
   Filter,
+  Download,
+  Upload,
 } from 'lucide-react';
 import { Team, TeamMember, TeamRole } from '../types/team';
 import { useTeams } from '../hooks/useTeams';
-import { useTeamMembers, useUpdateMemberRole, useRemoveMember } from '../hooks/useApiService';
+import { useTeamMembers, useUpdateMemberRole, useRemoveMember, useInviteTeamMember } from '../hooks/useApiService';
 import { useAuth } from '../hooks/useAuth';
 import { InviteMemberModal } from './InviteMemberModal';
 
@@ -66,11 +68,18 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
   // Mutations
   const updateMemberRoleMutation = useUpdateMemberRole();
   const removeMemberMutation = useRemoveMember();
+  const inviteMemberMutation = useInviteTeamMember();
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<TeamRole | 'ALL'>('ALL');
   const [isChangingRole, setIsChangingRole] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadResults, setUploadResults] = useState<{
+    success: number;
+    failed: number;
+    errors: string[];
+  } | null>(null);
 
   const canManage = canManageTeam(team.id);
   
@@ -114,6 +123,122 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
     }
   };
 
+  // CSV 템플릿 다운로드 함수
+  const downloadCSVTemplate = () => {
+    const csvContent = [
+      ['email', 'name', 'role'],
+      ['example1@email.com', '김철수', 'EDITOR'],
+      ['example2@email.com', '이영희', 'VIEWER'],
+      ['example3@email.com', '박민수', 'ADMIN'],
+    ];
+
+    const csvString = csvContent
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvString], { 
+      type: 'text/csv;charset=utf-8;' 
+    });
+    
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `team_members_template_${team.name}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // CSV 파일 업로드 및 파싱 함수
+  const handleCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.csv')) {
+      alert('CSV 파일만 업로드 가능합니다.');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadResults(null);
+
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+      
+      if (lines.length < 2) {
+        alert('CSV 파일에 데이터가 없습니다.');
+        setIsUploading(false);
+        return;
+      }
+
+      // 헤더 제거
+      const dataLines = lines.slice(1);
+      const results = {
+        success: 0,
+        failed: 0,
+        errors: [] as string[]
+      };
+
+      // 각 행 처리
+      for (let i = 0; i < dataLines.length; i++) {
+        const line = dataLines[i];
+        const columns = line.split(',').map(col => col.replace(/^"|"$/g, '').trim());
+        
+        if (columns.length < 3) {
+          results.failed++;
+          results.errors.push(`행 ${i + 2}: 필수 데이터가 부족합니다 (이메일, 이름, 역할)`);
+          continue;
+        }
+
+        const [email, name, role] = columns;
+        
+        // 유효성 검사
+        if (!email || !email.includes('@')) {
+          results.failed++;
+          results.errors.push(`행 ${i + 2}: 유효하지 않은 이메일 주소`);
+          continue;
+        }
+
+        if (!name.trim()) {
+          results.failed++;
+          results.errors.push(`행 ${i + 2}: 이름이 비어있습니다`);
+          continue;
+        }
+
+        if (!['OWNER', 'ADMIN', 'EDITOR', 'VIEWER'].includes(role.toUpperCase())) {
+          results.failed++;
+          results.errors.push(`행 ${i + 2}: 유효하지 않은 역할 (${role})`);
+          continue;
+        }
+
+        try {
+          // 실제 초대 API 호출
+          await inviteMemberMutation.mutateAsync({
+            teamId: team.id,
+            email: email,
+            role: role.toUpperCase() as TeamRole
+          });
+          results.success++;
+        } catch (error) {
+          results.failed++;
+          const errorMessage = error instanceof Error ? error.message : '초대 실패';
+          results.errors.push(`행 ${i + 2}: ${email} - ${errorMessage}`);
+        }
+      }
+
+      setUploadResults(results);
+    } catch (error) {
+      alert('CSV 파일 읽기에 실패했습니다.');
+      console.error('CSV upload error:', error);
+    } finally {
+      setIsUploading(false);
+      // 파일 입력 초기화
+      event.target.value = '';
+    }
+  };
+
   const getRoleIcon = (role: TeamRole) => {
     const Icon = roleIcons[role];
     return <Icon size={16} />;
@@ -136,13 +261,23 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
             </div>
             <div className="flex items-center gap-2">
               {canManage && (
-                <button
-                  onClick={() => setIsInviteModalOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <UserPlus size={16} />
-                  멤버 초대
-                </button>
+                <>
+                  <button
+                    onClick={downloadCSVTemplate}
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    title="CSV 템플릿 다운로드"
+                  >
+                    <Download size={16} />
+                    템플릿 다운로드
+                  </button>
+                  <button
+                    onClick={() => setIsInviteModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <UserPlus size={16} />
+                    개별 초대
+                  </button>
+                </>
               )}
               <button
                 onClick={onClose}
@@ -189,6 +324,106 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
                 </select>
               </div>
             </div>
+
+            {/* CSV 업로드 섹션 */}
+            {canManage && (
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-blue-900 dark:text-blue-100">
+                    일괄 멤버 초대
+                  </h3>
+                  <div className="text-xs text-blue-700 dark:text-blue-300">
+                    CSV 파일로 여러 멤버를 한 번에 초대
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-lg cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
+                      <input
+                        type="file"
+                        accept=".csv"
+                        onChange={handleCSVUpload}
+                        disabled={isUploading}
+                        className="hidden"
+                      />
+                      <div className="flex items-center gap-2">
+                        {isUploading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            <span className="text-blue-700 dark:text-blue-300">업로드 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload size={16} className="text-blue-600 dark:text-blue-400" />
+                            <span className="text-blue-700 dark:text-blue-300">
+                              CSV 파일 선택 또는 드래그하여 업로드
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                  • CSV 형식: 이메일, 이름, 역할 (OWNER, ADMIN, EDITOR, VIEWER)
+                  • 먼저 템플릿을 다운로드하여 형식을 확인하세요
+                </div>
+
+                {/* 업로드 결과 표시 */}
+                {uploadResults && (
+                  <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                        업로드 결과
+                      </h4>
+                      <button
+                        onClick={() => setUploadResults(null)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          {uploadResults.success}
+                        </div>
+                        <div className="text-xs text-green-700 dark:text-green-300">
+                          성공
+                        </div>
+                      </div>
+                      <div className="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded">
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                          {uploadResults.failed}
+                        </div>
+                        <div className="text-xs text-red-700 dark:text-red-300">
+                          실패
+                        </div>
+                      </div>
+                    </div>
+
+                    {uploadResults.errors.length > 0 && (
+                      <div>
+                        <h5 className="text-sm font-medium text-red-700 dark:text-red-300 mb-2">
+                          오류 목록:
+                        </h5>
+                        <div className="max-h-32 overflow-y-auto text-xs text-red-600 dark:text-red-400 space-y-1">
+                          {uploadResults.errors.map((error, index) => (
+                            <div key={index} className="flex items-start gap-1">
+                              <span>•</span>
+                              <span>{error}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* 멤버 목록 */}
             <div className="space-y-3 max-h-96 overflow-y-auto">
