@@ -1,9 +1,12 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import {
   useTeams as useTeamsQuery,
   useTeamMembers,
   useCreateTeam as useCreateTeamMutation,
+  useUpdateTeam as useUpdateTeamMutation,
+  useDeleteTeam as useDeleteTeamMutation,
   useUpdateMemberRole,
   useRemoveMember,
 } from './useApiService';
@@ -19,14 +22,17 @@ interface TeamsContextValue {
   error: Error | null;
   switchTeam: (team: Team) => void;
   createTeam: (data: any) => Promise<void>;
+  updateTeam: (data: { id: string; name?: string; description?: string | null; settings?: any; isActive?: boolean }) => Promise<void>;
   deleteTeam: (teamId: string) => Promise<void>;
   getUserRole: (teamId: string) => TeamRole | null;
+  canManageTeam: (teamId: string) => boolean;
   updateMemberRole: (memberId: string, role: TeamRole) => Promise<void>;
   removeMember: (memberId: string) => Promise<void>;
 }
 
 export const useTeams = (): TeamsContextValue => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [currentTeamId, setCurrentTeamId] = useState<string | null>(null);
 
   // API 쿼리
@@ -40,6 +46,8 @@ export const useTeams = (): TeamsContextValue => {
 
   // Mutations
   const createTeamMutation = useCreateTeamMutation();
+  const updateTeamMutation = useUpdateTeamMutation();
+  const deleteTeamMutation = useDeleteTeamMutation();
   const updateRoleMutation = useUpdateMemberRole();
   const removeMemberMutation = useRemoveMember();
 
@@ -77,12 +85,24 @@ export const useTeams = (): TeamsContextValue => {
   // 팀 전환
   const switchTeam = useCallback(
     (team: Team) => {
+      console.log('Switching team to:', team.name, team.id);
       setCurrentTeamId(team.id);
       if (user) {
         localStorage.setItem(`currentTeam-${user.id}`, team.id);
       }
+      
+      // 태스크 관련 쿼리 무효화하여 새로운 팀의 데이터를 가져오도록 함
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.removeQueries({ 
+        queryKey: ['tasks'], 
+        predicate: (query) => {
+          const filters = query.queryKey[1] as any;
+          return filters && filters.team_id && filters.team_id !== team.id;
+        }
+      });
     },
-    [user]
+    [user, queryClient]
   );
 
   // 팀 생성
@@ -107,11 +127,28 @@ export const useTeams = (): TeamsContextValue => {
     [createTeamMutation, user]
   );
 
-  // 팀 삭제 (실제 구현 필요)
-  const deleteTeam = useCallback(async (teamId: string) => {
-    // TODO: Implement team deletion
-    console.log('Team deletion not implemented:', teamId);
-  }, []);
+  const updateTeam = useCallback(
+    async (data: { id: string; name?: string; description?: string | null; settings?: any; isActive?: boolean }) => {
+      await updateTeamMutation.mutateAsync({
+        id: data.id,
+        updates: {
+          name: data.name,
+          description: data.description,
+          settings: data.settings,
+          isActive: data.isActive,
+        },
+      });
+    },
+    [updateTeamMutation]
+  );
+
+  const deleteTeam = useCallback(
+    async (teamId: string) => {
+      await deleteTeamMutation.mutateAsync(teamId);
+      setCurrentTeamId(prev => (prev === teamId ? null : prev));
+    },
+    [deleteTeamMutation]
+  );
 
   // 사용자의 팀 내 역할 가져오기
   const getUserRole = useCallback(
@@ -133,6 +170,14 @@ export const useTeams = (): TeamsContextValue => {
       return null;
     },
     [user, teams, currentTeamId, currentTeamMembers]
+  );
+
+  const canManageTeam = useCallback(
+    (teamId: string) => {
+      const role = getUserRole(teamId);
+      return role === TeamRole.OWNER || role === TeamRole.ADMIN;
+    },
+    [getUserRole]
   );
 
   // 멤버 역할 업데이트
@@ -160,8 +205,10 @@ export const useTeams = (): TeamsContextValue => {
     error: teamsError as Error | null,
     switchTeam,
     createTeam,
+    updateTeam,
     deleteTeam,
     getUserRole,
+    canManageTeam,
     updateMemberRole,
     removeMember,
   };

@@ -41,9 +41,12 @@ const GanttView: React.FC = () => {
     data: tasks,
     isLoading,
     error,
-  } = useTasks({
-    teamId: currentTeam?.id || '',
-  });
+  } = useTasks(
+    currentTeam?.id ? { team_id: currentTeam.id } : undefined,
+    {
+      enabled: !!currentTeam?.id,
+    }
+  );
 
   const updateTask = useUpdateTask();
 
@@ -792,19 +795,9 @@ const GanttView: React.FC = () => {
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-4 text-gray-900 dark:text-dark-900">로딩 중...</div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4 text-red-500 dark:text-red-400">
-        오류가 발생했습니다: {error.message}
-      </div>
-    );
-  }
+  // 상태 변수 정의 - 로딩이나 에러 상태에서도 간트차트 구조는 표시
+  const hasError = error && !isLoading;
+  const isEmpty = !ganttTasks || ganttTasks.length === 0;
 
   return (
     <div className="bg-white dark:bg-dark-100 rounded-lg shadow p-6 transition-colors duration-200">
@@ -890,10 +883,30 @@ const GanttView: React.FC = () => {
         {/* 컨텐츠 영역 */}
         <div className="flex">
           {/* 왼쪽: 태스크 목록 */}
-          <div className="w-96 flex-shrink-0 border-r-2 border-gray-300 dark:border-dark-400 bg-gray-50 dark:bg-dark-100">
-            {ganttTasks.length === 0 ? (
+          <div className="w-96 flex-shrink-0 border-r-2 border-gray-300 dark:border-dark-400 bg-gray-50 dark:bg-dark-100 relative">
+            {isLoading ? (
               <div className="p-8 text-center text-gray-500 dark:text-dark-500">
-                태스크가 없습니다
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600 mr-2"></div>
+                  태스크 로딩 중...
+                </div>
+              </div>
+            ) : hasError ? (
+              <div className="p-8 text-center text-red-500 dark:text-red-400">
+                <div className="text-lg mb-2">⚠️</div>
+                <div className="text-sm">태스크 로드 실패</div>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-2 text-xs px-2 py-1 bg-red-100 dark:bg-red-900/20 rounded hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
+                >
+                  다시 시도
+                </button>
+              </div>
+            ) : isEmpty ? (
+              <div className="p-8 text-center text-gray-500 dark:text-dark-500">
+                <div className="text-2xl mb-2">📊</div>
+                <div className="text-lg font-medium mb-1">태스크가 없습니다</div>
+                <div className="text-sm">새로운 태스크를 추가해보세요!</div>
               </div>
             ) : (
               <div>
@@ -994,9 +1007,22 @@ const GanttView: React.FC = () => {
               className="relative bg-white dark:bg-dark-50"
               style={{ minWidth: `${chartMinWidth}px` }}
             >
-              {ganttTasks.length === 0 ? (
-                <div className="p-8 text-center text-gray-400 dark:text-dark-400">
-                  태스크를 추가해주세요
+              {isLoading ? (
+                <div className="p-8 text-center text-gray-400 dark:text-dark-400 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600 mr-2"></div>
+                  차트 로딩 중...
+                </div>
+              ) : hasError ? (
+                <div className="p-8 text-center text-red-400 dark:text-red-400">
+                  <div className="text-lg mb-2">⚠️</div>
+                  <div>차트 로드 실패</div>
+                </div>
+              ) : isEmpty ? (
+                <div className="p-8 text-center text-gray-400 dark:text-dark-400 min-h-[200px] flex items-center justify-center">
+                  <div>
+                    <div className="text-2xl mb-2">📈</div>
+                    <div>간트차트에 표시할 태스크가 없습니다</div>
+                  </div>
                 </div>
               ) : (
                 ganttTasks.map((task, index) => (

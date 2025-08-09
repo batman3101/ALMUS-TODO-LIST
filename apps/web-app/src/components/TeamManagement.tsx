@@ -9,7 +9,7 @@ import { useTeams } from '../hooks/useTeams';
 
 export const TeamManagement: React.FC = () => {
   const { user } = useAuth();
-  const { teams, userTeams, currentTeam, switchTeam, deleteTeam } = useTeams();
+  const { teams, currentTeam, switchTeam, deleteTeam, getUserRole } = useTeams();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
@@ -36,14 +36,8 @@ export const TeamManagement: React.FC = () => {
     }
   };
 
-  const getUserRole = (team: Team): TeamRole => {
-    if (team.ownerId === user?.id) return TeamRole.OWNER;
-    const membership = userTeams.find(ut => ut.teamId === team.id);
-    return membership?.role || TeamRole.VIEWER;
-  };
-
   const canEdit = (team: Team): boolean => {
-    const role = getUserRole(team);
+    const role = getUserRole(team.id);
     return role === TeamRole.OWNER || role === TeamRole.ADMIN;
   };
 
@@ -110,7 +104,7 @@ export const TeamManagement: React.FC = () => {
       {/* 팀 목록 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {teams.map(team => {
-          const userRole = getUserRole(team);
+          const userRole = getUserRole(team.id);
           const isCurrentTeam = currentTeam?.id === team.id;
 
           return (
@@ -161,7 +155,7 @@ export const TeamManagement: React.FC = () => {
                 <div className="flex items-center gap-2">
                   {!isCurrentTeam && (
                     <button
-                      onClick={() => switchTeam(team.id)}
+                      onClick={() => switchTeam(team)}
                       className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-lg transition-colors text-sm font-medium"
                     >
                       팀 전환

@@ -17,9 +17,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
     data: tasks,
     isLoading,
     error,
-  } = useTasks({
-    teamId: currentTeam?.id || '',
-  });
+  } = useTasks(
+    currentTeam?.id ? { team_id: currentTeam.id } : undefined,
+    {
+      enabled: !!currentTeam?.id,
+    }
+  );
   const { t } = useTranslation();
   const updateTask = useUpdateTask();
 
@@ -376,21 +379,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
     setCurrentDate(new Date());
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64 text-gray-900 dark:text-dark-900">
-        {t('common.loading')}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-red-500 dark:text-red-400">
-        {t('task.loadTasksFailed')}
-      </div>
-    );
-  }
+  // 에러나 로딩 상태에서도 캘린더 구조는 유지하고 메시지만 표시
+  const hasError = error && !isLoading;
+  const isEmpty = !tasks || tasks.length === 0;
 
   return (
     <div
@@ -459,6 +450,35 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
 
       {/* 달력 본문 */}
       <div className="relative" data-calendar-content>
+        {/* 상태 메시지 오버레이 */}
+        {isLoading && (
+          <div className="absolute inset-0 bg-white dark:bg-dark-100 bg-opacity-90 flex items-center justify-center z-20">
+            <div className="text-gray-900 dark:text-dark-900 flex items-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600 mr-2"></div>
+              {t('common.loading')}
+            </div>
+          </div>
+        )}
+        
+        {hasError && (
+          <div className="absolute inset-0 bg-red-50 dark:bg-red-900/20 bg-opacity-90 flex items-center justify-center z-20">
+            <div className="text-red-500 dark:text-red-400 text-center">
+              <div className="text-lg mb-2">⚠️</div>
+              <div>{t('task.loadTasksFailed')}</div>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && !hasError && isEmpty && (
+          <div className="absolute inset-0 bg-white dark:bg-dark-100 bg-opacity-80 flex items-center justify-center z-10">
+            <div className="text-gray-500 dark:text-dark-500 text-center">
+              <div className="text-2xl mb-2">📅</div>
+              <div className="text-lg font-medium mb-1">태스크가 없습니다</div>
+              <div className="text-sm">날짜를 클릭하여 새 태스크를 추가해보세요!</div>
+            </div>
+          </div>
+        )}
+
         {/* 주별로 그리기 */}
         {calendarData.weeks.map((week, weekIndex) => {
           const weekTaskBars =
@@ -487,7 +507,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
                       className={`p-2 border-r border-b border-gray-200 dark:border-dark-300 ${dayIndex === 6 ? 'border-r-0' : ''} ${
                         !isCurrentMonth ? 'bg-gray-50 dark:bg-dark-200' : ''
                       } cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-200 transition-colors`}
-                      onClick={() => handleDateClick(date)}
+                      onClick={() => !isLoading && !hasError && handleDateClick(date)}
                     >
                       {/* 날짜 */}
                       <div
@@ -511,61 +531,63 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
               </div>
 
               {/* 연속된 태스크 막대들 */}
-              <div className="absolute inset-0 pointer-events-none">
-                {weekTaskBars.map((taskBar, barIndex) => {
-                  const { task, startDay, endDay, row } = taskBar;
-                  const barTop = 40 + row * 28; // 날짜 영역 아래부터 시작
-                  const barLeft = (startDay / 7) * 100;
-                  const barWidth = ((endDay - startDay + 1) / 7) * 100;
+              {!isLoading && !hasError && (
+                <div className="absolute inset-0 pointer-events-none">
+                  {weekTaskBars.map((taskBar, barIndex) => {
+                    const { task, startDay, endDay, row } = taskBar;
+                    const barTop = 40 + row * 28; // 날짜 영역 아래부터 시작
+                    const barLeft = (startDay / 7) * 100;
+                    const barWidth = ((endDay - startDay + 1) / 7) * 100;
 
-                  return (
-                    <div
-                      key={`${task.id}-${barIndex}`}
-                      className={`absolute text-xs rounded ${getPriorityColor(task.priority)} pointer-events-auto group hover:shadow-md transition-shadow duration-200`}
-                      style={{
-                        top: `${barTop}px`,
-                        left: `${barLeft}%`,
-                        width: `${barWidth}%`,
-                        height: '24px',
-                        zIndex: 10,
-                      }}
-                      title={`${task.title} (${new Date(task.startDate!).toLocaleDateString()} - ${new Date(task.dueDate!).toLocaleDateString()})`}
-                    >
-                      {/* 왼쪽 리사이즈 핸들 */}
+                    return (
                       <div
-                        className="absolute left-0 top-0 w-2 h-full bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 cursor-w-resize transition-opacity duration-200 rounded-l"
-                        onMouseDown={e =>
-                          handleDragStart(e, task, 'resize-left')
-                        }
-                        onClick={e => e.stopPropagation()}
-                        title="시작일 조정"
-                      />
-
-                      {/* 태스크 내용 (중앙 클릭 영역) */}
-                      <div
-                        className="absolute inset-x-2 inset-y-0 flex items-center cursor-grab hover:cursor-grab active:cursor-grabbing"
-                        onMouseDown={e => handleDragStart(e, task, 'move')}
-                        onClick={e => {
-                          e.stopPropagation();
-                          handleTaskClick(task);
+                        key={`${task.id}-${barIndex}`}
+                        className={`absolute text-xs rounded ${getPriorityColor(task.priority)} pointer-events-auto group hover:shadow-md transition-shadow duration-200`}
+                        style={{
+                          top: `${barTop}px`,
+                          left: `${barLeft}%`,
+                          width: `${barWidth}%`,
+                          height: '24px',
+                          zIndex: 10,
                         }}
+                        title={`${task.title} (${new Date(task.startDate!).toLocaleDateString()} - ${new Date(task.dueDate!).toLocaleDateString()})`}
                       >
-                        <span className="truncate block">{task.title}</span>
-                      </div>
+                        {/* 왼쪽 리사이즈 핸들 */}
+                        <div
+                          className="absolute left-0 top-0 w-2 h-full bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 cursor-w-resize transition-opacity duration-200 rounded-l"
+                          onMouseDown={e =>
+                            handleDragStart(e, task, 'resize-left')
+                          }
+                          onClick={e => e.stopPropagation()}
+                          title="시작일 조정"
+                        />
 
-                      {/* 오른쪽 리사이즈 핸들 */}
-                      <div
-                        className="absolute right-0 top-0 w-2 h-full bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 cursor-e-resize transition-opacity duration-200 rounded-r"
-                        onMouseDown={e =>
-                          handleDragStart(e, task, 'resize-right')
-                        }
-                        onClick={e => e.stopPropagation()}
-                        title="종료일 조정"
-                      />
-                    </div>
-                  );
-                })}
-              </div>
+                        {/* 태스크 내용 (중앙 클릭 영역) */}
+                        <div
+                          className="absolute inset-x-2 inset-y-0 flex items-center cursor-grab hover:cursor-grab active:cursor-grabbing"
+                          onMouseDown={e => handleDragStart(e, task, 'move')}
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleTaskClick(task);
+                          }}
+                        >
+                          <span className="truncate block">{task.title}</span>
+                        </div>
+
+                        {/* 오른쪽 리사이즈 핸들 */}
+                        <div
+                          className="absolute right-0 top-0 w-2 h-full bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 cursor-e-resize transition-opacity duration-200 rounded-r"
+                          onMouseDown={e =>
+                            handleDragStart(e, task, 'resize-right')
+                          }
+                          onClick={e => e.stopPropagation()}
+                          title="종료일 조정"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}

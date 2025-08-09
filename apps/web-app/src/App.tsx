@@ -7,7 +7,6 @@ import { QueryProvider } from './providers/QueryProvider';
 
 import { NotificationProvider } from './contexts/NotificationContext';
 import { useAuth } from './hooks/useAuth';
-import { useTaskAuth } from './hooks/useTaskAuth';
 import { useTeams } from './hooks/useTeams';
 import TaskList from './components/TaskList';
 import CreateTaskForm from './components/CreateTaskForm';
@@ -140,7 +139,6 @@ function MainApp({
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
-  const { canCreateTask } = useTaskAuth();
   const {
     currentTeam,
     getUserRole,
@@ -210,7 +208,7 @@ function MainApp({
                 <button
                   onClick={async () => {
                     const input = document.getElementById('team-name-input') as HTMLInputElement;
-                    const teamName = input?.value?.trim() || `${user?.name || '사용자'}의 팀`;
+                    const teamName = input?.value?.trim() || `${authUser?.name || '사용자'}의 팀`;
                     
                     try {
                       await createTeam({
@@ -273,14 +271,6 @@ function MainApp({
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {canCreateTask() && (
-                <button
-                  onClick={() => setShowCreateTask(true)}
-                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-dark-100 transition-colors duration-200"
-                >
-                  태스크 추가
-                </button>
-              )}
               <ThemeToggle />
               <LanguageSelector />
             </div>

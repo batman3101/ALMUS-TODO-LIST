@@ -36,9 +36,12 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     data: tasks,
     isLoading,
     error,
-  } = useTasks({
-    teamId: currentTeam?.id || '',
-  });
+  } = useTasks(
+    currentTeam?.id ? { team_id: currentTeam.id } : undefined,
+    {
+      enabled: !!currentTeam?.id,
+    }
+  );
   const updateTaskMutation = useUpdateTask();
   const deleteTaskMutation = useDeleteTask();
   const { canUpdateTask, canDeleteTask } = useTaskAuth();
@@ -267,30 +270,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64 text-gray-900 dark:text-dark-900">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-        <span className="ml-2">로딩 중...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center p-8">
-        <div className="text-red-500 dark:text-red-400 mb-4">
-          태스크 목록을 불러오는데 실패했습니다.
-        </div>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
-        >
-          다시 시도
-        </button>
-      </div>
-    );
-  }
+  // 상태 변수 정의 - 로딩이나 에러 상태에서도 칸반 구조는 표시
+  const hasError = error && !isLoading;
+  const isEmpty = !tasks || tasks.length === 0;
 
   return (
     <>
@@ -396,7 +378,27 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                           } ${isOverLimit ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
                           style={{ scrollBehavior: 'smooth' }}
                         >
-                          {columnTasks.map((task: Task, index: number) => (
+                          {isLoading && (
+                            <div className="text-center text-gray-400 dark:text-dark-400 text-sm py-8 flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600 mr-2"></div>
+                              로딩 중...
+                            </div>
+                          )}
+                          
+                          {hasError && !isLoading && (
+                            <div className="text-center text-red-400 dark:text-red-400 text-sm py-8">
+                              <div className="mb-2">⚠️</div>
+                              <div>오류 발생</div>
+                            </div>
+                          )}
+
+                          {!isLoading && !hasError && columnTasks.length === 0 && !snapshot.isDraggingOver && (
+                            <div className="text-center text-gray-400 dark:text-dark-400 text-sm py-8">
+                              {isEmpty ? '태스크를 추가해보세요' : '태스크를 여기로 드래그하세요'}
+                            </div>
+                          )}
+
+                          {!isLoading && !hasError && columnTasks.length > 0 && columnTasks.map((task: Task, index: number) => (
                             <Draggable
                               key={task.id}
                               draggableId={task.id}
@@ -525,16 +527,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                 </div>
                               )}
                             </Draggable>
-                          ))}
+                            ))}
+                            
                           {provided.placeholder}
-
-                          {/* 빈 상태 메시지 */}
-                          {columnTasks.length === 0 &&
-                            !snapshot.isDraggingOver && (
-                              <div className="text-center text-gray-400 dark:text-dark-400 text-sm py-8">
-                                태스크를 여기로 드래그하세요
-                              </div>
-                            )}
                         </div>
                       )}
                     </Droppable>

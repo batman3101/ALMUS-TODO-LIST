@@ -140,9 +140,9 @@ class ApiService {
         .select(
           `
           *,
-          assignee:users!tasks_assignee_id_fkey(id, name, email),
+          assignee:users(id, name, email),
           project:projects(id, name),
-          team:teams(id, name)
+          team:teams!tasks_team_id_fkey(id, name)
         `
         )
         .order('created_at', { ascending: false });
@@ -186,10 +186,10 @@ class ApiService {
         .select(
           `
           *,
-          assignee:users!tasks_assignee_id_fkey(id, name, email),
+          assignee:users(id, name, email),
           created_by_user:users!tasks_created_by_fkey(id, name, email),
           project:projects(id, name),
-          team:teams(id, name),
+          team:teams!tasks_team_id_fkey(id, name),
           comments(
             id,
             content,
@@ -215,9 +215,9 @@ class ApiService {
         .select(
           `
           *,
-          assignee:users!tasks_assignee_id_fkey(id, name, email),
+          assignee:users(id, name, email),
           project:projects(id, name),
-          team:teams(id, name)
+          team:teams!tasks_team_id_fkey(id, name)
         `
         )
         .single();
@@ -239,9 +239,9 @@ class ApiService {
         .select(
           `
           *,
-          assignee:users!tasks_assignee_id_fkey(id, name, email),
+          assignee:users(id, name, email),
           project:projects(id, name),
-          team:teams(id, name)
+          team:teams!tasks_team_id_fkey(id, name)
         `
         )
         .single();
@@ -357,6 +357,43 @@ class ApiService {
       }
 
       return { data: team, error: null };
+    });
+  }
+
+  async updateTeam(
+    id: string,
+    updates: {
+      name?: string;
+      description?: string | null;
+      settings?: Record<string, unknown> | null;
+      isActive?: boolean;
+    }
+  ): Promise<ApiResponse<Team>> {
+    return this.executeQuery(async () => {
+      const payload: Record<string, unknown> = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (typeof updates.name !== 'undefined') payload.name = updates.name;
+      if (typeof updates.description !== 'undefined')
+        payload.description = updates.description;
+      if (typeof updates.settings !== 'undefined')
+        payload.settings = updates.settings;
+      if (typeof updates.isActive !== 'undefined')
+        payload.is_active = updates.isActive;
+
+      return supabase
+        .from('teams')
+        .update(payload)
+        .eq('id', id)
+        .select('*')
+        .single();
+    });
+  }
+
+  async deleteTeam(id: string): Promise<ApiResponse<void>> {
+    return this.executeQuery(async () => {
+      return supabase.from('teams').delete().eq('id', id);
     });
   }
 

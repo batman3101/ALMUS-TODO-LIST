@@ -22,13 +22,17 @@ const TaskList: React.FC = function TaskList() {
   const { theme } = useTheme();
   const toast = createToast(theme === 'dark');
   const { showConfirm } = useNotification();
+  // 현재 팀이 없으면 쿼리를 비활성화
   const {
     data: tasks = [],
     isLoading,
     error,
-  } = useTasks({
-    teamId: currentTeam?.id || '',
-  });
+  } = useTasks(
+    currentTeam?.id ? { team_id: currentTeam.id } : undefined,
+    {
+      enabled: !!currentTeam?.id, // currentTeam이 있을 때만 쿼리 실행
+    }
+  );
   const deleteTaskMutation = useDeleteTask();
   const { t } = useTranslation();
 
@@ -247,30 +251,6 @@ const TaskList: React.FC = function TaskList() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64 text-gray-900 dark:text-dark-900">
-        {t('common.loading')}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-red-500 dark:text-red-400">
-        {t('task.loadTasksFailed')}
-      </div>
-    );
-  }
-
-  if (!tasks || tasks.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500 dark:text-dark-500">{t('task.noTasks')}</p>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="bg-white dark:bg-dark-100 rounded-lg shadow transition-colors duration-200">
@@ -435,81 +415,109 @@ const TaskList: React.FC = function TaskList() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-dark-100 divide-y divide-gray-200 dark:divide-dark-300">
-              {paginatedTasks.map((task: Task) => (
-                <tr
-                  key={task.id}
-                  className="hover:bg-gray-50 dark:hover:bg-dark-200 transition-colors duration-200"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-dark-900">
-                      {task.title}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 dark:text-dark-900 max-w-xs truncate">
-                      {task.description}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 dark:text-dark-900">
-                      {task.assigneeId}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)}`}
-                    >
-                      {getStatusText(task.status)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`text-sm font-medium ${getPriorityColor(task.priority)}`}
-                    >
-                      {getPriorityText(task.priority)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-900">
-                    {task.startDate
-                      ? new Date(task.startDate).toLocaleDateString()
-                      : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-900">
-                    {task.dueDate
-                      ? new Date(task.dueDate).toLocaleDateString()
-                      : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleView(task)}
-                        className="inline-flex items-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded transition-all duration-200"
-                        title="상세보기"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      {canUpdateTask(task) && (
-                        <button
-                          onClick={() => handleEdit(task)}
-                          className="inline-flex items-center p-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-all duration-200"
-                          title="편집"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                      )}
-                      {canDeleteTask(task) && (
-                        <button
-                          onClick={() => handleDelete(task.id)}
-                          className="inline-flex items-center p-1.5 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-all duration-200"
-                          title="삭제"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-8 text-center">
+                    <div className="flex justify-center items-center text-gray-900 dark:text-dark-900">
+                      {t('common.loading')}
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-8 text-center">
+                    <div className="text-red-500 dark:text-red-400">
+                      {t('task.loadTasksFailed')}
+                    </div>
+                  </td>
+                </tr>
+              ) : paginatedTasks.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-8 text-center">
+                    <div className="text-gray-500 dark:text-dark-500">
+                      {!tasks || tasks.length === 0
+                        ? t('task.noTasks')
+                        : '필터링된 태스크가 없습니다.'}
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                paginatedTasks.map((task: Task) => (
+                  <tr
+                    key={task.id}
+                    className="hover:bg-gray-50 dark:hover:bg-dark-200 transition-colors duration-200"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-dark-900">
+                        {task.title}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900 dark:text-dark-900 max-w-xs truncate">
+                        {task.description}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 dark:text-dark-900">
+                        {task.assigneeId}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)}`}
+                      >
+                        {getStatusText(task.status)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`text-sm font-medium ${getPriorityColor(task.priority)}`}
+                      >
+                        {getPriorityText(task.priority)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-900">
+                      {task.startDate
+                        ? new Date(task.startDate).toLocaleDateString()
+                        : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-900">
+                      {task.dueDate
+                        ? new Date(task.dueDate).toLocaleDateString()
+                        : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleView(task)}
+                          className="inline-flex items-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded transition-all duration-200"
+                          title="상세보기"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        {canUpdateTask(task) && (
+                          <button
+                            onClick={() => handleEdit(task)}
+                            className="inline-flex items-center p-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-all duration-200"
+                            title="편집"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        )}
+                        {canDeleteTask(task) && (
+                          <button
+                            onClick={() => handleDelete(task.id)}
+                            className="inline-flex items-center p-1.5 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-all duration-200"
+                            title="삭제"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

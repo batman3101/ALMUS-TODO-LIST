@@ -55,15 +55,14 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
 }) => {
   const { user } = useAuth();
   const { canManageTeam } = useTeams();
-  const {
-    members,
-    invitations,
-    loading,
-    updateMemberRole,
-    removeMember,
-    cancelInvitation,
-    resendInvitation,
-  } = useTeamMembers(team.id);
+  const teamMembersQuery = useTeamMembers(team.id);
+  const members = teamMembersQuery?.members ?? [];
+  const invitations = teamMembersQuery?.invitations ?? [];
+  const loading = teamMembersQuery?.loading ?? false;
+  const updateMemberRole = teamMembersQuery?.updateMemberRole ?? (async () => {});
+  const removeMember = teamMembersQuery?.removeMember ?? (async () => {});
+  const cancelInvitation = teamMembersQuery?.cancelInvitation ?? (async () => {});
+  const resendInvitation = teamMembersQuery?.resendInvitation ?? (async () => {});
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -73,7 +72,7 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
   const canManage = canManageTeam(team.id);
   // const isOwner = team.ownerId === user?.id;
 
-  const filteredMembers = members.filter(member => {
+  const filteredMembers = (members || []).filter(member => {
     const matchesSearch =
       member.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.user?.email.toLowerCase().includes(searchTerm.toLowerCase());

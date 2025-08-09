@@ -40,16 +40,17 @@ export const QUERY_KEYS = {
 } as const;
 
 // =================== Tasks Hooks ===================
-export const useTasks = (filters?: TaskFilters) => {
+export const useTasks = (filters?: TaskFilters, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: QUERY_KEYS.tasks(filters),
-    queryFn: () => apiService.getTasks(filters),
+    queryFn: () => apiService.getTasks(filters || {}),
     select: response => {
       if (!response.success) {
         throw response.error;
       }
       return response.data;
     },
+    enabled: options?.enabled !== false && (filters?.team_id ? true : false), // team_id가 있을 때만 실행
     staleTime: 30 * 1000, // 30초
     gcTime: 5 * 60 * 1000, // 5분
   });
@@ -207,6 +208,64 @@ export const useCreateTeam = () => {
     },
     onError: (error: ApiError) => {
       showError(`팀 생성 실패: ${error.message}`);
+      throw error;
+    },
+  });
+};
+
+export const useUpdateTeam = () => {
+  const queryClient = useQueryClient();
+  const { success, error: showError } = useNotification();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: {
+        name?: string;
+        description?: string | null;
+        settings?: Record<string, unknown> | null;
+        isActive?: boolean;
+      };
+    }) => apiService.updateTeam(id, updates),
+    onSuccess: (response, { id }) => {
+      if (!response.success) {
+        throw response.error;
+      }
+
+      // 해당 팀과 팀 목록 무효화
+      queryClient.invalidateQueries({ queryKey: ['team', id] });
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
+
+      success('팀 정보가 업데이트되었습니다.');
+      return response.data;
+    },
+    onError: (error: ApiError) => {
+      showError(`팀 업데이트 실패: ${error.message}`);
+      throw error;
+    },
+  });
+};
+
+export const useDeleteTeam = () => {
+  const queryClient = useQueryClient();
+  const { success, error: showError } = useNotification();
+
+  return useMutation({
+    mutationFn: (id: string) => apiService.deleteTeam(id),
+    onSuccess: (response) => {
+      if (!response.success) {
+        throw response.error;
+      }
+
+      // 팀 목록 무효화
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      success('팀이 삭제되었습니다.');
+    },
+    onError: (error: ApiError) => {
+      showError(`팀 삭제 실패: ${error.message}`);
       throw error;
     },
   });
