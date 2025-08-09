@@ -26,10 +26,6 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
       language: 'ko',
       features: {
         ganttView: true,
-        timeTracking: false,
-        advancedReporting: false,
-        customFields: false,
-        integrations: false,
       },
     },
   });
@@ -83,10 +79,6 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
           language: 'ko',
           features: {
             ganttView: true,
-            timeTracking: false,
-            advancedReporting: false,
-            customFields: false,
-            integrations: false,
           },
         },
       });
@@ -325,26 +317,6 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
                   key: 'ganttView',
                   label: '간트 차트',
                   desc: '프로젝트 타임라인 관리',
-                },
-                {
-                  key: 'timeTracking',
-                  label: '시간 추적',
-                  desc: '작업 시간 기록',
-                },
-                {
-                  key: 'advancedReporting',
-                  label: '고급 보고서',
-                  desc: '상세한 분석 리포트',
-                },
-                {
-                  key: 'customFields',
-                  label: '커스텀 필드',
-                  desc: '사용자 정의 작업 필드',
-                },
-                {
-                  key: 'integrations',
-                  label: '외부 연동',
-                  desc: '슬랙, 지라 등 연동',
                 },
               ].map(feature => (
                 <div

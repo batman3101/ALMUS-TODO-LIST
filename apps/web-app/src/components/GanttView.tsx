@@ -114,6 +114,15 @@ const GanttView: React.FC = () => {
     return Math.max(task.progress || 0, timeBasedProgress);
   };
 
+  // 원본 태스크를 ID로 조회할 수 있는 맵 생성
+  const taskMap = useMemo(() => {
+    const map = new Map<string, Task>();
+    tasks?.forEach(task => {
+      map.set(task.id, task);
+    });
+    return map;
+  }, [tasks]);
+
   // Task를 GanttTask로 변환
   const ganttTasks = useMemo(() => {
     if (!tasks) return [];
@@ -1017,7 +1026,10 @@ const GanttView: React.FC = () => {
                           <div>
                             ⏰ 마감: {format(task.endDate, 'yyyy/MM/dd')}
                           </div>
-                          <div>👤 담당: {task.assigneeId}</div>
+                          <div>👤 담당: {(() => {
+                            const originalTask = taskMap.get(task.id);
+                            return originalTask?.assignee?.name || originalTask?.assignee?.email || '-';
+                          })()}</div>
                         </div>
                         <div className="flex items-center gap-2 text-xs flex-wrap">
                           <span

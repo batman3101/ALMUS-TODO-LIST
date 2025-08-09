@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Team, TeamMember, TeamRole } from '../types/team';
 import { useTeams } from '../hooks/useTeams';
-import { useTeamMembers } from '../hooks/useTeamMembers';
+import { useTeamMembers, useUpdateMemberRole, useRemoveMember } from '../hooks/useApiService';
 import { useAuth } from '../hooks/useAuth';
 import { InviteMemberModal } from './InviteMemberModal';
 
@@ -55,14 +55,17 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
 }) => {
   const { user } = useAuth();
   const { canManageTeam } = useTeams();
-  const teamMembersQuery = useTeamMembers(team.id);
-  const members = teamMembersQuery?.members ?? [];
-  const invitations = teamMembersQuery?.invitations ?? [];
-  const loading = teamMembersQuery?.loading ?? false;
-  const updateMemberRole = teamMembersQuery?.updateMemberRole ?? (async () => {});
-  const removeMember = teamMembersQuery?.removeMember ?? (async () => {});
-  const cancelInvitation = teamMembersQuery?.cancelInvitation ?? (async () => {});
-  const resendInvitation = teamMembersQuery?.resendInvitation ?? (async () => {});
+  
+  // React Query 훅 사용
+  const { 
+    data: members = [], 
+    isLoading: loading, 
+    error 
+  } = useTeamMembers(team.id);
+  
+  // Mutations
+  const updateMemberRoleMutation = useUpdateMemberRole();
+  const removeMemberMutation = useRemoveMember();
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,12 +73,17 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
   const [isChangingRole, setIsChangingRole] = useState(false);
 
   const canManage = canManageTeam(team.id);
-  // const isOwner = team.ownerId === user?.id;
+  
+  // 디버깅용 로그
+  console.log('ManageTeamMembersModal - team:', team);
+  console.log('ManageTeamMembersModal - members:', members);
+  console.log('ManageTeamMembersModal - loading:', loading);
+  console.log('ManageTeamMembersModal - error:', error);
 
   const filteredMembers = (members || []).filter(member => {
     const matchesSearch =
-      member.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.user?.email.toLowerCase().includes(searchTerm.toLowerCase());
+      member.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.user?.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'ALL' || member.role === roleFilter;
     return matchesSearch && matchesRole;
   });
@@ -85,9 +93,9 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
 
     setIsChangingRole(true);
     try {
-      await updateMemberRole(member.id, newRole);
+      await updateMemberRoleMutation.mutateAsync({ memberId: member.id, role: newRole });
     } catch (error) {
-      // Error handling should be done by the hook
+      console.error('Error updating member role:', error);
     } finally {
       setIsChangingRole(false);
     }
@@ -100,9 +108,9 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
     if (!window.confirm(confirmMessage)) return;
 
     try {
-      await removeMember(member.id);
+      await removeMemberMutation.mutateAsync(member.id);
     } catch (error) {
-      // Error handling should be done by the hook
+      console.error('Error removing member:', error);
     }
   };
 
@@ -205,11 +213,11 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
                   const canChangeRole =
                     canManage &&
                     member.role !== TeamRole.OWNER &&
-                    member.userId !== user?.id;
+                    member.user_id !== user?.id;
                   const canRemove =
                     canManage &&
                     member.role !== TeamRole.OWNER &&
-                    member.userId !== user?.id;
+                    member.user_id !== user?.id;
 
                   return (
                     <div
@@ -225,7 +233,7 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
                             <h3 className="font-medium text-gray-900 dark:text-gray-100">
                               {member.user?.name}
                             </h3>
-                            {member.userId === user?.id && (
+                            {member.user_id === user?.id && (
                               <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
                                 나
                               </span>
@@ -235,7 +243,7 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
                             {member.user?.email}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {member.joinedAt.toLocaleDateString('ko-KR')} 가입
+                            {new Date(member.joined_at).toLocaleDateString('ko-KR')} 가입
                           </p>
                         </div>
                       </div>
@@ -282,73 +290,6 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
               )}
             </div>
 
-            {/* 대기 중인 초대 */}
-            {invitations.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-                  대기 중인 초대 ({invitations.length}개)
-                </h3>
-                <div className="space-y-3">
-                  {invitations.map(invitation => (
-                    <div
-                      key={invitation.id}
-                      className="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                          <Mail
-                            size={16}
-                            className="text-gray-600 dark:text-gray-400"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                            {invitation.email}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {invitation.invitedByUser?.name}님이{' '}
-                            {invitation.createdAt.toLocaleDateString('ko-KR')}에
-                            초대
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {invitation.expiresAt.toLocaleDateString('ko-KR')}{' '}
-                            만료
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`inline-flex items-center gap-1 px-3 py-1 text-sm rounded-full ${roleColors[invitation.role]}`}
-                        >
-                          {getRoleIcon(invitation.role)}
-                          {roleLabels[invitation.role]}
-                        </span>
-
-                        {canManage && (
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => resendInvitation(invitation.id)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                              title="초대 재전송"
-                            >
-                              <Mail size={16} />
-                            </button>
-                            <button
-                              onClick={() => cancelInvitation(invitation.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                              title="초대 취소"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* 권한 설명 */}
             <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">

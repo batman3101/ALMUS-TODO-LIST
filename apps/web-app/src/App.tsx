@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Toaster } from 'react-hot-toast';
 import { StagewiseToolbar } from '@stagewise/toolbar-react';
@@ -147,6 +147,11 @@ function MainApp({
     teams,
     createTeam,
   } = useTeams();
+
+  // 현재 팀 정보 디버깅
+  useEffect(() => {
+    console.log('MainApp render - currentTeam:', currentTeam?.name, currentTeam?.id);
+  }, [currentTeam]);
 
   // Debug logs - remove in production
   // console.log('MainApp - user:', user);

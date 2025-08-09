@@ -6,10 +6,12 @@ import { CreateTeamModal } from './CreateTeamModal';
 import { EditTeamModal } from './EditTeamModal';
 import { ManageTeamMembersModal } from './ManageTeamMembersModal';
 import { useTeams } from '../hooks/useTeams';
+import { useNotification } from '../contexts/NotificationContext';
 
 export const TeamManagement: React.FC = () => {
   const { user } = useAuth();
   const { teams, currentTeam, switchTeam, deleteTeam, getUserRole } = useTeams();
+  const { showConfirm } = useNotification();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
@@ -26,12 +28,19 @@ export const TeamManagement: React.FC = () => {
   };
 
   const handleDeleteTeam = async (team: Team) => {
-    if (window.confirm(`정말로 "${team.name}" 팀을 삭제하시겠습니까?`)) {
+    const confirmed = await showConfirm({
+      title: '팀 삭제',
+      message: `정말로 "${team.name}" 팀을 삭제하시겠습니까?`,
+      confirmText: '삭제',
+      cancelText: '취소',
+      variant: 'danger',
+    });
+
+    if (confirmed) {
       try {
         await deleteTeam(team.id);
       } catch (error) {
-        // Error handling for team deletion
-        alert('팀 삭제에 실패했습니다.');
+        // Error handling for team deletion - 에러는 useTeams 훅에서 토스트로 처리됨
       }
     }
   };
@@ -177,8 +186,7 @@ export const TeamManagement: React.FC = () => {
                       >
                         <Users size={16} />
                       </button>
-                      {userRole === TeamRole.OWNER &&
-                        team.id !== currentTeam?.id && (
+                      {userRole === TeamRole.OWNER && (
                           <button
                             onClick={() => handleDeleteTeam(team)}
                             className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"

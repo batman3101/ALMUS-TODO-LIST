@@ -523,11 +523,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
         )}
 
         {!isLoading && !hasError && isEmpty && (
-          <div className="absolute inset-0 bg-white dark:bg-dark-100 bg-opacity-80 flex items-center justify-center z-10">
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-dark-100 shadow-lg rounded-lg px-4 py-2 z-10 pointer-events-none">
             <div className="text-gray-500 dark:text-dark-500 text-center">
-              <div className="text-2xl mb-2">📅</div>
-              <div className="text-lg font-medium mb-1">태스크가 없습니다</div>
-              <div className="text-sm">날짜를 클릭하여 새 태스크를 추가해보세요!</div>
+              <div className="text-sm">📅 태스크가 없습니다. 날짜를 클릭하여 새 태스크를 추가해보세요!</div>
             </div>
           </div>
         )}

@@ -551,7 +551,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                         )}
                                       </div>
                                       <span className="text-gray-400 dark:text-dark-400 truncate ml-2 max-w-20">
-                                        👤 {task.assignee?.name || '미지정'}
+                                        👤 {task.assignee?.name || task.assignee?.email || '미지정'}
                                       </span>
                                     </div>
                                     {/* 추가 메타데이터 - 팀과 생성일 */}

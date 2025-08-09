@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import {
@@ -96,23 +97,26 @@ export const useTeams = (): TeamsContextValue => {
   const switchTeam = useCallback(
     (team: Team) => {
       console.log('Switching team to:', team.name, team.id);
-      setCurrentTeamId(team.id);
+      console.log('Current team before switch:', currentTeamId);
+      
+      // flushSync를 사용해 즉시 상태 업데이트
+      flushSync(() => {
+        setCurrentTeamId(team.id);
+      });
+      
+      // localStorage 업데이트
       if (user) {
         localStorage.setItem(`currentTeam-${user.id}`, team.id);
       }
       
-      // 태스크 관련 쿼리 무효화하여 새로운 팀의 데이터를 가져오도록 함
+      // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.removeQueries({ 
-        queryKey: ['tasks'], 
-        predicate: (query) => {
-          const filters = query.queryKey[1] as any;
-          return filters && filters.team_id && filters.team_id !== team.id;
-        }
-      });
+      
+      console.log('Team switched to:', team.id);
+      console.log('Current team after switch:', team.id);
     },
-    [user, queryClient]
+    [user, queryClient, currentTeamId]
   );
 
   // 팀 생성
