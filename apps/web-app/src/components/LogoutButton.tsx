@@ -1,16 +1,18 @@
 import React from 'react';
 import { LogOut } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { useNotification } from '../contexts/NotificationContext';
 
 const LogoutButton: React.FC = () => {
+  const { t } = useTranslation();
   const { logout } = useAuth();
   const { success } = useNotification();
 
   const handleLogout = async () => {
     try {
       await logout();
-      success('로그아웃되었습니다.');
+      success(t('auth.logoutSuccess'));
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -27,10 +29,10 @@ const LogoutButton: React.FC = () => {
         rounded-lg transition-colors duration-200
         text-sm font-medium
       "
-      title="로그아웃"
+      title={t('auth.logout')}
     >
       <LogOut className="w-4 h-4" />
-      <span>로그아웃</span>
+      <span>{t('auth.logout')}</span>
     </button>
   );
 };

@@ -43,7 +43,10 @@
     "assigneeRequired": "Vui lòng nhập người phụ trách.",
     "loadTasksFailed": "Không thể tải danh sách nhiệm vụ.",
     "taskList": "Danh sách nhiệm vụ",
-    "noTasks": "Không có nhiệm vụ nào."
+    "noTasks": "Không có nhiệm vụ nào.",
+    "overdue": "Quá hạn",
+    "movedTask": "Đã di chuyển nhiệm vụ từ \"{{source}}\" sang \"{{destination}}\".",
+    "close": "Đóng"
   },
   "status": {
     "todo": "Cần làm",
@@ -74,5 +77,110 @@
     "korean": "Tiếng Hàn",
     "vietnamese": "Tiếng Việt",
     "switchLanguage": "Thay đổi ngôn ngữ"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "loginFailed": "Đăng nhập thất bại.",
+    "logoutSuccess": "Đã đăng xuất thành công."
+  },
+  "team": {
+    "title": "Nhóm",
+    "name": "Tên nhóm",
+    "description": "Mô tả nhóm",
+    "owner": "Chủ sở hữu",
+    "members": "Thành viên",
+    "createTeam": "Tạo nhóm",
+    "editTeam": "Chỉnh sửa nhóm",
+    "deleteTeam": "Xóa nhóm",
+    "manageMembers": "Quản lý thành viên",
+    "inviteMember": "Mời thành viên",
+    "removeMember": "Xóa thành viên",
+    "teamCreated": "Nhóm đã được tạo thành công.",
+    "teamUpdated": "Nhóm đã được cập nhật thành công.",
+    "teamDeleted": "Nhóm đã được xóa thành công.",
+    "memberInvited": "Thành viên đã được mời thành công.",
+    "memberRemoved": "Thành viên đã được xóa.",
+    "confirmDeleteTeam": "Bạn có chắc chắn muốn xóa nhóm này không?",
+    "confirmRemoveMember": "Bạn có chắc chắn muốn xóa thành viên này không?",
+    "nameRequired": "Vui lòng nhập tên nhóm.",
+    "selectTeam": "Vui lòng chọn nhóm",
+    "noTeams": "Không có nhóm nào."
+  },
+  "member": {
+    "role": "Vai trò",
+    "admin": "Quản trị viên", 
+    "member": "Thành viên",
+    "viewer": "Chỉ xem",
+    "joinedAt": "Ngày tham gia",
+    "lastActive": "Hoạt động cuối"
+  },
+  "file": {
+    "upload": "Tải lên tệp",
+    "download": "Tải xuống",
+    "delete": "Xóa tệp",
+    "fileName": "Tên tệp",
+    "fileSize": "Kích thước tệp",
+    "uploadDate": "Ngày tải lên",
+    "attachments": "Tệp đính kèm",
+    "selectFiles": "Chọn tệp",
+    "dropFiles": "Kéo thả tệp để tải lên",
+    "uploadSuccess": "Tệp đã được tải lên thành công.",
+    "uploadFailed": "Tải lên tệp thất bại.",
+    "maxFiles": "Có thể tải lên tối đa {{count}} tệp.",
+    "fileSizeLimit": "Kích thước tệp không được vượt quá {{size}}MB."
+  },
+  "notification": {
+    "settings": "Cài đặt thông báo",
+    "email": "Thông báo email",
+    "push": "Thông báo đẩy",
+    "taskAssigned": "Thông báo giao nhiệm vụ",
+    "taskDue": "Thông báo hạn",
+    "teamInvitation": "Thông báo mời nhóm"
+  },
+  "theme": {
+    "light": "Chế độ sáng",
+    "dark": "Chế độ tối",
+    "toggle": "Chuyển đổi chủ đề"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm...",
+    "noResults": "Không có kết quả tìm kiếm.",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "all": "Tất cả"
+  },
+  "pagination": {
+    "previous": "Trước",
+    "next": "Sau",
+    "page": "Trang",
+    "of": "của",
+    "showing": "Hiển thị {{start}}-{{end}} / {{total}}"
+  },
+  "calendar": {
+    "month": "Tháng",
+    "week": "Tuần", 
+    "day": "Ngày",
+    "today": "Hôm nay",
+    "previousMonth": "Tháng trước",
+    "nextMonth": "Tháng sau",
+    "adjustStartDate": "Điều chỉnh ngày bắt đầu",
+    "adjustEndDate": "Điều chỉnh ngày kết thúc"
+  },
+  "gantt": {
+    "timeline": "Dòng thời gian",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
+    "duration": "Thời gian",
+    "progress": "Tiến độ"
+  },
+  "export": {
+    "excel": "Xuất Excel",
+    "pdf": "Xuất PDF",
+    "csv": "Xuất CSV",
+    "success": "Xuất thành công.",
+    "failed": "Xuất thất bại."
   }
 }

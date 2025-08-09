@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { useNotification } from '../contexts/NotificationContext';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 
 const LoginForm: React.FC = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -83,7 +85,7 @@ const LoginForm: React.FC = () => {
                   focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 
                   sm:text-sm transition-colors duration-200
                 "
-                placeholder="이메일 주소"
+                placeholder={t('auth.email')}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
               />
@@ -108,7 +110,7 @@ const LoginForm: React.FC = () => {
                   focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 
                   sm:text-sm transition-colors duration-200
                 "
-                placeholder="비밀번호"
+                placeholder={t('auth.password')}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />

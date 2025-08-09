@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   DragDropContext,
   Droppable,
@@ -36,6 +37,7 @@ interface Column {
 }
 
 const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
+  const { t } = useTranslation();
   const { currentTeam } = useTeams();
   const { theme } = useTheme();
   const toast = createToast(theme === 'dark');
@@ -187,7 +189,10 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
         col => col.id === destinationColumn
       )?.title;
       toast.success(
-        `태스크를 "${sourceColumnTitle}"에서 "${destinationColumnTitle}"로 이동했습니다.`
+        t('task.movedTask', { 
+          source: sourceColumnTitle, 
+          destination: destinationColumnTitle 
+        })
       );
     } catch (error) {
       // Error is shown to user via toast
@@ -462,7 +467,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                       {isTaskOverdue(task) && (
                                         <div
                                           className="flex items-center text-red-500"
-                                          title="마감일 초과"
+                                          title={t('task.overdue')}
                                         >
                                           <svg
                                             className="w-3 h-3"
@@ -493,7 +498,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                               handleEdit(task);
                                             }}
                                             className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-400"
-                                            title="편집"
+                                            title={t('task.editTask')}
                                           >
                                             <Pencil className="w-3 h-3" />
                                           </button>
@@ -506,7 +511,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                               handleDelete(task.id);
                                             }}
                                             className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 cursor-pointer text-red-600 dark:text-red-400"
-                                            title="삭제"
+                                            title={t('task.deleteTask')}
                                           >
                                             <Trash2 className="w-3 h-3" />
                                           </button>
@@ -610,12 +615,12 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
           <div className="bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-300">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-                태스크 편집
+{t('task.editTask')}
               </h2>
               <button
                 onClick={handleEditClose}
                 className="text-gray-400 hover:text-gray-600 dark:text-dark-400 dark:hover:text-dark-600 transition-colors p-1 rounded-full hover:bg-gray-100 dark:hover:bg-dark-200"
-                aria-label="닫기"
+                aria-label={t('task.close')}
               >
                 <svg
                   className="w-6 h-6"

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Settings, Users, Edit2, Trash2, Crown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { Team, TeamRole } from '../types/team';
 import { CreateTeamModal } from './CreateTeamModal';
@@ -9,6 +10,7 @@ import { useTeams } from '../hooks/useTeams';
 import { useNotification } from '../contexts/NotificationContext';
 
 export const TeamManagement: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { teams, currentTeam, switchTeam, deleteTeam, getUserRole } = useTeams();
   const { showConfirm } = useNotification();
@@ -175,14 +177,14 @@ export const TeamManagement: React.FC = () => {
                       <button
                         onClick={() => handleEditTeam(team)}
                         className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                        title="팀 편집"
+                        title={t('team.editTeam')}
                       >
                         <Edit2 size={16} />
                       </button>
                       <button
                         onClick={() => handleManageMembers(team)}
                         className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
-                        title="멤버 관리"
+                        title={t('team.manageMembers')}
                       >
                         <Users size={16} />
                       </button>
@@ -190,7 +192,7 @@ export const TeamManagement: React.FC = () => {
                           <button
                             onClick={() => handleDeleteTeam(team)}
                             className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                            title="팀 삭제"
+                            title={t('team.deleteTeam')}
                           >
                             <Trash2 size={16} />
                           </button>

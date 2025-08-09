@@ -610,7 +610,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
                             handleDragStart(e, task, 'resize-left')
                           }
                           onClick={e => e.stopPropagation()}
-                          title="시작일 조정"
+                          title={t('calendar.adjustStartDate')}
                         />
 
                         {/* 태스크 내용 (중앙 클릭 영역) */}
@@ -632,7 +632,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
                             handleDragStart(e, task, 'resize-right')
                           }
                           onClick={e => e.stopPropagation()}
-                          title="종료일 조정"
+                          title={t('calendar.adjustEndDate')}
                         />
                       </div>
                     );

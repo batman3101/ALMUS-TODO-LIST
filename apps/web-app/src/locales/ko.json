@@ -43,7 +43,10 @@
     "assigneeRequired": "담당자를 입력해주세요.",
     "loadTasksFailed": "태스크 목록을 불러오는데 실패했습니다.",
     "taskList": "태스크 목록",
-    "noTasks": "등록된 태스크가 없습니다."
+    "noTasks": "등록된 태스크가 없습니다.",
+    "overdue": "마감일 초과",
+    "movedTask": "태스크를 \"{{source}}\"에서 \"{{destination}}\"로 이동했습니다.",
+    "close": "닫기"
   },
   "status": {
     "todo": "시작 전",
@@ -74,5 +77,110 @@
     "korean": "한국어",
     "vietnamese": "베트남어",
     "switchLanguage": "언어 변경"
+  },
+  "auth": {
+    "login": "로그인",
+    "logout": "로그아웃",
+    "email": "이메일",
+    "password": "비밀번호",
+    "loginFailed": "로그인에 실패했습니다.",
+    "logoutSuccess": "로그아웃되었습니다."
+  },
+  "team": {
+    "title": "팀",
+    "name": "팀 이름",
+    "description": "팀 설명",
+    "owner": "소유자",
+    "members": "멤버",
+    "createTeam": "팀 생성",
+    "editTeam": "팀 편집",
+    "deleteTeam": "팀 삭제",
+    "manageMembers": "멤버 관리",
+    "inviteMember": "멤버 초대",
+    "removeMember": "멤버 제거",
+    "teamCreated": "팀이 성공적으로 생성되었습니다.",
+    "teamUpdated": "팀이 성공적으로 수정되었습니다.",
+    "teamDeleted": "팀이 성공적으로 삭제되었습니다.",
+    "memberInvited": "멤버가 성공적으로 초대되었습니다.",
+    "memberRemoved": "멤버가 제거되었습니다.",
+    "confirmDeleteTeam": "정말로 이 팀을 삭제하시겠습니까?",
+    "confirmRemoveMember": "정말로 이 멤버를 제거하시겠습니까?",
+    "nameRequired": "팀 이름을 입력해주세요.",
+    "selectTeam": "팀을 선택해주세요",
+    "noTeams": "가입된 팀이 없습니다."
+  },
+  "member": {
+    "role": "역할",
+    "admin": "관리자", 
+    "member": "멤버",
+    "viewer": "읽기 전용",
+    "joinedAt": "가입일",
+    "lastActive": "최근 활동"
+  },
+  "file": {
+    "upload": "파일 업로드",
+    "download": "다운로드",
+    "delete": "파일 삭제",
+    "fileName": "파일명",
+    "fileSize": "파일 크기",
+    "uploadDate": "업로드일",
+    "attachments": "첨부파일",
+    "selectFiles": "파일 선택",
+    "dropFiles": "파일을 드래그하여 업로드하세요",
+    "uploadSuccess": "파일이 성공적으로 업로드되었습니다.",
+    "uploadFailed": "파일 업로드에 실패했습니다.",
+    "maxFiles": "최대 {{count}}개의 파일까지 업로드할 수 있습니다.",
+    "fileSizeLimit": "파일 크기는 {{size}}MB를 초과할 수 없습니다."
+  },
+  "notification": {
+    "settings": "알림 설정",
+    "email": "이메일 알림",
+    "push": "푸시 알림",
+    "taskAssigned": "태스크 할당 알림",
+    "taskDue": "마감일 알림",
+    "teamInvitation": "팀 초대 알림"
+  },
+  "theme": {
+    "light": "라이트 모드",
+    "dark": "다크 모드",
+    "toggle": "테마 전환"
+  },
+  "search": {
+    "placeholder": "검색...",
+    "noResults": "검색 결과가 없습니다.",
+    "filter": "필터",
+    "sort": "정렬",
+    "all": "전체"
+  },
+  "pagination": {
+    "previous": "이전",
+    "next": "다음",
+    "page": "페이지",
+    "of": "의",
+    "showing": "{{start}}-{{end}} / {{total}}개 표시"
+  },
+  "calendar": {
+    "month": "월",
+    "week": "주", 
+    "day": "일",
+    "today": "오늘",
+    "previousMonth": "이전 달",
+    "nextMonth": "다음 달",
+    "adjustStartDate": "시작일 조정",
+    "adjustEndDate": "종료일 조정"
+  },
+  "gantt": {
+    "timeline": "타임라인",
+    "startDate": "시작일",
+    "endDate": "종료일",
+    "duration": "기간",
+    "progress": "진행률"
+  },
+  "export": {
+    "excel": "Excel 내보내기",
+    "pdf": "PDF 내보내기",
+    "csv": "CSV 내보내기",
+    "success": "성공적으로 내보냈습니다.",
+    "failed": "내보내기에 실패했습니다."
   }
 }
