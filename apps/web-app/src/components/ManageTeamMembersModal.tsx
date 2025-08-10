@@ -7,7 +7,6 @@ import {
   Edit,
   Eye,
   Trash2,
-  Mail,
   Search,
   Filter,
   Download,
@@ -15,7 +14,12 @@ import {
 } from 'lucide-react';
 import { Team, TeamMember, TeamRole } from '../types/team';
 import { useTeams } from '../hooks/useTeams';
-import { useTeamMembers, useUpdateMemberRole, useRemoveMember, useInviteTeamMember } from '../hooks/useApiService';
+import {
+  useTeamMembers,
+  useUpdateMemberRole,
+  useRemoveMember,
+  useInviteTeamMember,
+} from '../hooks/useApiService';
 import { useAuth } from '../hooks/useAuth';
 import { InviteMemberModal } from './InviteMemberModal';
 
@@ -57,14 +61,14 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
 }) => {
   const { user } = useAuth();
   const { canManageTeam } = useTeams();
-  
+
   // React Query 훅 사용
-  const { 
-    data: members = [], 
-    isLoading: loading, 
-    error 
+  const {
+    data: members = [],
+    isLoading: loading,
+    error,
   } = useTeamMembers(team.id);
-  
+
   // Mutations
   const updateMemberRoleMutation = useUpdateMemberRole();
   const removeMemberMutation = useRemoveMember();
@@ -82,12 +86,14 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
   } | null>(null);
 
   const canManage = canManageTeam(team.id);
-  
-  // 디버깅용 로그
-  console.log('ManageTeamMembersModal - team:', team);
-  console.log('ManageTeamMembersModal - members:', members);
-  console.log('ManageTeamMembersModal - loading:', loading);
-  console.log('ManageTeamMembersModal - error:', error);
+
+  // 디버깅용 로그 - 개발 환경에서만
+  if (process.env.NODE_ENV === 'development') {
+    console.log('ManageTeamMembersModal - team:', team);
+    console.log('ManageTeamMembersModal - members:', members);
+    console.log('ManageTeamMembersModal - loading:', loading);
+    console.log('ManageTeamMembersModal - error:', error);
+  }
 
   const filteredMembers = (members || []).filter(member => {
     const matchesSearch =
@@ -102,7 +108,10 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
 
     setIsChangingRole(true);
     try {
-      await updateMemberRoleMutation.mutateAsync({ memberId: member.id, role: newRole });
+      await updateMemberRoleMutation.mutateAsync({
+        memberId: member.id,
+        role: newRole,
+      });
     } catch (error) {
       console.error('Error updating member role:', error);
     } finally {
@@ -136,10 +145,10 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
       .map(row => row.map(field => `"${field}"`).join(','))
       .join('\n');
 
-    const blob = new Blob(['\uFEFF' + csvString], { 
-      type: 'text/csv;charset=utf-8;' 
+    const blob = new Blob(['\uFEFF' + csvString], {
+      type: 'text/csv;charset=utf-8;',
     });
-    
+
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -151,7 +160,9 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
   };
 
   // CSV 파일 업로드 및 파싱 함수
-  const handleCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCSVUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -165,8 +176,11 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
 
     try {
       const text = await file.text();
-      const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-      
+      const lines = text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line);
+
       if (lines.length < 2) {
         alert('CSV 파일에 데이터가 없습니다.');
         setIsUploading(false);
@@ -178,22 +192,26 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
       const results = {
         success: 0,
         failed: 0,
-        errors: [] as string[]
+        errors: [] as string[],
       };
 
       // 각 행 처리
       for (let i = 0; i < dataLines.length; i++) {
         const line = dataLines[i];
-        const columns = line.split(',').map(col => col.replace(/^"|"$/g, '').trim());
-        
+        const columns = line
+          .split(',')
+          .map(col => col.replace(/^"|"$/g, '').trim());
+
         if (columns.length < 3) {
           results.failed++;
-          results.errors.push(`행 ${i + 2}: 필수 데이터가 부족합니다 (이메일, 이름, 역할)`);
+          results.errors.push(
+            `행 ${i + 2}: 필수 데이터가 부족합니다 (이메일, 이름, 역할)`
+          );
           continue;
         }
 
         const [email, name, role] = columns;
-        
+
         // 유효성 검사
         if (!email || !email.includes('@')) {
           results.failed++;
@@ -207,7 +225,9 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
           continue;
         }
 
-        if (!['OWNER', 'ADMIN', 'EDITOR', 'VIEWER'].includes(role.toUpperCase())) {
+        if (
+          !['OWNER', 'ADMIN', 'EDITOR', 'VIEWER'].includes(role.toUpperCase())
+        ) {
           results.failed++;
           results.errors.push(`행 ${i + 2}: 유효하지 않은 역할 (${role})`);
           continue;
@@ -218,12 +238,13 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
           await inviteMemberMutation.mutateAsync({
             teamId: team.id,
             email: email,
-            role: role.toUpperCase() as TeamRole
+            role: role.toUpperCase() as TeamRole,
           });
           results.success++;
         } catch (error) {
           results.failed++;
-          const errorMessage = error instanceof Error ? error.message : '초대 실패';
+          const errorMessage =
+            error instanceof Error ? error.message : '초대 실패';
           results.errors.push(`행 ${i + 2}: ${email} - ${errorMessage}`);
         }
       }
@@ -239,10 +260,6 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
     }
   };
 
-  const getRoleIcon = (role: TeamRole) => {
-    const Icon = roleIcons[role];
-    return <Icon size={16} />;
-  };
 
   if (!isOpen) return null;
 
@@ -336,7 +353,7 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
                     CSV 파일로 여러 멤버를 한 번에 초대
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
                     <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-lg cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
@@ -351,11 +368,16 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
                         {isUploading ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                            <span className="text-blue-700 dark:text-blue-300">업로드 중...</span>
+                            <span className="text-blue-700 dark:text-blue-300">
+                              업로드 중...
+                            </span>
                           </>
                         ) : (
                           <>
-                            <Upload size={16} className="text-blue-600 dark:text-blue-400" />
+                            <Upload
+                              size={16}
+                              className="text-blue-600 dark:text-blue-400"
+                            />
                             <span className="text-blue-700 dark:text-blue-300">
                               CSV 파일 선택 또는 드래그하여 업로드
                             </span>
@@ -365,7 +387,7 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
                     </label>
                   </div>
                 </div>
-                
+
                 <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
                   • CSV 형식: 이메일, 이름, 역할 (OWNER, ADMIN, EDITOR, VIEWER)
                   • 먼저 템플릿을 다운로드하여 형식을 확인하세요
@@ -385,7 +407,7 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
                         <X size={16} />
                       </button>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 mb-3">
                       <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded">
                         <div className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -478,7 +500,10 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
                             {member.user?.email}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(member.joined_at).toLocaleDateString('ko-KR')} 가입
+                            {new Date(member.joined_at).toLocaleDateString(
+                              'ko-KR'
+                            )}{' '}
+                            가입
                           </p>
                         </div>
                       </div>
@@ -524,7 +549,6 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
                 })
               )}
             </div>
-
 
             {/* 권한 설명 */}
             <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">

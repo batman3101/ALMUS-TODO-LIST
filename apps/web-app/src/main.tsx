@@ -18,7 +18,7 @@ const queryClient = new QueryClient({
         }
         return failureCount < 2; // Max 2 retries for other errors
       },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff with max 5s
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff with max 5s
       refetchOnWindowFocus: false,
       refetchOnReconnect: 'always', // Always refetch when reconnecting
       staleTime: 5 * 60 * 1000, // 5분간 데이터를 신선하게 유지

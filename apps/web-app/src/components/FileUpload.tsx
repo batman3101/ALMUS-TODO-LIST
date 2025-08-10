@@ -47,7 +47,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
     try {
       info(t('file.uploadStarted', { count: selectedFiles.length }));
-      
+
       if (multiple) {
         const results = await uploadMultipleFiles(
           selectedFiles,
@@ -62,18 +62,24 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         );
 
         if (successResults.length > 0) {
-          success(t('file.uploadSuccessMultiple', { count: successResults.length }));
+          success(
+            t('file.uploadSuccessMultiple', { count: successResults.length })
+          );
           onUploadComplete?.(successResults);
         }
         if (errorResults.length > 0) {
-          const errorMessage = t('file.uploadFailedMultiple', { count: errorResults.length });
+          const errorMessage = t('file.uploadFailedMultiple', {
+            count: errorResults.length,
+          });
           showError(errorMessage);
           onUploadError?.(errorMessage);
         }
       } else {
         const result = await uploadFile(selectedFiles[0], path, metadata);
         if (result.id) {
-          success(t('file.uploadSuccessSingle', { name: selectedFiles[0].name }));
+          success(
+            t('file.uploadSuccessSingle', { name: selectedFiles[0].name })
+          );
           onUploadComplete?.(result);
         } else {
           const errorMessage = t('file.uploadFailed');
@@ -89,7 +95,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       }
       resetUploadState();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : t('file.uploadError');
+      const errorMessage =
+        error instanceof Error ? error.message : t('file.uploadError');
       showError(errorMessage);
       onUploadError?.(errorMessage);
     }
@@ -108,14 +115,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     info,
   ]);
 
-  const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const files = Array.from(event.dataTransfer.files);
-    if (files.length > 0) {
-      info(t('file.filesSelectedDrag', { count: files.length }));
-    }
-    setSelectedFiles(files);
-  }, [info]);
+  const handleDrop = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      const files = Array.from(event.dataTransfer.files);
+      if (files.length > 0) {
+        info(t('file.filesSelectedDrag', { count: files.length }));
+      }
+      setSelectedFiles(files);
+    },
+    [info]
+  );
 
   const handleDragOver = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
@@ -174,9 +184,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             >
               {t('file.selectFiles')}
             </button>
-            <p className="mt-2 text-sm text-gray-500">
-              {t('file.dropFiles')}
-            </p>
+            <p className="mt-2 text-sm text-gray-500">{t('file.dropFiles')}</p>
           </div>
         </div>
       </div>
@@ -233,7 +241,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             />
           </div>
           <p className="text-sm text-gray-600 mt-1">
-            {t('file.uploadProgress', { percentage: Math.round(uploadState.progress.percentage) })}
+            {t('file.uploadProgress', {
+              percentage: Math.round(uploadState.progress.percentage),
+            })}
           </p>
         </div>
       )}

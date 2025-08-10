@@ -23,7 +23,13 @@ interface TeamsContextValue {
   error: Error | null;
   switchTeam: (team: Team) => void;
   createTeam: (data: any) => Promise<void>;
-  updateTeam: (data: { id: string; name?: string; description?: string | null; settings?: any; isActive?: boolean }) => Promise<void>;
+  updateTeam: (data: {
+    id: string;
+    name?: string;
+    description?: string | null;
+    settings?: any;
+    isActive?: boolean;
+  }) => Promise<void>;
   deleteTeam: (teamId: string) => Promise<void>;
   getUserRole: (teamId: string) => TeamRole | null;
   canManageTeam: (teamId: string) => boolean;
@@ -34,9 +40,9 @@ interface TeamsContextValue {
 export const useTeams = (): TeamsContextValue => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  
+
   const [currentTeamId, setCurrentTeamId] = useState<string | null>(null);
-  
+
   // 사용자가 로딩된 후 localStorage에서 저장된 팀 ID 복원 (새로고침 시 깜빡임 방지)
   useEffect(() => {
     if (user && !currentTeamId) {
@@ -84,11 +90,11 @@ export const useTeams = (): TeamsContextValue => {
   const currentTeam = useMemo(() => {
     const team = teams.find(t => t.id === currentTeamId);
     if (!team) return null;
-    
+
     // memberCount 추가 (team.members가 있으면 그 길이, 없으면 0)
     return {
       ...team,
-      memberCount: team.members?.length || 0
+      memberCount: team.members?.length || 0,
     };
   }, [teams, currentTeamId]);
 
@@ -101,32 +107,36 @@ export const useTeams = (): TeamsContextValue => {
   const userTeams = useMemo(() => {
     return teams.map(team => ({
       ...team,
-      memberCount: team.members?.length || 0
+      memberCount: team.members?.length || 0,
     }));
   }, [teams]);
 
   // 팀 전환
   const switchTeam = useCallback(
     (team: Team) => {
-      console.log('Switching team to:', team.name, team.id);
-      console.log('Current team before switch:', currentTeamId);
-      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Switching team to:', team.name, team.id);
+        console.log('Current team before switch:', currentTeamId);
+      }
+
       // flushSync를 사용해 즉시 상태 업데이트
       flushSync(() => {
         setCurrentTeamId(team.id);
       });
-      
+
       // localStorage 업데이트
       if (user) {
         localStorage.setItem(`currentTeam-${user.id}`, team.id);
       }
-      
+
       // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      
-      console.log('Team switched to:', team.id);
-      console.log('Current team after switch:', team.id);
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Team switched to:', team.id);
+        console.log('Current team after switch:', team.id);
+      }
     },
     [user, queryClient, currentTeamId]
   );
@@ -134,7 +144,9 @@ export const useTeams = (): TeamsContextValue => {
   // 팀 생성
   const createTeam = useCallback(
     async (data: any) => {
-      console.log('createTeam called with user:', user);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('createTeam called with user:', user);
+      }
       if (!user?.id) {
         console.error('User not authenticated:', user);
         throw new Error('사용자 인증이 필요합니다.');
@@ -154,7 +166,13 @@ export const useTeams = (): TeamsContextValue => {
   );
 
   const updateTeam = useCallback(
-    async (data: { id: string; name?: string; description?: string | null; settings?: any; isActive?: boolean }) => {
+    async (data: {
+      id: string;
+      name?: string;
+      description?: string | null;
+      settings?: any;
+      isActive?: boolean;
+    }) => {
       await updateTeamMutation.mutateAsync({
         id: data.id,
         updates: {

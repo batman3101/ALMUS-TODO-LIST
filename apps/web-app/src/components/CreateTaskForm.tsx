@@ -46,27 +46,32 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
   const createTaskMutation = useCreateTask();
   const updateTaskMutation = useUpdateTask();
   const { t } = useTranslation();
-  
+
   // 선택된 팀의 멤버 목록 가져오기
   const { data: teamMembers } = useTeamMembers(formData.team_id || '');
-  
-  // 디버깅을 위한 로그
+
+  // 디버깅을 위한 로그 - 개발 환경에서만
   useEffect(() => {
-    if (teamMembers) {
-      console.log('Team Members:', teamMembers);
-    }
-    if (user) {
-      console.log('Current User:', user);
-    }
-    if (teams) {
-      console.log('Teams:', teams);
-    }
-    if (formData.team_id) {
-      const selectedTeam = teams.find(t => t.id === formData.team_id);
-      console.log('Selected Team:', selectedTeam);
-      console.log('Owner ID:', selectedTeam?.owner_id);
-      console.log('Current User ID:', user?.uid || user?.id);
-      console.log('Is Current User Owner:', selectedTeam?.owner_id === (user?.uid || user?.id));
+    if (process.env.NODE_ENV === 'development') {
+      if (teamMembers) {
+        console.log('Team Members:', teamMembers);
+      }
+      if (user) {
+        console.log('Current User:', user);
+      }
+      if (teams) {
+        console.log('Teams:', teams);
+      }
+      if (formData.team_id) {
+        const selectedTeam = teams.find(t => t.id === formData.team_id);
+        console.log('Selected Team:', selectedTeam);
+        console.log('Owner ID:', selectedTeam?.owner_id);
+        console.log('Current User ID:', user?.uid || user?.id);
+        console.log(
+          'Is Current User Owner:',
+          selectedTeam?.owner_id === (user?.uid || user?.id)
+        );
+      }
     }
   }, [teamMembers, user, teams, formData.team_id]);
 
@@ -81,8 +86,14 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
         assignee_id: editingTask.assignee_id || editingTask.assigneeId,
         status: editingTask.status,
         priority: editingTask.priority,
-        start_date: editingTask.start_date || editingTask.startDate ? new Date(editingTask.start_date || editingTask.startDate) : undefined,
-        due_date: editingTask.due_date || editingTask.dueDate ? new Date(editingTask.due_date || editingTask.dueDate) : undefined,
+        start_date:
+          editingTask.start_date || editingTask.startDate
+            ? new Date(editingTask.start_date || editingTask.startDate)
+            : undefined,
+        due_date:
+          editingTask.due_date || editingTask.dueDate
+            ? new Date(editingTask.due_date || editingTask.dueDate)
+            : undefined,
         team_id: editingTask.team_id || editingTask.teamId,
         created_by: user?.uid || '',
         project_id: editingTask.project_id || editingTask.projectId,
@@ -130,14 +141,17 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
       if (isEditing && editingTask) {
         // 편집 모드 - 변경된 필드만 포함
         const updateData: any = {};
-        
+
         if (formData.title !== editingTask.title) {
           updateData.title = formData.title;
         }
         if (formData.description !== editingTask.description) {
           updateData.description = formData.description;
         }
-        if (formData.assignee_id !== (editingTask.assignee_id || editingTask.assigneeId)) {
+        if (
+          formData.assignee_id !==
+          (editingTask.assignee_id || editingTask.assigneeId)
+        ) {
           updateData.assignee_id = formData.assignee_id;
         }
         if (formData.status !== editingTask.status) {
@@ -146,25 +160,38 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
         if (formData.priority !== editingTask.priority) {
           updateData.priority = formData.priority;
         }
-        if (formData.project_id !== (editingTask.project_id || editingTask.projectId)) {
+        if (
+          formData.project_id !==
+          (editingTask.project_id || editingTask.projectId)
+        ) {
           updateData.project_id = formData.project_id || null;
         }
-        
-        const newStartDate = formData.start_date ? formData.start_date.toISOString() : null;
+
+        const newStartDate = formData.start_date
+          ? formData.start_date.toISOString()
+          : null;
         const oldStartDate = editingTask.start_date || editingTask.startDate;
-        const oldStartDateISO = oldStartDate ? new Date(oldStartDate).toISOString() : null;
+        const oldStartDateISO = oldStartDate
+          ? new Date(oldStartDate).toISOString()
+          : null;
         if (newStartDate !== oldStartDateISO) {
           updateData.start_date = newStartDate;
         }
-        
-        const newDueDate = formData.due_date ? formData.due_date.toISOString() : null;
+
+        const newDueDate = formData.due_date
+          ? formData.due_date.toISOString()
+          : null;
         const oldDueDate = editingTask.due_date || editingTask.dueDate;
-        const oldDueDateISO = oldDueDate ? new Date(oldDueDate).toISOString() : null;
+        const oldDueDateISO = oldDueDate
+          ? new Date(oldDueDate).toISOString()
+          : null;
         if (newDueDate !== oldDueDateISO) {
           updateData.due_date = newDueDate;
           updateData.end_date = newDueDate; // end_date도 함께 업데이트
         }
-        console.log('About to update task:', editingTask.id, updateData);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('About to update task:', editingTask.id, updateData);
+        }
         await updateTaskMutation.mutateAsync({
           id: editingTask.id,
           updates: updateData,
@@ -181,19 +208,23 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
           team_id: formData.team_id,
           created_by: formData.created_by,
           project_id: formData.project_id || null,
-          start_date: formData.start_date ? formData.start_date.toISOString() : null,
+          start_date: formData.start_date
+            ? formData.start_date.toISOString()
+            : null,
           due_date: formData.due_date ? formData.due_date.toISOString() : null,
         };
-        
-        console.log('태스크 생성 데이터:', createData);
-        console.log('Status:', formData.status, 'Priority:', formData.priority);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('태스크 생성 데이터:', createData);
+          console.log('Status:', formData.status, 'Priority:', formData.priority);
+        }
         const newTask = await createTaskMutation.mutateAsync(createData);
-        
+
         // 업로드된 파일들을 새로 생성된 태스크와 연결
         if (uploadedFiles.length > 0 && newTask) {
           try {
             // 파일 메타데이터 업데이트 - task_id 연결
-            const updatePromises = uploadedFiles.map(file => 
+            const updatePromises = uploadedFiles.map(file =>
               apiService.updateFileMetadata(file.id, { task_id: newTask.id })
             );
             await Promise.all(updatePromises);
@@ -230,13 +261,15 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
     field: keyof typeof formData,
     value: string | Date | undefined | TaskStatus | TaskPriority
   ) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleFileUploadComplete = (result: { metadata: FileMetadata } | FileMetadata[]) => {
+  const handleFileUploadComplete = (
+    result: { metadata: FileMetadata } | FileMetadata[]
+  ) => {
     if (Array.isArray(result)) {
       // 다중 파일 업로드 결과
       setUploadedFiles(prev => [...prev, ...result]);
@@ -383,58 +416,68 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
             className={inputClassName}
           >
             <option value="">{t('task.selectAssigneePlaceholder')}</option>
-            {!formData.team_id && <option disabled>{t('task.selectTeamFirst')}</option>}
-            {formData.team_id && (() => {
-              const selectedTeam = teams.find(t => t.id === formData.team_id);
-              const ownerId = selectedTeam?.owner_id;
-              const currentUserId = user?.uid || user?.id;
-              const isCurrentUserOwner = ownerId === currentUserId;
-              
-              // 모든 가능한 담당자 목록 생성
-              const assigneeOptions = [];
-              
-              // 1. 현재 사용자 추가
-              if (currentUserId) {
-                const currentUserLabel = isCurrentUserOwner 
-                  ? `${user?.displayName || user?.name || user?.email || t('common.me')} (${t('team.owner')})`
-                  : `${user?.displayName || user?.name || user?.email || t('common.me')} (${t('common.currentUser')})`;
-                
-                assigneeOptions.push(
-                  <option key={currentUserId} value={currentUserId}>
-                    {currentUserLabel}
-                  </option>
-                );
-              }
-              
-              // 2. 소유자 추가 (현재 사용자가 아닌 경우)
-              if (ownerId && !isCurrentUserOwner) {
-                // 팀 멤버에서 소유자 정보 찾기
-                const ownerMember = teamMembers?.find(member => member.user_id === ownerId);
-                const ownerName = ownerMember?.user?.name || ownerMember?.user?.email || '팀 소유자';
-                
-                assigneeOptions.push(
-                  <option key={ownerId} value={ownerId}>
-                    {ownerName} (팀 소유자)
-                  </option>
-                );
-              }
-              
-              // 3. 다른 팀 멤버들 추가
-              teamMembers?.forEach(member => {
-                const memberId = member.user_id;
-                
-                // 현재 사용자와 소유자는 이미 추가했으므로 제외
-                if (memberId !== currentUserId && memberId !== ownerId) {
+            {!formData.team_id && (
+              <option disabled>{t('task.selectTeamFirst')}</option>
+            )}
+            {formData.team_id &&
+              (() => {
+                const selectedTeam = teams.find(t => t.id === formData.team_id);
+                const ownerId = selectedTeam?.owner_id;
+                const currentUserId = user?.uid || user?.id;
+                const isCurrentUserOwner = ownerId === currentUserId;
+
+                // 모든 가능한 담당자 목록 생성
+                const assigneeOptions = [];
+
+                // 1. 현재 사용자 추가
+                if (currentUserId) {
+                  const currentUserLabel = isCurrentUserOwner
+                    ? `${user?.displayName || user?.name || user?.email || t('common.me')} (${t('team.owner')})`
+                    : `${user?.displayName || user?.name || user?.email || t('common.me')} (${t('common.currentUser')})`;
+
                   assigneeOptions.push(
-                    <option key={memberId} value={memberId}>
-                      {member.user?.name || member.user?.email || `사용자 ${memberId}`}
+                    <option key={currentUserId} value={currentUserId}>
+                      {currentUserLabel}
                     </option>
                   );
                 }
-              });
-              
-              return assigneeOptions;
-            })()}
+
+                // 2. 소유자 추가 (현재 사용자가 아닌 경우)
+                if (ownerId && !isCurrentUserOwner) {
+                  // 팀 멤버에서 소유자 정보 찾기
+                  const ownerMember = teamMembers?.find(
+                    member => member.user_id === ownerId
+                  );
+                  const ownerName =
+                    ownerMember?.user?.name ||
+                    ownerMember?.user?.email ||
+                    '팀 소유자';
+
+                  assigneeOptions.push(
+                    <option key={ownerId} value={ownerId}>
+                      {ownerName} (팀 소유자)
+                    </option>
+                  );
+                }
+
+                // 3. 다른 팀 멤버들 추가
+                teamMembers?.forEach(member => {
+                  const memberId = member.user_id;
+
+                  // 현재 사용자와 소유자는 이미 추가했으므로 제외
+                  if (memberId !== currentUserId && memberId !== ownerId) {
+                    assigneeOptions.push(
+                      <option key={memberId} value={memberId}>
+                        {member.user?.name ||
+                          member.user?.email ||
+                          `사용자 ${memberId}`}
+                      </option>
+                    );
+                  }
+                });
+
+                return assigneeOptions;
+              })()}
           </select>
         </div>
 

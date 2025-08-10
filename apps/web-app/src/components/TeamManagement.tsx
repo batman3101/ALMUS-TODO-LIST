@@ -11,8 +11,8 @@ import { useNotification } from '../contexts/NotificationContext';
 
 export const TeamManagement: React.FC = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
-  const { teams, currentTeam, switchTeam, deleteTeam, getUserRole } = useTeams();
+  const { teams, currentTeam, switchTeam, deleteTeam, getUserRole } =
+    useTeams();
   const { showConfirm } = useNotification();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -67,7 +67,8 @@ export const TeamManagement: React.FC = () => {
           onClick={() => setIsCreateModalOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          <Plus size={20} />{t('team.createTeam')}
+          <Plus size={20} />
+          {t('team.createTeam')}
         </button>
       </div>
 
@@ -84,7 +85,9 @@ export const TeamManagement: React.FC = () => {
                   {currentTeam.name}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400">
-                  {t('teamManagement.currentTeamOwner')} • {currentTeam.memberCount}{t('teamManagement.memberCount')}
+                  {t('teamManagement.currentTeamOwner')} •{' '}
+                  {currentTeam.memberCount}
+                  {t('teamManagement.memberCount')}
                 </p>
               </div>
             </div>
@@ -189,14 +192,14 @@ export const TeamManagement: React.FC = () => {
                         <Users size={16} />
                       </button>
                       {userRole === TeamRole.OWNER && (
-                          <button
-                            onClick={() => handleDeleteTeam(team)}
-                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                            title={t('team.deleteTeam')}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleDeleteTeam(team)}
+                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                          title={t('team.deleteTeam')}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -219,7 +222,8 @@ export const TeamManagement: React.FC = () => {
             onClick={() => setIsCreateModalOpen(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <Plus size={20} />{t('team.createTeam')}
+            <Plus size={20} />
+            {t('team.createTeam')}
           </button>
         </div>
       )}

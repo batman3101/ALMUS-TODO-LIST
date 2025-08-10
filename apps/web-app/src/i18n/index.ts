@@ -19,20 +19,20 @@ const detectInitialLanguage = () => {
   if (savedLanguage && ['ko', 'vi'].includes(savedLanguage)) {
     return savedLanguage;
   }
-  
+
   // 2. 브라우저 언어 감지
   const browserLanguage = navigator.language.toLowerCase();
-  
+
   // 베트남어 우선 감지 (vi, vi-VN, vi-vn 등)
   if (browserLanguage.startsWith('vi')) {
     return 'vi';
   }
-  
+
   // 한국어 감지 (ko, ko-KR, ko-kr 등)
   if (browserLanguage.startsWith('ko')) {
     return 'ko';
   }
-  
+
   // 3. 기본값은 베트남어 (주요 사용자층 고려)
   return 'vi';
 };
@@ -50,7 +50,7 @@ i18n.use(initReactI18next).init({
 });
 
 // 언어 변경시 localStorage에 저장
-i18n.on('languageChanged', (lng) => {
+i18n.on('languageChanged', lng => {
   localStorage.setItem('language', lng);
 });
 

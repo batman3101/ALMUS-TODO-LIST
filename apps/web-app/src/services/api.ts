@@ -210,19 +210,25 @@ class ApiService {
 
   async createTask(data: CreateTaskData): Promise<ApiResponse<Task>> {
     return this.executeQuery(async () => {
-      console.log('Creating task with data:', data);
-      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Creating task with data:', data);
+      }
+
       // 데이터 정리 - undefined나 null 값 제거
       const cleanData = Object.fromEntries(
         Object.entries({
           ...data,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        }).filter(([_, value]) => value !== undefined && value !== null && value !== '')
+        }).filter(
+          ([, value]) => value !== undefined && value !== null && value !== ''
+        )
       );
-      
-      console.log('Cleaned task data:', cleanData);
-      
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Cleaned task data:', cleanData);
+      }
+
       const result = await supabase
         .from('tasks')
         .insert(cleanData)
@@ -235,13 +241,15 @@ class ApiService {
         `
         )
         .single();
-        
-      console.log('Task creation result:', result);
-      
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Task creation result:', result);
+      }
+
       if (result.error) {
         console.error('Task creation error details:', result.error);
       }
-      
+
       return result;
     });
   }
@@ -251,20 +259,24 @@ class ApiService {
     data: UpdateTaskData
   ): Promise<ApiResponse<Task>> {
     return this.executeQuery(async () => {
-      console.log('Updating task with data:', { id, data });
-      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Updating task with data:', { id, data });
+      }
+
       // undefined 값 제거
       const cleanData = Object.fromEntries(
-        Object.entries(data).filter(([_, value]) => value !== undefined)
+        Object.entries(data).filter(([, value]) => value !== undefined)
       );
-      
+
       const payload = {
         ...cleanData,
         updated_at: new Date().toISOString(),
       };
-      
-      console.log('Final update payload:', payload);
-      
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Final update payload:', payload);
+      }
+
       const result = await supabase
         .from('tasks')
         .update(payload)
@@ -278,8 +290,10 @@ class ApiService {
         `
         )
         .single();
-        
-      console.log('Task update result:', result);
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Task update result:', result);
+      }
       return result;
     });
   }
@@ -293,11 +307,16 @@ class ApiService {
   // =================== Team API ===================
   async getTeams(userId: string): Promise<ApiResponse<Team[]>> {
     return this.executeQuery(async () => {
-      console.log('Getting teams for user:', userId);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Getting teams for user:', userId);
+      }
 
       // 먼저 사용자가 멤버인 팀 ID들을 가져옴
       const teamIds = await this.getUserTeamIds(userId);
-      console.log('User team IDs:', teamIds);
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('User team IDs:', teamIds);
+      }
 
       // 쿼리 빌드
       let query = supabase
@@ -330,15 +349,19 @@ class ApiService {
   }
 
   private async getUserTeamIds(userId: string): Promise<string> {
-    console.log('Getting team IDs for user:', userId);
-    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Getting team IDs for user:', userId);
+    }
+
     const { data, error } = await supabase
       .from('team_members')
       .select('team_id')
       .eq('user_id', userId)
       .eq('status', 'ACTIVE');
 
-    console.log('Team members query result:', { data, error, userId });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Team members query result:', { data, error, userId });
+    }
 
     if (error) {
       console.error('Error fetching team members:', error);
@@ -346,8 +369,11 @@ class ApiService {
     }
 
     const teamIds = data?.map(tm => tm.team_id).join(',') || '';
-    console.log('Extracted team IDs:', teamIds);
     
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Extracted team IDs:', teamIds);
+    }
+
     return teamIds;
   }
 
@@ -509,7 +535,7 @@ class ApiService {
             status: 'ACTIVE',
             joined_at: new Date().toISOString(),
             user: owner,
-            team: { id: team.id, name: team.name }
+            team: { id: team.id, name: team.name },
           };
           return { data: [ownerMember, ...(members || [])], error: null };
         }
@@ -525,10 +551,14 @@ class ApiService {
     role: TeamRole
   ): Promise<ApiResponse<any>> {
     return this.executeQuery(async () => {
-      console.log('Inviting member:', { teamId, email, role });
-      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Inviting member:', { teamId, email, role });
+      }
+
       // 현재 사용자 ID 가져오기 (초대한 사람)
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         throw new ApiError('인증되지 않은 사용자입니다.', 'UNAUTHORIZED');
       }
@@ -538,12 +568,15 @@ class ApiService {
         p_team_id: teamId,
         p_email: email,
         p_role: role,
-        p_invited_by: user.id
+        p_invited_by: user.id,
       });
 
       if (error) {
         console.error('Error inviting team member:', error);
-        throw new ApiError(error.message || '팀 멤버 초대에 실패했습니다.', 'INVITE_FAILED');
+        throw new ApiError(
+          error.message || '팀 멤버 초대에 실패했습니다.',
+          'INVITE_FAILED'
+        );
       }
 
       if (!data.success) {
@@ -711,7 +744,10 @@ class ApiService {
           .insert({
             id: user.id,
             email: user.email,
-            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            name:
+              user.user_metadata?.full_name ||
+              user.email?.split('@')[0] ||
+              'User',
             avatar: user.user_metadata?.avatar_url || null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -788,10 +824,7 @@ class ApiService {
 
   async deleteFileMetadata(fileId: string): Promise<ApiResponse<void>> {
     return this.executeQuery(async () => {
-      return supabase
-        .from('file_metadata')
-        .delete()
-        .eq('id', fileId);
+      return supabase.from('file_metadata').delete().eq('id', fileId);
     });
   }
 }

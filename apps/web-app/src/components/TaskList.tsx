@@ -15,7 +15,7 @@ import { useNotification } from '../contexts/NotificationContext';
 import CreateTaskForm from './CreateTaskForm';
 import TaskDetailModal from './TaskDetailModal';
 import { Pencil, Trash2, Plus, Eye, Download } from 'lucide-react';
-import * as XLSX from 'xlsx';
+// XLSX를 지연 로딩으로 변경
 
 const TaskList: React.FC = function TaskList() {
   const { currentTeam, teams, isLoading: isLoadingTeams } = useTeams();
@@ -28,12 +28,9 @@ const TaskList: React.FC = function TaskList() {
     data: tasks = [],
     isLoading,
     error,
-  } = useTasks(
-    currentTeam?.id ? { team_id: currentTeam.id } : undefined,
-    {
-      enabled: !!currentTeam?.id, // currentTeam이 있을 때만 쿼리 실행
-    }
-  );
+  } = useTasks(currentTeam?.id ? { team_id: currentTeam.id } : undefined, {
+    enabled: !!currentTeam?.id, // currentTeam이 있을 때만 쿼리 실행
+  });
   const deleteTaskMutation = useDeleteTask();
   const { t } = useTranslation();
 
@@ -253,20 +250,30 @@ const TaskList: React.FC = function TaskList() {
   };
 
   // Excel 내보내기 함수
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     try {
+      // XLSX 라이브러리를 동적으로 로드
+      const XLSX = await import('xlsx');
       // Excel용 데이터 변환
       const excelData = filteredAndSortedTasks.map((task, index) => ({
-        '순번': index + 1,
-        '제목': task.title,
-        '설명': task.description || '',
-        '담당자': task.assignee?.name || task.assignee?.email || '',
-        '상태': getStatusText(task.status),
-        '우선순위': getPriorityText(task.priority),
-        '시작일': task.start_date ? new Date(task.start_date).toLocaleDateString('ko-KR') : '',
-        '마감일': task.due_date ? new Date(task.due_date).toLocaleDateString('ko-KR') : '',
-        '생성일': task.created_at ? new Date(task.created_at).toLocaleDateString('ko-KR') : '',
-        '수정일': task.updated_at ? new Date(task.updated_at).toLocaleDateString('ko-KR') : ''
+        순번: index + 1,
+        제목: task.title,
+        설명: task.description || '',
+        담당자: task.assignee?.name || task.assignee?.email || '',
+        상태: getStatusText(task.status),
+        우선순위: getPriorityText(task.priority),
+        시작일: task.start_date
+          ? new Date(task.start_date).toLocaleDateString('ko-KR')
+          : '',
+        마감일: task.due_date
+          ? new Date(task.due_date).toLocaleDateString('ko-KR')
+          : '',
+        생성일: task.created_at
+          ? new Date(task.created_at).toLocaleDateString('ko-KR')
+          : '',
+        수정일: task.updated_at
+          ? new Date(task.updated_at).toLocaleDateString('ko-KR')
+          : '',
       }));
 
       // 워크북 생성
@@ -275,16 +282,16 @@ const TaskList: React.FC = function TaskList() {
 
       // 열 너비 자동 조정
       const colWidths = [
-        { wch: 5 },   // 순번
-        { wch: 20 },  // 제목
-        { wch: 30 },  // 설명
-        { wch: 15 },  // 담당자
-        { wch: 10 },  // 상태
-        { wch: 10 },  // 우선순위
-        { wch: 12 },  // 시작일
-        { wch: 12 },  // 마감일
-        { wch: 12 },  // 생성일
-        { wch: 12 }   // 수정일
+        { wch: 5 }, // 순번
+        { wch: 20 }, // 제목
+        { wch: 30 }, // 설명
+        { wch: 15 }, // 담당자
+        { wch: 10 }, // 상태
+        { wch: 10 }, // 우선순위
+        { wch: 12 }, // 시작일
+        { wch: 12 }, // 마감일
+        { wch: 12 }, // 생성일
+        { wch: 12 }, // 수정일
       ];
       ws['!cols'] = colWidths;
 
@@ -293,7 +300,10 @@ const TaskList: React.FC = function TaskList() {
 
       // 파일명 생성 (현재 날짜 포함)
       const now = new Date();
-      const dateStr = now.toLocaleDateString('ko-KR').replace(/\./g, '-').replace(/ /g, '');
+      const dateStr = now
+        .toLocaleDateString('ko-KR')
+        .replace(/\./g, '-')
+        .replace(/ /g, '');
       const teamName = currentTeam?.name || '전체';
       const fileName = `${teamName}_태스크목록_${dateStr}.xlsx`;
 
@@ -326,7 +336,8 @@ const TaskList: React.FC = function TaskList() {
           <div className="space-y-4">
             <div className="bg-gray-50 dark:bg-dark-200 rounded-lg p-4">
               <p className="text-sm text-gray-700 dark:text-dark-700">
-                우상단 메뉴에서 <strong>팀 관리</strong>를 통해 팀을 생성하거나 초대받은 팀에 가입할 수 있습니다.
+                우상단 메뉴에서 <strong>팀 관리</strong>를 통해 팀을 생성하거나
+                초대받은 팀에 가입할 수 있습니다.
               </p>
             </div>
           </div>
@@ -354,7 +365,7 @@ const TaskList: React.FC = function TaskList() {
                 className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
               >
                 <Plus className="w-4 h-4 mr-1" />
-{t('button.addTask')}
+                {t('button.addTask')}
               </button>
               <button
                 onClick={exportToExcel}
@@ -363,7 +374,7 @@ const TaskList: React.FC = function TaskList() {
                 title={t('export.excel')}
               >
                 <Download className="w-4 h-4 mr-1" />
-{t('export.excel')}
+                {t('export.excel')}
               </button>
             </div>
 
@@ -402,10 +413,18 @@ const TaskList: React.FC = function TaskList() {
                 className="px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-100 text-gray-900 dark:text-dark-900 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="all">{t('filter.allStatus')}</option>
-                <option value={TaskStatus.TODO}>{getStatusText(TaskStatus.TODO)}</option>
-                <option value={TaskStatus.IN_PROGRESS}>{getStatusText(TaskStatus.IN_PROGRESS)}</option>
-                <option value={TaskStatus.REVIEW}>{getStatusText(TaskStatus.REVIEW)}</option>
-                <option value={TaskStatus.DONE}>{getStatusText(TaskStatus.DONE)}</option>
+                <option value={TaskStatus.TODO}>
+                  {getStatusText(TaskStatus.TODO)}
+                </option>
+                <option value={TaskStatus.IN_PROGRESS}>
+                  {getStatusText(TaskStatus.IN_PROGRESS)}
+                </option>
+                <option value={TaskStatus.REVIEW}>
+                  {getStatusText(TaskStatus.REVIEW)}
+                </option>
+                <option value={TaskStatus.DONE}>
+                  {getStatusText(TaskStatus.DONE)}
+                </option>
               </select>
 
               {/* 우선순위 필터 */}
@@ -417,10 +436,18 @@ const TaskList: React.FC = function TaskList() {
                 className="px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-100 text-gray-900 dark:text-dark-900 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="all">{t('filter.allPriority')}</option>
-                <option value={TaskPriority.LOW}>{getPriorityText(TaskPriority.LOW)}</option>
-                <option value={TaskPriority.MEDIUM}>{getPriorityText(TaskPriority.MEDIUM)}</option>
-                <option value={TaskPriority.HIGH}>{getPriorityText(TaskPriority.HIGH)}</option>
-                <option value={TaskPriority.URGENT}>{getPriorityText(TaskPriority.URGENT)}</option>
+                <option value={TaskPriority.LOW}>
+                  {getPriorityText(TaskPriority.LOW)}
+                </option>
+                <option value={TaskPriority.MEDIUM}>
+                  {getPriorityText(TaskPriority.MEDIUM)}
+                </option>
+                <option value={TaskPriority.HIGH}>
+                  {getPriorityText(TaskPriority.HIGH)}
+                </option>
+                <option value={TaskPriority.URGENT}>
+                  {getPriorityText(TaskPriority.URGENT)}
+                </option>
               </select>
             </div>
           </div>
@@ -732,7 +759,7 @@ const TaskList: React.FC = function TaskList() {
           <div className="bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-300">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-{t('button.addTask')}
+                {t('button.addTask')}
               </h2>
               <button
                 onClick={handleCreateClose}

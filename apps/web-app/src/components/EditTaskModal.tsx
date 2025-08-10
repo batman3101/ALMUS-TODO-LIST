@@ -24,7 +24,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const { success, error: showError } = useNotification();
-  
+
   // 팀 멤버 목록 조회
   const { data: teamMembers = [], isLoading: loadingMembers } = useTeamMembers(
     task?.team_id || ''
@@ -75,10 +75,12 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
         assignee_id: formData.assigneeId,
         status: formData.status,
         priority: formData.priority,
-        start_date: formData.startDate ? formData.startDate.toISOString() : undefined,
+        start_date: formData.startDate
+          ? formData.startDate.toISOString()
+          : undefined,
         due_date: formData.dueDate ? formData.dueDate.toISOString() : undefined,
       };
-      
+
       await onSave(task.id, apiData);
       success('태스크가 성공적으로 수정되었습니다.');
       onClose();

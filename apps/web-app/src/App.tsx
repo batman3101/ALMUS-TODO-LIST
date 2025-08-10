@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Toaster } from 'react-hot-toast';
 import { StagewiseToolbar } from '@stagewise/toolbar-react';
@@ -8,12 +8,6 @@ import { QueryProvider } from './providers/QueryProvider';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { useAuth } from './hooks/useAuth';
 import { useTeams } from './hooks/useTeams';
-import TaskList from './components/TaskList';
-import CreateTaskForm from './components/CreateTaskForm';
-import CalendarView from './components/CalendarView';
-import KanbanView from './components/KanbanView';
-import GanttView from './components/GanttView';
-import { TeamManagement } from './components/TeamManagement';
 import ViewSelector, { ViewType } from './components/ViewSelector';
 import LanguageSelector from './components/LanguageSelector';
 import ThemeToggle from './components/ThemeToggle';
@@ -21,6 +15,22 @@ import LogoutButton from './components/LogoutButton';
 import { useTheme } from './contexts/ThemeContext';
 import LoginForm from './components/LoginForm';
 import { TeamRole } from './types/team';
+
+// Lazy load heavy components
+const TaskList = lazy(() => import('./components/TaskList'));
+const CreateTaskForm = lazy(() => import('./components/CreateTaskForm'));
+const CalendarView = lazy(() => import('./components/CalendarView'));
+const KanbanView = lazy(() => import('./components/KanbanView'));
+const GanttView = lazy(() => import('./components/GanttView'));
+const TeamManagement = lazy(() => import('./components/TeamManagement').then(module => ({ default: module.TeamManagement })));
+
+// Loading component
+const ViewLoading = () => (
+  <div className="flex items-center justify-center py-12">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <span className="ml-2 text-gray-600 dark:text-gray-300">로딩 중...</span>
+  </div>
+);
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('list');
@@ -35,19 +45,25 @@ function App() {
   // }, [user]);
 
   const renderCurrentView = () => {
-    switch (currentView) {
-      case 'calendar':
-        return <CalendarView />;
-      case 'kanban':
-        return <KanbanView />;
-      case 'gantt':
-        return <GanttView />;
-      case 'team':
-        return <TeamManagement />;
-      case 'list':
-      default:
-        return <TaskList />;
-    }
+    return (
+      <Suspense fallback={<ViewLoading />}>
+        {(() => {
+          switch (currentView) {
+            case 'calendar':
+              return <CalendarView />;
+            case 'kanban':
+              return <KanbanView />;
+            case 'gantt':
+              return <GanttView />;
+            case 'team':
+              return <TeamManagement />;
+            case 'list':
+            default:
+              return <TaskList />;
+          }
+        })()}
+      </Suspense>
+    );
   };
 
   if (loading) {
@@ -139,18 +155,21 @@ function MainApp({
 }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { user: authUser } = useAuth();
   const {
     currentTeam,
     getUserRole,
     isLoading: isLoadingTeams,
-    teams,
-    createTeam,
   } = useTeams();
 
-  // 현재 팀 정보 디버깅
+  // 현재 팀 정보 디버깅 - 개발 환경에서만
   useEffect(() => {
-    console.log('MainApp render - currentTeam:', currentTeam?.name, currentTeam?.id);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        'MainApp render - currentTeam:',
+        currentTeam?.name,
+        currentTeam?.id
+      );
+    }
   }, [currentTeam]);
 
   // Debug logs - remove in production
@@ -263,10 +282,12 @@ function MainApp({
                   </button>
                 </div>
                 <div className="p-6">
-                  <CreateTaskForm
-                    onTaskCreated={() => setShowCreateTask(false)}
-                    isModal={true}
-                  />
+                  <Suspense fallback={<ViewLoading />}>
+                    <CreateTaskForm
+                      onTaskCreated={() => setShowCreateTask(false)}
+                      isModal={true}
+                    />
+                  </Suspense>
                 </div>
               </div>
             </div>

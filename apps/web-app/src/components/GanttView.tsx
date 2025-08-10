@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import React, {
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+  useEffect,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { useTasks, useUpdateTask } from '../hooks/useTasks';
@@ -33,7 +39,7 @@ const GanttView: React.FC = () => {
       showDelayedTasks: true,
       dateRange: {
         start: new Date(now.getFullYear(), now.getMonth() - 1, 1), // 이전달 1일
-        end: new Date(now.getFullYear(), now.getMonth() + 2, 0),   // 다음달 마지막날
+        end: new Date(now.getFullYear(), now.getMonth() + 2, 0), // 다음달 마지막날
       },
     };
   });
@@ -42,12 +48,9 @@ const GanttView: React.FC = () => {
     data: tasks,
     isLoading,
     error,
-  } = useTasks(
-    currentTeam?.id ? { team_id: currentTeam.id } : undefined,
-    {
-      enabled: !!currentTeam?.id,
-    }
-  );
+  } = useTasks(currentTeam?.id ? { team_id: currentTeam.id } : undefined, {
+    enabled: !!currentTeam?.id,
+  });
 
   const updateTask = useUpdateTask();
 
@@ -133,7 +136,7 @@ const GanttView: React.FC = () => {
       const taskEndDate = task.end_date ? new Date(task.end_date) : null;
       const taskDueDate = task.due_date ? new Date(task.due_date) : null;
       const taskCreatedAt = new Date(task.created_at);
-      
+
       // 시작일 결정 로직
       let startDate: Date;
       if (taskStartDate) {
@@ -145,7 +148,7 @@ const GanttView: React.FC = () => {
         // 다른 상태라면 생성일을 시작일로 사용
         startDate = taskCreatedAt;
       }
-      
+
       // 종료일 결정 로직
       let endDate: Date;
       if (taskEndDate) {
@@ -154,12 +157,19 @@ const GanttView: React.FC = () => {
         endDate = taskDueDate;
       } else {
         // 기본값: 시작일로부터 7일 후 (또는 우선도에 따라 다르게)
-        const defaultDuration = task.priority === TaskPriority.URGENT ? 3 :
-                               task.priority === TaskPriority.HIGH ? 5 :
-                               task.priority === TaskPriority.MEDIUM ? 7 : 14;
-        endDate = new Date(startDate.getTime() + defaultDuration * 24 * 60 * 60 * 1000);
+        const defaultDuration =
+          task.priority === TaskPriority.URGENT
+            ? 3
+            : task.priority === TaskPriority.HIGH
+              ? 5
+              : task.priority === TaskPriority.MEDIUM
+                ? 7
+                : 14;
+        endDate = new Date(
+          startDate.getTime() + defaultDuration * 24 * 60 * 60 * 1000
+        );
       }
-      
+
       // 지연/연체 상태 확인
       const now = new Date();
       const isDelayed = taskDueDate
@@ -816,8 +826,12 @@ const GanttView: React.FC = () => {
               {format(task.endDate, 'MM/dd')}
             </div>
             <div>상태: {getStatusText(task.status)}</div>
-            <div>{t('gantt.progress')}: {task.progress}%</div>
-            {task.isDelayed && <div className="text-red-400">{t('gantt.delayed')}</div>}
+            <div>
+              {t('gantt.progress')}: {task.progress}%
+            </div>
+            {task.isDelayed && (
+              <div className="text-red-400">{t('gantt.delayed')}</div>
+            )}
           </div>
         </div>
 
@@ -903,8 +917,12 @@ const GanttView: React.FC = () => {
           >
             <option value={ZoomLevel.DAY}>{t('gantt.zoomLevels.day')}</option>
             <option value={ZoomLevel.WEEK}>{t('gantt.zoomLevels.week')}</option>
-            <option value={ZoomLevel.MONTH}>{t('gantt.zoomLevels.month')}</option>
-            <option value={ZoomLevel.QUARTER}>{t('gantt.zoomLevels.quarter')}</option>
+            <option value={ZoomLevel.MONTH}>
+              {t('gantt.zoomLevels.month')}
+            </option>
+            <option value={ZoomLevel.QUARTER}>
+              {t('gantt.zoomLevels.quarter')}
+            </option>
             <option value={ZoomLevel.YEAR}>{t('gantt.zoomLevels.year')}</option>
           </select>
 
@@ -986,7 +1004,9 @@ const GanttView: React.FC = () => {
             ) : isEmpty ? (
               <div className="p-8 text-center text-gray-500 dark:text-dark-500">
                 <div className="text-2xl mb-2">📊</div>
-                <div className="text-lg font-medium mb-1">{t('task.noTasks')}</div>
+                <div className="text-lg font-medium mb-1">
+                  {t('task.noTasks')}
+                </div>
                 <div className="text-sm">{t('gantt.addNewTask')}</div>
               </div>
             ) : (
@@ -1021,15 +1041,24 @@ const GanttView: React.FC = () => {
                         </div>
                         <div className="text-xs text-gray-600 dark:text-dark-600 mb-2 space-y-1">
                           <div>
-                            📅 {t('gantt.startLabel')}: {format(task.startDate, 'yyyy/MM/dd')}
+                            📅 {t('gantt.startLabel')}:{' '}
+                            {format(task.startDate, 'yyyy/MM/dd')}
                           </div>
                           <div>
-                            ⏰ {t('gantt.endLabel')}: {format(task.endDate, 'yyyy/MM/dd')}
+                            ⏰ {t('gantt.endLabel')}:{' '}
+                            {format(task.endDate, 'yyyy/MM/dd')}
                           </div>
-                          <div>👤 {t('gantt.assigneeLabel')}: {(() => {
-                            const originalTask = taskMap.get(task.id);
-                            return originalTask?.assignee?.name || originalTask?.assignee?.email || '-';
-                          })()}</div>
+                          <div>
+                            👤 {t('gantt.assigneeLabel')}:{' '}
+                            {(() => {
+                              const originalTask = taskMap.get(task.id);
+                              return (
+                                originalTask?.assignee?.name ||
+                                originalTask?.assignee?.email ||
+                                '-'
+                              );
+                            })()}
+                          </div>
                         </div>
                         <div className="flex items-center gap-2 text-xs flex-wrap">
                           <span

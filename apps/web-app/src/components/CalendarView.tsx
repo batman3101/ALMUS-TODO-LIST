@@ -17,12 +17,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
     data: tasks,
     isLoading,
     error,
-  } = useTasks(
-    currentTeam?.id ? { team_id: currentTeam.id } : undefined,
-    {
-      enabled: !!currentTeam?.id,
-    }
-  );
+  } = useTasks(currentTeam?.id ? { team_id: currentTeam.id } : undefined, {
+    enabled: !!currentTeam?.id,
+  });
   const { t } = useTranslation();
   const updateTask = useUpdateTask();
 
@@ -315,9 +312,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
       // 각 태스크에 대해 이번 주와 겹치는 부분 확인
       tasks.forEach((task: Task) => {
         if (task.start_date || task.due_date) {
-          const taskStartOriginal = task.start_date ? new Date(task.start_date) : new Date(task.due_date!);
-          const taskEndOriginal = task.due_date ? new Date(task.due_date) : new Date(task.start_date!);
-          
+          const taskStartOriginal = task.start_date
+            ? new Date(task.start_date)
+            : new Date(task.due_date!);
+          const taskEndOriginal = task.due_date
+            ? new Date(task.due_date)
+            : new Date(task.start_date!);
+
           // 시간대 문제를 해결하기 위해 로컬 날짜로 정규화
           const taskStart = normalizeToLocalDate(taskStartOriginal);
           const taskEnd = normalizeToLocalDate(taskEndOriginal);
@@ -325,7 +326,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
           const normalizedWeekEnd = normalizeToLocalDate(weekEndDate);
 
           // 디버깅: 8월 9일 태스크 확인
-          if (task.title.includes('test') || task.start_date?.includes('2025-08-09')) {
+          if (
+            task.title.includes('test') ||
+            task.start_date?.includes('2025-08-09')
+          ) {
             console.log('🔍 Debug Task (Normalized):', {
               title: task.title,
               start_date: task.start_date,
@@ -344,7 +348,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
           }
 
           // 태스크가 이번 주와 겹치는지 확인 (정규화된 날짜로 비교)
-          if (taskStart <= normalizedWeekEnd && taskEnd >= normalizedWeekStart) {
+          if (
+            taskStart <= normalizedWeekEnd &&
+            taskEnd >= normalizedWeekStart
+          ) {
             // 주 내에서의 시작/끝 요일 계산 (시간대 문제 해결)
             let startDay = 0;
             let endDay = 6;
@@ -360,7 +367,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
             }
 
             // 디버깅: 8월 9일 태스크 위치 계산
-            if (task.title.includes('test') || task.start_date?.includes('2025-08-09')) {
+            if (
+              task.title.includes('test') ||
+              task.start_date?.includes('2025-08-09')
+            ) {
               console.log('📍 Task Position:', {
                 title: task.title,
                 startDay,
@@ -378,7 +388,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
             });
           } else {
             // 디버깅: 8월 9일 태스크가 주와 겹치지 않는 경우
-            if (task.title.includes('test') || task.start_date?.includes('2025-08-09')) {
+            if (
+              task.title.includes('test') ||
+              task.start_date?.includes('2025-08-09')
+            ) {
               console.log('❌ Task NOT in week:', {
                 title: task.title,
                 taskStartLessEqual: taskStart <= normalizedWeekEnd,
@@ -444,14 +457,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-dark-300">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-{t('view.calendar')}
+            {t('view.calendar')}
           </h2>
           <button
             onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
           >
             <Plus className="w-4 h-4 mr-1" />
-{t('button.addTask')}
+            {t('button.addTask')}
           </button>
         </div>
 
@@ -464,7 +477,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
           </button>
 
           <div className="text-lg font-medium text-gray-900 dark:text-dark-900 min-w-[200px] text-center">
-            {currentDate.getFullYear()}{t('calendar.year')} {currentDate.getMonth() + 1}{t('calendar.month')}
+            {currentDate.getFullYear()}
+            {t('calendar.year')} {currentDate.getMonth() + 1}
+            {t('calendar.month')}
           </div>
 
           <button
@@ -478,14 +493,22 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
             onClick={goToToday}
             className="px-3 py-1 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
           >
-{t('button.today')}
+            {t('button.today')}
           </button>
         </div>
       </div>
 
       {/* 요일 헤더 */}
       <div className="grid grid-cols-7 border-b border-gray-200 dark:border-dark-300">
-        {[t('weekdays.sunday'), t('weekdays.monday'), t('weekdays.tuesday'), t('weekdays.wednesday'), t('weekdays.thursday'), t('weekdays.friday'), t('weekdays.saturday')].map((day, index) => (
+        {[
+          t('weekdays.sunday'),
+          t('weekdays.monday'),
+          t('weekdays.tuesday'),
+          t('weekdays.wednesday'),
+          t('weekdays.thursday'),
+          t('weekdays.friday'),
+          t('weekdays.saturday'),
+        ].map((day, index) => (
           <div
             key={day}
             className={`p-3 text-center text-sm font-medium ${
@@ -512,7 +535,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
             </div>
           </div>
         )}
-        
+
         {hasError && (
           <div className="absolute inset-0 bg-red-50 dark:bg-red-900/20 bg-opacity-90 flex items-center justify-center z-20">
             <div className="text-red-500 dark:text-red-400 text-center">
@@ -525,7 +548,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
         {!isLoading && !hasError && isEmpty && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-dark-100 shadow-lg rounded-lg px-4 py-2 z-10 pointer-events-none">
             <div className="text-gray-500 dark:text-dark-500 text-center">
-              <div className="text-sm">📅 {t('task.noTasks')} {t('calendar.clickDateToAdd')}</div>
+              <div className="text-sm">
+                📅 {t('task.noTasks')} {t('calendar.clickDateToAdd')}
+              </div>
             </div>
           </div>
         )}
@@ -558,7 +583,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
                       className={`p-2 border-r border-b border-gray-200 dark:border-dark-300 ${dayIndex === 6 ? 'border-r-0' : ''} ${
                         !isCurrentMonth ? 'bg-gray-50 dark:bg-dark-200' : ''
                       } cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-200 transition-colors`}
-                      onClick={() => !isLoading && !hasError && handleDateClick(date)}
+                      onClick={() =>
+                        !isLoading && !hasError && handleDateClick(date)
+                      }
                     >
                       {/* 날짜 */}
                       <div
@@ -647,22 +674,32 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
       {/* 범례 */}
       <div className="p-4 border-t border-gray-200 dark:border-dark-300">
         <div className="flex items-center gap-4 text-sm">
-          <span className="text-gray-600 dark:text-dark-600">{t('task.priority')}:</span>
+          <span className="text-gray-600 dark:text-dark-600">
+            {t('task.priority')}:
+          </span>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <span className="text-gray-600 dark:text-dark-600">{t('priority.low')}</span>
+            <span className="text-gray-600 dark:text-dark-600">
+              {t('priority.low')}
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 bg-blue-200 dark:bg-blue-800 rounded"></div>
-            <span className="text-gray-600 dark:text-dark-600">{t('priority.medium')}</span>
+            <span className="text-gray-600 dark:text-dark-600">
+              {t('priority.medium')}
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 bg-orange-200 dark:bg-orange-800 rounded"></div>
-            <span className="text-gray-600 dark:text-dark-600">{t('priority.high')}</span>
+            <span className="text-gray-600 dark:text-dark-600">
+              {t('priority.high')}
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 bg-red-200 dark:bg-red-800 rounded"></div>
-            <span className="text-gray-600 dark:text-dark-600">{t('priority.urgent')}</span>
+            <span className="text-gray-600 dark:text-dark-600">
+              {t('priority.urgent')}
+            </span>
           </div>
         </div>
       </div>

@@ -40,7 +40,10 @@ export const QUERY_KEYS = {
 } as const;
 
 // =================== Tasks Hooks ===================
-export const useTasks = (filters?: TaskFilters, options?: { enabled?: boolean }) => {
+export const useTasks = (
+  filters?: TaskFilters,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: QUERY_KEYS.tasks(filters),
     queryFn: () => apiService.getTasks(filters || {}),
@@ -255,7 +258,7 @@ export const useDeleteTeam = () => {
 
   return useMutation({
     mutationFn: (id: string) => apiService.deleteTeam(id),
-    onSuccess: (response) => {
+    onSuccess: response => {
       if (!response.success) {
         throw response.error;
       }

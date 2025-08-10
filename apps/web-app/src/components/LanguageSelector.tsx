@@ -14,7 +14,7 @@ const LanguageSelector: React.FC = () => {
       <span className="hidden sm:inline text-sm text-gray-600 dark:text-dark-600">
         {t('app.language')}:
       </span>
-      
+
       {/* 모바일 최적화 버튼 그룹 */}
       <div className="flex bg-gray-100 dark:bg-dark-200 rounded-lg p-1 transition-colors duration-200">
         {/* 베트남어 버튼 (주요 사용자이므로 먼저 배치) */}
@@ -30,7 +30,7 @@ const LanguageSelector: React.FC = () => {
           <span className="sm:hidden">🇻🇳</span>
           <span className="hidden sm:inline">{t('language.vietnamese')}</span>
         </button>
-        
+
         {/* 한국어 버튼 */}
         <button
           onClick={() => handleLanguageChange('ko')}

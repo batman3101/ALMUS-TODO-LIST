@@ -16,7 +16,9 @@ interface ErrorBoundaryProps {
 }
 
 // Loading spinner component
-const LoadingSpinner: React.FC<{ message?: string }> = ({ message = '로딩 중...' }) => (
+const LoadingSpinner: React.FC<{ message?: string }> = ({
+  message = '로딩 중...',
+}) => (
   <div className="flex items-center justify-center min-h-screen bg-background">
     <div className="text-center space-y-4">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -34,7 +36,9 @@ const ErrorFallback: React.FC<{
   <div className="flex items-center justify-center min-h-screen bg-background">
     <div className="text-center space-y-6 max-w-md mx-auto p-6">
       <div className="text-6xl">⚠️</div>
-      <h2 className="text-2xl font-semibold text-foreground">문제가 발생했습니다</h2>
+      <h2 className="text-2xl font-semibold text-foreground">
+        문제가 발생했습니다
+      </h2>
       <p className="text-muted-foreground">
         {error.message || '알 수 없는 오류가 발생했습니다.'}
       </p>
@@ -76,7 +80,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error('Error boundary caught an error:', error, errorInfo);
-    
+
     this.setState({
       errorInfo,
     });
@@ -101,7 +105,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   retry = () => {
     const maxRetries = this.props.maxRetries ?? 3;
-    
+
     if (this.state.retryCount >= maxRetries) {
       logger.warn('Max retry attempts reached');
       return;
@@ -181,7 +185,7 @@ export const withLoadingBoundary = <P extends object>(
     maxRetries?: number;
   }
 ) => {
-  const WrappedComponent: React.FC<P> = (props) => (
+  const WrappedComponent: React.FC<P> = props => (
     <LoadingBoundary
       loadingMessage={options?.loadingMessage}
       maxRetries={options?.maxRetries}

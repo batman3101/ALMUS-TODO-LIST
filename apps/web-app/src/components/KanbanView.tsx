@@ -45,12 +45,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     data: tasks,
     isLoading,
     error,
-  } = useTasks(
-    currentTeam?.id ? { team_id: currentTeam.id } : undefined,
-    {
-      enabled: !!currentTeam?.id,
-    }
-  );
+  } = useTasks(currentTeam?.id ? { team_id: currentTeam.id } : undefined, {
+    enabled: !!currentTeam?.id,
+  });
   const updateTaskMutation = useUpdateTask();
   const deleteTaskMutation = useDeleteTask();
   const { canUpdateTask, canDeleteTask } = useTaskAuth();
@@ -64,7 +61,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
   });
 
   // 편집 모달 상태
-  const [editingTask, setEditingTask] = useState<TaskWithRelations | null>(null);
+  const [editingTask, setEditingTask] = useState<TaskWithRelations | null>(
+    null
+  );
   const [showEditModal, setShowEditModal] = useState(false);
 
   // 태스크 추가 모달 상태
@@ -107,7 +106,10 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     if (!tasks) return {} as Record<TaskStatus, TaskWithRelations[]>;
 
     const grouped = tasks.reduce(
-      (acc: Record<TaskStatus, TaskWithRelations[]>, task: TaskWithRelations) => {
+      (
+        acc: Record<TaskStatus, TaskWithRelations[]>,
+        task: TaskWithRelations
+      ) => {
         const status = task.status;
         if (!acc[status]) {
           acc[status] = [];
@@ -189,9 +191,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
         col => col.id === destinationColumn
       )?.title;
       toast.success(
-        t('task.movedTask', { 
-          source: sourceColumnTitle, 
-          destination: destinationColumnTitle 
+        t('task.movedTask', {
+          source: sourceColumnTitle,
+          destination: destinationColumnTitle,
         })
       );
     } catch (error) {
@@ -207,13 +209,6 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     }));
   };
 
-  const handleTaskClick = (task: TaskWithRelations, event: React.MouseEvent) => {
-    // 드래그 중이거나 드래그 핸들 클릭이 아닌 경우에만 편집 모달 열기
-    event.stopPropagation();
-
-    setEditingTask(task);
-    setShowEditModal(true);
-  };
 
   const handleEdit = (task: TaskWithRelations) => {
     setEditingTask(task);
@@ -300,7 +295,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
   // 팀 로딩이 완료되었고 실제로 팀이 없을 때만 안내 표시
   if (!isLoadingTeams && !currentTeam && teams.length === 0) {
     return (
-      <div className={`bg-white dark:bg-dark-100 rounded-lg shadow transition-colors duration-200 p-8 ${className}`}>
+      <div
+        className={`bg-white dark:bg-dark-100 rounded-lg shadow transition-colors duration-200 p-8 ${className}`}
+      >
         <div className="text-center">
           <div className="mb-6">
             <div className="mx-auto w-16 h-16 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center">
@@ -402,7 +399,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                         <button
                           onClick={() => handleAddTask(column.id)}
                           className="p-1 text-gray-600 dark:text-dark-600 hover:text-gray-900 dark:hover:text-dark-900 hover:bg-gray-200 dark:hover:bg-dark-300 rounded transition-colors"
-                          title={t('kanban.addTaskToColumn', { column: column.title })}
+                          title={t('kanban.addTaskToColumn', {
+                            column: column.title,
+                          })}
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -437,7 +436,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                               {t('common.loading')}
                             </div>
                           )}
-                          
+
                           {hasError && !isLoading && (
                             <div className="text-center text-red-400 dark:text-red-400 text-sm py-8">
                               <div className="mb-2">⚠️</div>
@@ -445,161 +444,185 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                             </div>
                           )}
 
-                          {!isLoading && !hasError && columnTasks.length === 0 && !snapshot.isDraggingOver && (
-                            <div className="text-center text-gray-400 dark:text-dark-400 text-sm py-8">
-                              {isEmpty ? t('kanban.addTasksHere') : t('button.dragTaskHere')}
-                            </div>
-                          )}
+                          {!isLoading &&
+                            !hasError &&
+                            columnTasks.length === 0 &&
+                            !snapshot.isDraggingOver && (
+                              <div className="text-center text-gray-400 dark:text-dark-400 text-sm py-8">
+                                {isEmpty
+                                  ? t('kanban.addTasksHere')
+                                  : t('button.dragTaskHere')}
+                              </div>
+                            )}
 
-                          {!isLoading && !hasError && columnTasks.length > 0 && columnTasks.map((task: TaskWithRelations, index: number) => (
-                            <Draggable
-                              key={task.id}
-                              draggableId={task.id}
-                              index={index}
-                            >
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  className={`bg-white dark:bg-dark-100 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-dark-300 mb-3 transition-all duration-200 group ${
-                                    snapshot.isDragging
-                                      ? 'shadow-lg transform rotate-2 cursor-grabbing z-10'
-                                      : 'hover:shadow-md hover:border-primary-300 cursor-grab'
-                                  } ${
-                                    isTaskOverdue(task) && !snapshot.isDragging
-                                      ? 'border-red-300 bg-red-50 dark:bg-red-900/10'
-                                      : ''
-                                  }`}
+                          {!isLoading &&
+                            !hasError &&
+                            columnTasks.length > 0 &&
+                            columnTasks.map(
+                              (task: TaskWithRelations, index: number) => (
+                                <Draggable
+                                  key={task.id}
+                                  draggableId={task.id}
+                                  index={index}
                                 >
-                                  {/* 헤더 영역 */}
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2">
-                                      {/* 드래그 표시 아이콘 */}
-                                      <div className="w-4 h-4 flex items-center justify-center text-gray-400">
-                                        <svg
-                                          className="w-3 h-3"
-                                          fill="currentColor"
-                                          viewBox="0 0 6 10"
-                                        >
-                                          <circle cx="2" cy="2" r="1" />
-                                          <circle cx="2" cy="5" r="1" />
-                                          <circle cx="2" cy="8" r="1" />
-                                          <circle cx="4" cy="2" r="1" />
-                                          <circle cx="4" cy="5" r="1" />
-                                          <circle cx="4" cy="8" r="1" />
-                                        </svg>
-                                      </div>
-                                      {isTaskOverdue(task) && (
-                                        <div
-                                          className="flex items-center text-red-500"
-                                          title={t('task.overdue')}
-                                        >
-                                          <svg
-                                            className="w-3 h-3"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                          >
-                                            <path
-                                              fillRule="evenodd"
-                                              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                                              clipRule="evenodd"
-                                            />
-                                          </svg>
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`bg-white dark:bg-dark-100 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-dark-300 mb-3 transition-all duration-200 group ${
+                                        snapshot.isDragging
+                                          ? 'shadow-lg transform rotate-2 cursor-grabbing z-10'
+                                          : 'hover:shadow-md hover:border-primary-300 cursor-grab'
+                                      } ${
+                                        isTaskOverdue(task) &&
+                                        !snapshot.isDragging
+                                          ? 'border-red-300 bg-red-50 dark:bg-red-900/10'
+                                          : ''
+                                      }`}
+                                    >
+                                      {/* 헤더 영역 */}
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                          {/* 드래그 표시 아이콘 */}
+                                          <div className="w-4 h-4 flex items-center justify-center text-gray-400">
+                                            <svg
+                                              className="w-3 h-3"
+                                              fill="currentColor"
+                                              viewBox="0 0 6 10"
+                                            >
+                                              <circle cx="2" cy="2" r="1" />
+                                              <circle cx="2" cy="5" r="1" />
+                                              <circle cx="2" cy="8" r="1" />
+                                              <circle cx="4" cy="2" r="1" />
+                                              <circle cx="4" cy="5" r="1" />
+                                              <circle cx="4" cy="8" r="1" />
+                                            </svg>
+                                          </div>
+                                          {isTaskOverdue(task) && (
+                                            <div
+                                              className="flex items-center text-red-500"
+                                              title={t('task.overdue')}
+                                            >
+                                              <svg
+                                                className="w-3 h-3"
+                                                fill="currentColor"
+                                                viewBox="0 0 20 20"
+                                              >
+                                                <path
+                                                  fillRule="evenodd"
+                                                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                                  clipRule="evenodd"
+                                                />
+                                              </svg>
+                                            </div>
+                                          )}
                                         </div>
+                                        <div className="flex items-center gap-2">
+                                          <span
+                                            className={`text-xs font-medium px-2 py-1 rounded-full ${getPriorityColor(task.priority)} bg-current/10`}
+                                          >
+                                            {getPriorityText(task.priority)}
+                                          </span>
+                                          <div className="flex items-center gap-1">
+                                            {/* 편집 버튼 */}
+                                            {canUpdateTask(task) && (
+                                              <button
+                                                onClick={e => {
+                                                  e.stopPropagation();
+                                                  handleEdit(task);
+                                                }}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-400"
+                                                title={t('task.editTask')}
+                                              >
+                                                <Pencil className="w-3 h-3" />
+                                              </button>
+                                            )}
+                                            {/* 삭제 버튼 */}
+                                            {canDeleteTask(task) && (
+                                              <button
+                                                onClick={e => {
+                                                  e.stopPropagation();
+                                                  handleDelete(task.id);
+                                                }}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 cursor-pointer text-red-600 dark:text-red-400"
+                                                title={t('task.deleteTask')}
+                                              >
+                                                <Trash2 className="w-3 h-3" />
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* 태스크 제목 */}
+                                      <h4 className="font-medium text-gray-900 dark:text-dark-900 text-sm mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+                                        {task.title}
+                                      </h4>
+
+                                      {/* 태스크 설명 */}
+                                      {task.description && (
+                                        <p className="text-xs text-gray-600 dark:text-dark-600 mb-3 line-clamp-2">
+                                          {task.description}
+                                        </p>
                                       )}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <span
-                                        className={`text-xs font-medium px-2 py-1 rounded-full ${getPriorityColor(task.priority)} bg-current/10`}
-                                      >
-                                        {getPriorityText(task.priority)}
-                                      </span>
-                                      <div className="flex items-center gap-1">
-                                        {/* 편집 버튼 */}
-                                        {canUpdateTask(task) && (
-                                          <button
-                                            onClick={e => {
-                                              e.stopPropagation();
-                                              handleEdit(task);
-                                            }}
-                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-400"
-                                            title={t('task.editTask')}
-                                          >
-                                            <Pencil className="w-3 h-3" />
-                                          </button>
-                                        )}
-                                        {/* 삭제 버튼 */}
-                                        {canDeleteTask(task) && (
-                                          <button
-                                            onClick={e => {
-                                              e.stopPropagation();
-                                              handleDelete(task.id);
-                                            }}
-                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 cursor-pointer text-red-600 dark:text-red-400"
-                                            title={t('task.deleteTask')}
-                                          >
-                                            <Trash2 className="w-3 h-3" />
-                                          </button>
-                                        )}
+
+                                      {/* 태스크 메타데이터 */}
+                                      <div className="space-y-1">
+                                        <div className="flex items-center justify-between text-xs">
+                                          <div className="flex flex-col gap-1">
+                                            {/* 시작일 */}
+                                            {task.start_date && (
+                                              <div className="flex items-center gap-1 text-gray-500 dark:text-dark-500">
+                                                <Calendar className="w-3 h-3" />
+                                                <span>
+                                                  {t('task.startDate')}:{' '}
+                                                  {formatDate(task.start_date)}
+                                                </span>
+                                              </div>
+                                            )}
+                                            {/* 마감일 */}
+                                            {task.due_date && (
+                                              <div
+                                                className={`flex items-center gap-1 ${
+                                                  isTaskOverdue(task)
+                                                    ? 'text-red-600 font-medium'
+                                                    : 'text-gray-500 dark:text-dark-500'
+                                                }`}
+                                              >
+                                                <CalendarCheck className="w-3 h-3" />
+                                                <span>
+                                                  {t('task.dueDate')}:{' '}
+                                                  {formatDate(task.due_date)}
+                                                </span>
+                                              </div>
+                                            )}
+                                          </div>
+                                          <span className="text-gray-400 dark:text-dark-400 truncate ml-2 max-w-20">
+                                            👤{' '}
+                                            {task.assignee?.name ||
+                                              task.assignee?.email ||
+                                              t('task.unassigned')}
+                                          </span>
+                                        </div>
+                                        {/* 추가 메타데이터 - 팀과 생성일 */}
+                                        <div className="flex items-center justify-between text-xs text-gray-400 dark:text-dark-400">
+                                          <span className="truncate">
+                                            🏢{' '}
+                                            {task.team?.name ||
+                                              t('team.unassigned')}
+                                          </span>
+                                          <span className="ml-2 flex-shrink-0">
+                                            {formatDate(task.created_at)}
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-
-                                  {/* 태스크 제목 */}
-                                  <h4 className="font-medium text-gray-900 dark:text-dark-900 text-sm mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
-                                    {task.title}
-                                  </h4>
-
-                                  {/* 태스크 설명 */}
-                                  {task.description && (
-                                    <p className="text-xs text-gray-600 dark:text-dark-600 mb-3 line-clamp-2">
-                                      {task.description}
-                                    </p>
                                   )}
+                                </Draggable>
+                              )
+                            )}
 
-                                  {/* 태스크 메타데이터 */}
-                                  <div className="space-y-1">
-                                    <div className="flex items-center justify-between text-xs">
-                                      <div className="flex flex-col gap-1">
-                                        {/* 시작일 */}
-                                        {task.start_date && (
-                                          <div className="flex items-center gap-1 text-gray-500 dark:text-dark-500">
-                                            <Calendar className="w-3 h-3" />
-                                            <span>{t('task.startDate')}: {formatDate(task.start_date)}</span>
-                                          </div>
-                                        )}
-                                        {/* 마감일 */}
-                                        {task.due_date && (
-                                          <div className={`flex items-center gap-1 ${
-                                            isTaskOverdue(task)
-                                              ? 'text-red-600 font-medium'
-                                              : 'text-gray-500 dark:text-dark-500'
-                                          }`}>
-                                            <CalendarCheck className="w-3 h-3" />
-                                            <span>{t('task.dueDate')}: {formatDate(task.due_date)}</span>
-                                          </div>
-                                        )}
-                                      </div>
-                                      <span className="text-gray-400 dark:text-dark-400 truncate ml-2 max-w-20">
-                                        👤 {task.assignee?.name || task.assignee?.email || t('task.unassigned')}
-                                      </span>
-                                    </div>
-                                    {/* 추가 메타데이터 - 팀과 생성일 */}
-                                    <div className="flex items-center justify-between text-xs text-gray-400 dark:text-dark-400">
-                                      <span className="truncate">
-                                        🏢 {task.team?.name || t('team.unassigned')}
-                                      </span>
-                                      <span className="ml-2 flex-shrink-0">
-                                        {formatDate(task.created_at)}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </Draggable>
-                            ))}
-                            
                           {provided.placeholder}
                         </div>
                       )}
@@ -641,7 +664,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
           <div className="bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-300">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-{t('task.editTask')}
+                {t('task.editTask')}
               </h2>
               <button
                 onClick={handleEditClose}

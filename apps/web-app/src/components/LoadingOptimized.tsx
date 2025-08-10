@@ -34,7 +34,9 @@ export const LoadingOptimized: React.FC<LoadingOptimizedProps> = ({
   if (variant === 'pulse') {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors duration-200">
-        <div className={`${sizeClasses[size]} bg-blue-600 rounded-full animate-pulse`}></div>
+        <div
+          className={`${sizeClasses[size]} bg-blue-600 rounded-full animate-pulse`}
+        ></div>
       </div>
     );
   }
@@ -43,10 +45,10 @@ export const LoadingOptimized: React.FC<LoadingOptimizedProps> = ({
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors duration-200">
       <div className="text-center">
-        <div 
+        <div
           className={`animate-spin rounded-full ${sizeClasses[size]} border-b-2 border-blue-600 mx-auto`}
-          style={{ 
-            animation: 'spin 0.8s linear infinite' // Faster animation 
+          style={{
+            animation: 'spin 0.8s linear infinite', // Faster animation
           }}
         ></div>
         {message && (

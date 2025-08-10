@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:analyze": "ANALYZE=true vite build",
     "build-with-tsc": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 50",
@@ -67,6 +68,7 @@
     "dotenv": "^16.4.7",
     "jsdom": "^26.1.0",
     "postcss": "^8.4.24",
+    "rollup-plugin-visualizer": "^6.0.3",
     "tailwindcss": "^3.3.0",
     "tsx": "^4.20.3",
     "typescript": "^5.0.0",

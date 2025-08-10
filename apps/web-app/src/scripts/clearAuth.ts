@@ -18,11 +18,14 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 async function clearAuth() {
   try {
     console.log('🧹 Clearing Authentication Session...\n');
-    
+
     // Check current auth status
     console.log('1️⃣ Checking current authentication status...');
-    const { data: { user }, error: getUserError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: getUserError,
+    } = await supabase.auth.getUser();
+
     if (getUserError) {
       console.log('   ⚠️ Error getting user:', getUserError.message);
     } else if (user) {
@@ -30,29 +33,35 @@ async function clearAuth() {
     } else {
       console.log('   ℹ️ No user currently logged in');
     }
-    
+
     // Sign out
     console.log('\n2️⃣ Signing out...');
     const { error: signOutError } = await supabase.auth.signOut();
-    
+
     if (signOutError) {
       console.error('   ❌ Sign out failed:', signOutError.message);
     } else {
       console.log('   ✅ Successfully signed out');
     }
-    
+
     // Verify sign out
     console.log('\n3️⃣ Verifying sign out...');
-    const { data: { user: userAfterSignOut }, error: checkError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user: userAfterSignOut },
+      error: checkError,
+    } = await supabase.auth.getUser();
+
     if (checkError) {
-      console.log('   ⚠️ Error checking user after sign out:', checkError.message);
+      console.log(
+        '   ⚠️ Error checking user after sign out:',
+        checkError.message
+      );
     } else if (userAfterSignOut) {
       console.log('   ⚠️ User still appears to be logged in');
     } else {
       console.log('   ✅ User successfully logged out');
     }
-    
+
     console.log('\n📋 Manual Steps to Complete Logout:');
     console.log('===================================');
     console.log('1. Open your browser');
@@ -65,12 +74,11 @@ async function clearAuth() {
     console.log('   - Cookies (supabase related)');
     console.log('6. Refresh the page');
     console.log('\nOR simply open an Incognito/Private window');
-    
+
     console.log('\n🎯 Expected Result:');
     console.log('- Should see login/signup form');
     console.log('- No automatic login');
     console.log('- Ready for fresh authentication test');
-    
   } catch (error) {
     console.error('❌ Unexpected error:', error);
   }

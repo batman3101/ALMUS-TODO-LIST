@@ -18,14 +18,14 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 async function quickTest() {
   try {
     console.log('🔧 Starting Quick Test Suite...\n');
-    
+
     // Test 1: Supabase Connection
     console.log('1️⃣ Testing Supabase Connection...');
     const { data: healthCheck, error: healthError } = await supabase
       .from('teams')
       .select('count')
       .limit(1);
-    
+
     if (healthError) {
       console.error('   ❌ Connection failed:', healthError.message);
       return;
@@ -35,8 +35,11 @@ async function quickTest() {
 
     // Test 2: Check if user is authenticated
     console.log('\n2️⃣ Checking Authentication Status...');
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       console.log('   ⚠️  No authenticated user found');
       console.log('   💡 Please log in through the web interface first');
@@ -67,7 +70,7 @@ async function quickTest() {
     if (teams && teams.length > 0) {
       console.log('\n4️⃣ Testing Task Access...');
       const teamId = teams[0].id;
-      
+
       const { data: tasks, error: tasksError } = await supabase
         .from('tasks')
         .select('*')
@@ -77,7 +80,9 @@ async function quickTest() {
       if (tasksError) {
         console.error('   ❌ Tasks fetch failed:', tasksError.message);
       } else {
-        console.log(`   ✅ Found ${tasks?.length || 0} tasks in team "${teams[0].name}"`);
+        console.log(
+          `   ✅ Found ${tasks?.length || 0} tasks in team "${teams[0].name}"`
+        );
         if (tasks && tasks.length > 0) {
           tasks.forEach(task => {
             console.log(`      - ${task.title} (${task.status})`);
@@ -88,7 +93,7 @@ async function quickTest() {
 
     // Test 5: API Service Mock Test
     console.log('\n5️⃣ Testing API Service Methods...');
-    
+
     // Test createTask structure
     console.log('   📋 Testing Task Creation Structure...');
     const mockTaskData = {
@@ -98,7 +103,7 @@ async function quickTest() {
       priority: 'MEDIUM' as const,
       team_id: teams && teams.length > 0 ? teams[0].id : null,
       created_by: user.id,
-      due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     };
 
     if (mockTaskData.team_id) {
@@ -112,7 +117,7 @@ async function quickTest() {
         console.error('   ❌ Task creation failed:', createError.message);
       } else {
         console.log(`   ✅ Task created successfully: "${newTask.title}"`);
-        
+
         // Test update
         const { error: updateError } = await supabase
           .from('tasks')
@@ -139,7 +144,9 @@ async function quickTest() {
     console.log('✅ Supabase Connection: Working');
     console.log(`✅ Authentication: ${user ? 'Working' : 'Not authenticated'}`);
     console.log(`✅ Teams Access: ${teams?.length || 0} teams found`);
-    console.log(`✅ Basic CRUD: ${mockTaskData.team_id ? 'Working' : 'Limited (no team)'}`);
+    console.log(
+      `✅ Basic CRUD: ${mockTaskData.team_id ? 'Working' : 'Limited (no team)'}`
+    );
     console.log('=====================================');
 
     console.log('\n🎯 Next Steps:');
@@ -153,7 +160,6 @@ async function quickTest() {
     console.log('   - Edit task details');
     console.log('   - Check task filtering by status/priority');
     console.log('   - Verify team switching works correctly');
-
   } catch (error) {
     console.error('❌ Unexpected error:', error);
   }

@@ -66,7 +66,8 @@
       "Bash(move:*)",
       "Bash(git clean:*)",
       "Bash(timeout 5 npm run dev)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": []
   }

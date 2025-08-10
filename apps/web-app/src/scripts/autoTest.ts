@@ -23,24 +23,27 @@ const testTask = {
   priority: 'HIGH' as const,
   due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   estimated_hours: 2,
-  tags: ['test', 'automation']
+  tags: ['test', 'automation'],
 };
 
 async function autoTest() {
   try {
     console.log('🤖 Starting Automated Test...\n');
-    
+
     // Test authentication status
     console.log('1️⃣ Checking authentication...');
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       console.log('   ❌ No authenticated user found');
       console.log('   💡 Please log in through the web interface first');
       console.log('   📖 Open http://localhost:3009 and log in');
       return false;
     }
-    
+
     console.log(`   ✅ User authenticated: ${user.email}`);
     const userId = user.id;
 
@@ -69,7 +72,7 @@ async function autoTest() {
           name: 'Auto Test Team',
           description: 'Automatically created team for testing',
           owner_id: userId,
-          is_active: true
+          is_active: true,
         })
         .select()
         .single();
@@ -87,7 +90,7 @@ async function autoTest() {
         team_id: teamId,
         user_id: userId,
         role: 'OWNER',
-        is_active: true
+        is_active: true,
       });
     }
 
@@ -100,7 +103,7 @@ async function autoTest() {
         description: 'Project for automated testing',
         status: 'ACTIVE',
         team_id: teamId,
-        owner_id: userId
+        owner_id: userId,
       })
       .select()
       .single();
@@ -121,7 +124,7 @@ async function autoTest() {
         team_id: teamId,
         project_id: project.id,
         assignee_id: userId,
-        created_by: userId
+        created_by: userId,
       })
       .select('*')
       .single();
@@ -138,9 +141,9 @@ async function autoTest() {
     console.log('\n5️⃣ Testing task update...');
     const { error: updateError } = await supabase
       .from('tasks')
-      .update({ 
+      .update({
         status: 'IN_PROGRESS',
-        actual_hours: 1
+        actual_hours: 1,
       })
       .eq('id', newTask.id);
 
@@ -180,14 +183,13 @@ async function autoTest() {
     console.log('✅ Task Deletion: PASSED');
     console.log('===========================');
     console.log('🚀 ALL TESTS PASSED!');
-    
+
     console.log('\n📋 Next Steps:');
     console.log('1. Run "npm run test:data" for full test data creation');
     console.log('2. Test the UI manually at http://localhost:3009');
     console.log('3. Verify team switching and task filtering work correctly');
 
     return true;
-
   } catch (error) {
     console.error('❌ Unexpected error:', error);
     return false;

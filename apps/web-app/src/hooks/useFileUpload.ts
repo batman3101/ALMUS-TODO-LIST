@@ -33,16 +33,17 @@ export interface UseFileUploadReturn {
 const sanitizeFileName = (fileName: string): string => {
   // 파일 확장자 분리
   const lastDotIndex = fileName.lastIndexOf('.');
-  const name = lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
+  const name =
+    lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
   const extension = lastDotIndex !== -1 ? fileName.substring(lastDotIndex) : '';
-  
+
   // 이름 부분만 변환 (한글, 공백, 특수문자 제거 및 변환)
   const safeName = name
-    .replace(/[^\w\-._]/g, '_')  // 영문, 숫자, -, _, . 외의 모든 문자를 _로 변환
-    .replace(/_{2,}/g, '_')       // 연속된 _를 하나로 변환
-    .replace(/^_+|_+$/g, '')      // 시작과 끝의 _를 제거
-    .substring(0, 100);           // 최대 100자로 제한
-  
+    .replace(/[^\w\-._]/g, '_') // 영문, 숫자, -, _, . 외의 모든 문자를 _로 변환
+    .replace(/_{2,}/g, '_') // 연속된 _를 하나로 변환
+    .replace(/^_+|_+$/g, '') // 시작과 끝의 _를 제거
+    .substring(0, 100); // 최대 100자로 제한
+
   return safeName + extension;
 };
 
@@ -98,8 +99,15 @@ export const useFileUpload = (): UseFileUploadReturn => {
       const fileName = `${Date.now()}_${safeFileName}`;
       const filePath = `${path}/${fileName}`;
 
-      console.log('파일 업로드 시도:', { filePath, fileName, fileSize: file.size, fileType: file.type });
-      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('파일 업로드 시도:', {
+          filePath,
+          fileName,
+          fileSize: file.size,
+          fileType: file.type,
+        });
+      }
+
       const { error: uploadError, data: uploadData } = await supabase.storage
         .from('files') // Supabase storage bucket name
         .upload(filePath, file, {
@@ -107,7 +115,9 @@ export const useFileUpload = (): UseFileUploadReturn => {
           upsert: false,
         });
 
-      console.log('Storage 업로드 결과:', { uploadError, uploadData });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Storage 업로드 결과:', { uploadError, uploadData });
+      }
 
       if (uploadError) {
         console.error('Storage 업로드 에러:', uploadError);
@@ -137,15 +147,19 @@ export const useFileUpload = (): UseFileUploadReturn => {
         updated_at: new Date().toISOString(),
       };
 
-      console.log('DB 메타데이터 저장 시도:', fileMetadata);
-      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('DB 메타데이터 저장 시도:', fileMetadata);
+      }
+
       const { data: dbData, error: dbError } = await supabase
         .from('file_metadata')
         .insert([fileMetadata])
         .select()
         .single();
 
-      console.log('DB 저장 결과:', { dbData, dbError });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('DB 저장 결과:', { dbData, dbError });
+      }
 
       if (dbError) {
         console.error('DB 저장 에러:', dbError);

@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { logger } from '../utils/logger';
 import { supabase } from '../../../../lib/supabase/client';
-import { testSupabaseConnection, validateSupabaseConfig } from '../../../../lib/supabase/connection-test';
+import {
+  testSupabaseConnection,
+  validateSupabaseConfig,
+} from '../../../../lib/supabase/connection-test';
 import type { User } from '../../../../libs/shared-types/src/supabase-schema';
 
 export interface AuthUser extends User {
@@ -37,18 +40,20 @@ export const useAuth = () => {
           getSession(attempt + 1);
         } else if (isMounted) {
           logger.error('Auth initialization failed after retries');
-          setError('인증 서버 연결에 실패했습니다. 네트워크를 확인하고 페이지를 새로고침해주세요.');
+          setError(
+            '인증 서버 연결에 실패했습니다. 네트워크를 확인하고 페이지를 새로고침해주세요.'
+          );
           setLoading(false);
         }
       }, timeout);
     };
-    
+
     setTimeoutWithRetry();
 
     const getSession = async (retryCount = 0) => {
       try {
         logger.info('Attempting to get session...', { retryCount });
-        
+
         // 첫 번째 시도에서만 연결 상태 검사
         if (retryCount === 0) {
           const configValidation = validateSupabaseConfig();
@@ -57,17 +62,19 @@ export const useAuth = () => {
             setError(`설정 오류: ${configValidation.issues.join(', ')}`);
             return;
           }
-          
+
           const connectionTest = await testSupabaseConnection();
           if (!connectionTest.isConnected) {
             logger.error('Supabase 연결 실패:', connectionTest.error);
-            setError(connectionTest.error || '데이터베이스에 연결할 수 없습니다.');
+            setError(
+              connectionTest.error || '데이터베이스에 연결할 수 없습니다.'
+            );
             return;
           }
-          
+
           logger.info('Supabase 연결 테스트 성공');
         }
-        
+
         const {
           data: { session },
           error,
@@ -75,18 +82,22 @@ export const useAuth = () => {
 
         if (error) {
           logger.error('Session error:', error);
-          
+
           // 네트워크 오류인 경우 재시도
-          if (retryCount < 2 && (
-            error.message.includes('Network') || 
-            error.message.includes('Failed to fetch') ||
-            error.message.includes('timeout')
-          )) {
+          if (
+            retryCount < 2 &&
+            (error.message.includes('Network') ||
+              error.message.includes('Failed to fetch') ||
+              error.message.includes('timeout'))
+          ) {
             logger.warn(`Retrying session request (${retryCount + 1}/2)...`);
-            setTimeout(() => getSession(retryCount + 1), 1000 * (retryCount + 1));
+            setTimeout(
+              () => getSession(retryCount + 1),
+              1000 * (retryCount + 1)
+            );
             return;
           }
-          
+
           setError(error.message);
           return;
         }
