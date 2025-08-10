@@ -76,11 +76,5 @@
     }
   ],
   "trailingSlash": false,
-  "cleanUrls": true,
-  "functions": {
-    "app/api/**": {
-      "maxDuration": 30
-    }
-  },
-  "crons": []
+  "cleanUrls": true
 }
