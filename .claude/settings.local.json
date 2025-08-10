@@ -68,7 +68,8 @@
       "Bash(timeout 5 npm run dev)",
       "Bash(taskkill:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(tree:*)"
     ],
     "deny": []
   }

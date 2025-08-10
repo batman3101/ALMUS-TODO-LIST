@@ -1,8 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Toaster } from 'react-hot-toast';
-import { StagewiseToolbar } from '@stagewise/toolbar-react';
-import ReactPlugin from '@stagewise-plugins/react';
 import { QueryProvider } from './providers/QueryProvider';
 
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -22,7 +20,11 @@ const CreateTaskForm = lazy(() => import('./components/CreateTaskForm'));
 const CalendarView = lazy(() => import('./components/CalendarView'));
 const KanbanView = lazy(() => import('./components/KanbanView'));
 const GanttView = lazy(() => import('./components/GanttView'));
-const TeamManagement = lazy(() => import('./components/TeamManagement').then(module => ({ default: module.TeamManagement })));
+const TeamManagement = lazy(() =>
+  import('./components/TeamManagement').then(module => ({
+    default: module.TeamManagement,
+  }))
+);
 
 // Loading component
 const ViewLoading = () => (
@@ -82,7 +84,6 @@ function App() {
   if (!isAuthenticated) {
     return (
       <>
-        <StagewiseToolbar config={{ plugins: [ReactPlugin] }} />
         <NotificationProvider>
           <LoginForm />
         </NotificationProvider>
@@ -155,11 +156,7 @@ function MainApp({
 }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const {
-    currentTeam,
-    getUserRole,
-    isLoading: isLoadingTeams,
-  } = useTeams();
+  const { currentTeam, getUserRole, isLoading: isLoadingTeams } = useTeams();
 
   // 현재 팀 정보 디버깅 - 개발 환경에서만
   useEffect(() => {

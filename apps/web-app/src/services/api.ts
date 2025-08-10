@@ -313,7 +313,6 @@ class ApiService {
 
       // 먼저 사용자가 멤버인 팀 ID들을 가져옴
       const teamIds = await this.getUserTeamIds(userId);
-      
       if (process.env.NODE_ENV === 'development') {
         console.log('User team IDs:', teamIds);
       }
@@ -369,7 +368,6 @@ class ApiService {
     }
 
     const teamIds = data?.map(tm => tm.team_id).join(',') || '';
-    
     if (process.env.NODE_ENV === 'development') {
       console.log('Extracted team IDs:', teamIds);
     }

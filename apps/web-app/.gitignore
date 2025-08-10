@@ -62,3 +62,18 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Development scripts (keep locally but exclude from git)
+src/scripts/
+dev_output.txt
+
+# Test files
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+test-setup.ts
+playwright.config.ts
+tests/
+test-results/
+playwright-report/

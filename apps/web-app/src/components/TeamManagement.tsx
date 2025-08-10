@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Settings, Users, Edit2, Trash2, Crown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../hooks/useAuth';
 import { Team, TeamRole } from '../types/team';
 import { CreateTeamModal } from './CreateTeamModal';
 import { EditTeamModal } from './EditTeamModal';

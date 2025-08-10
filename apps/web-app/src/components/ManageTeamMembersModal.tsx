@@ -260,7 +260,6 @@ export const ManageTeamMembersModal: React.FC<ManageTeamMembersModalProps> = ({
     }
   };
 
-
   if (!isOpen) return null;
 
   return (

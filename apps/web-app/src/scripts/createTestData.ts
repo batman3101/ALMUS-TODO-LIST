@@ -220,6 +220,11 @@ async function createTestData() {
       .eq('owner_id', userId)
       .eq('name', 'Test Team');
 
+    if (teamsError) {
+      console.error('❌ Error fetching teams:', teamsError);
+      return;
+    }
+
     let teamId;
 
     if (teams && teams.length > 0) {

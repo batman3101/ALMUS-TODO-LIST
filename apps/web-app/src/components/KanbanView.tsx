@@ -209,7 +209,6 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     }));
   };
 
-
   const handleEdit = (task: TaskWithRelations) => {
     setEditingTask(task);
     setShowEditModal(true);

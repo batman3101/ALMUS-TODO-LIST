@@ -21,7 +21,7 @@ async function quickTest() {
 
     // Test 1: Supabase Connection
     console.log('1️⃣ Testing Supabase Connection...');
-    const { data: healthCheck, error: healthError } = await supabase
+    const { error: healthError } = await supabase
       .from('teams')
       .select('count')
       .limit(1);

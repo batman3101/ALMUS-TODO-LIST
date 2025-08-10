@@ -216,7 +216,12 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
 
         if (process.env.NODE_ENV === 'development') {
           console.log('태스크 생성 데이터:', createData);
-          console.log('Status:', formData.status, 'Priority:', formData.priority);
+          console.log(
+            'Status:',
+            formData.status,
+            'Priority:',
+            formData.priority
+          );
         }
         const newTask = await createTaskMutation.mutateAsync(createData);
 
