@@ -31,10 +31,10 @@ export const TeamManagement: React.FC = () => {
 
   const handleDeleteTeam = async (team: Team) => {
     const confirmed = await showConfirm({
-      title: '팀 삭제',
-      message: `정말로 "${team.name}" 팀을 삭제하시겠습니까?`,
-      confirmText: '삭제',
-      cancelText: '취소',
+      title: t('team.deleteTeam'),
+      message: t('team.confirmDeleteTeam', { teamName: team.name }),
+      confirmText: t('common.delete'),
+      cancelText: t('common.cancel'),
       variant: 'danger',
     });
 
@@ -57,17 +57,17 @@ export const TeamManagement: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            팀 관리
+            {t('teamManagement.title')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            팀을 생성하고 관리하여 효율적으로 협업하세요
+            {t('teamManagement.description')}
           </p>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          <Plus size={20} />새 팀 만들기
+          <Plus size={20} />{t('team.createTeam')}
         </button>
       </div>
 
@@ -84,7 +84,7 @@ export const TeamManagement: React.FC = () => {
                   {currentTeam.name}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400">
-                  현재 활성 팀 • 멤버 {currentTeam.memberCount}명
+                  {t('teamManagement.currentTeamOwner')} • {currentTeam.memberCount}{t('teamManagement.memberCount')}
                 </p>
               </div>
             </div>
@@ -96,14 +96,14 @@ export const TeamManagement: React.FC = () => {
                     className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
                   >
                     <Users size={16} />
-                    멤버 관리
+                    {t('team.manageMembers')}
                   </button>
                   <button
                     onClick={() => handleEditTeam(currentTeam)}
                     className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
                   >
                     <Settings size={16} />
-                    설정
+                    {t('teamManagement.settings')}
                   </button>
                 </>
               )}
@@ -139,12 +139,12 @@ export const TeamManagement: React.FC = () => {
                       )}
                       {isCurrentTeam && (
                         <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
-                          현재 팀
+                          {t('team.currentTeam')}
                         </span>
                       )}
                     </div>
                     <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
-                      {team.description || '설명이 없습니다.'}
+                      {team.description || t('team.noDescription')}
                     </p>
                     <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center gap-1">
@@ -157,7 +157,7 @@ export const TeamManagement: React.FC = () => {
                             team.isActive ? 'bg-green-500' : 'bg-gray-400'
                           }`}
                         />
-                        {team.isActive ? '활성' : '비활성'}
+                        {team.isActive ? t('team.active') : t('team.inactive')}
                       </div>
                     </div>
                   </div>
@@ -169,7 +169,7 @@ export const TeamManagement: React.FC = () => {
                       onClick={() => switchTeam(team)}
                       className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-lg transition-colors text-sm font-medium"
                     >
-                      팀 전환
+                      {t('team.switchTeam')}
                     </button>
                   )}
                   {canEdit(team) && (
@@ -210,16 +210,16 @@ export const TeamManagement: React.FC = () => {
         <div className="text-center py-12">
           <Users size={48} className="mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-            아직 팀이 없습니다
+            {t('team.noTeams')}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            첫 번째 팀을 만들어 협업을 시작해보세요
+            {t('teamManagement.joinTeam')}
           </p>
           <button
             onClick={() => setIsCreateModalOpen(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <Plus size={20} />팀 만들기
+            <Plus size={20} />{t('team.createTeam')}
           </button>
         </div>
       )}

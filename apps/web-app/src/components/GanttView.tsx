@@ -602,13 +602,13 @@ const GanttView: React.FC = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case TaskStatus.TODO:
-        return '시작 전';
+        return t('status.todo');
       case TaskStatus.IN_PROGRESS:
-        return '진행중';
+        return t('status.inProgress');
       case TaskStatus.REVIEW:
-        return '검토중';
+        return t('status.review');
       case TaskStatus.DONE:
-        return '완료';
+        return t('status.done');
       default:
         return status;
     }
@@ -618,13 +618,13 @@ const GanttView: React.FC = () => {
   const getPriorityText = (priority: string) => {
     switch (priority) {
       case TaskPriority.LOW:
-        return '낮음';
+        return t('priority.low');
       case TaskPriority.MEDIUM:
-        return '보통';
+        return t('priority.medium');
       case TaskPriority.HIGH:
-        return '높음';
+        return t('priority.high');
       case TaskPriority.URGENT:
-        return '긴급';
+        return t('priority.urgent');
       default:
         return priority;
     }
@@ -816,8 +816,8 @@ const GanttView: React.FC = () => {
               {format(task.endDate, 'MM/dd')}
             </div>
             <div>상태: {getStatusText(task.status)}</div>
-            <div>진행률: {task.progress}%</div>
-            {task.isDelayed && <div className="text-red-400">지연됨</div>}
+            <div>{t('gantt.progress')}: {task.progress}%</div>
+            {task.isDelayed && <div className="text-red-400">{t('gantt.delayed')}</div>}
           </div>
         </div>
 
@@ -891,9 +891,9 @@ const GanttView: React.FC = () => {
           <button
             onClick={scrollToToday}
             className="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded text-sm transition-colors duration-200 font-medium"
-            title="오늘 날짜로 이동"
+            title={t('gantt.goToToday')}
           >
-            오늘
+            {t('button.today')}
           </button>
 
           <select
@@ -901,11 +901,11 @@ const GanttView: React.FC = () => {
             onChange={e => handleZoomChange(e.target.value as ZoomLevel)}
             className="px-3 py-1 border border-gray-300 dark:border-dark-300 bg-white dark:bg-dark-50 text-gray-900 dark:text-dark-900 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200"
           >
-            <option value={ZoomLevel.DAY}>일</option>
-            <option value={ZoomLevel.WEEK}>주</option>
-            <option value={ZoomLevel.MONTH}>월</option>
-            <option value={ZoomLevel.QUARTER}>분기</option>
-            <option value={ZoomLevel.YEAR}>년</option>
+            <option value={ZoomLevel.DAY}>{t('gantt.zoomLevels.day')}</option>
+            <option value={ZoomLevel.WEEK}>{t('gantt.zoomLevels.week')}</option>
+            <option value={ZoomLevel.MONTH}>{t('gantt.zoomLevels.month')}</option>
+            <option value={ZoomLevel.QUARTER}>{t('gantt.zoomLevels.quarter')}</option>
+            <option value={ZoomLevel.YEAR}>{t('gantt.zoomLevels.year')}</option>
           </select>
 
           <label className="flex items-center space-x-2 text-sm text-gray-900 dark:text-dark-900">
@@ -920,7 +920,7 @@ const GanttView: React.FC = () => {
               }
               className="rounded border-gray-300 dark:border-dark-300 text-primary-600 focus:ring-primary-500"
             />
-            <span>의존성 표시</span>
+            <span>{t('gantt.showDependencies')}</span>
           </label>
 
           <label className="flex items-center space-x-2 text-sm text-gray-900 dark:text-dark-900">
@@ -932,7 +932,7 @@ const GanttView: React.FC = () => {
               }
               className="rounded border-gray-300 dark:border-dark-300 text-primary-600 focus:ring-primary-500"
             />
-            <span>진행률 표시</span>
+            <span>{t('gantt.showProgress')}</span>
           </label>
         </div>
       </div>
@@ -944,7 +944,7 @@ const GanttView: React.FC = () => {
           <div className="w-96 flex-shrink-0 p-4 border-r-2 border-gray-300 dark:border-dark-400 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-dark-200 dark:to-dark-300">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-800 dark:text-dark-800">
-                📋 태스크 목록
+                📋 {t('task.taskList')}
               </h3>
               <div className="text-sm text-gray-600 dark:text-dark-600">
                 총 {ganttTasks.length}개
@@ -969,13 +969,13 @@ const GanttView: React.FC = () => {
               <div className="p-8 text-center text-gray-500 dark:text-dark-500">
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600 mr-2"></div>
-                  태스크 로딩 중...
+                  {t('task.loading')}
                 </div>
               </div>
             ) : hasError ? (
               <div className="p-8 text-center text-red-500 dark:text-red-400">
                 <div className="text-lg mb-2">⚠️</div>
-                <div className="text-sm">태스크 로드 실패</div>
+                <div className="text-sm">{t('task.loadTasksFailed')}</div>
                 <button
                   onClick={() => window.location.reload()}
                   className="mt-2 text-xs px-2 py-1 bg-red-100 dark:bg-red-900/20 rounded hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
@@ -986,8 +986,8 @@ const GanttView: React.FC = () => {
             ) : isEmpty ? (
               <div className="p-8 text-center text-gray-500 dark:text-dark-500">
                 <div className="text-2xl mb-2">📊</div>
-                <div className="text-lg font-medium mb-1">태스크가 없습니다</div>
-                <div className="text-sm">새로운 태스크를 추가해보세요!</div>
+                <div className="text-lg font-medium mb-1">{t('task.noTasks')}</div>
+                <div className="text-sm">{t('gantt.addNewTask')}</div>
               </div>
             ) : (
               <div>
@@ -1021,12 +1021,12 @@ const GanttView: React.FC = () => {
                         </div>
                         <div className="text-xs text-gray-600 dark:text-dark-600 mb-2 space-y-1">
                           <div>
-                            📅 시작: {format(task.startDate, 'yyyy/MM/dd')}
+                            📅 {t('gantt.startLabel')}: {format(task.startDate, 'yyyy/MM/dd')}
                           </div>
                           <div>
-                            ⏰ 마감: {format(task.endDate, 'yyyy/MM/dd')}
+                            ⏰ {t('gantt.endLabel')}: {format(task.endDate, 'yyyy/MM/dd')}
                           </div>
-                          <div>👤 담당: {(() => {
+                          <div>👤 {t('gantt.assigneeLabel')}: {(() => {
                             const originalTask = taskMap.get(task.id);
                             return originalTask?.assignee?.name || originalTask?.assignee?.email || '-';
                           })()}</div>
@@ -1060,7 +1060,7 @@ const GanttView: React.FC = () => {
                           </span>
                           {task.isDelayed && (
                             <span className="px-2 py-1 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded font-medium">
-                              지연
+                              {t('gantt.delayed')}
                             </span>
                           )}
                         </div>
@@ -1070,7 +1070,7 @@ const GanttView: React.FC = () => {
                           {task.progress}%
                         </div>
                         <div className="text-xs text-gray-500 dark:text-dark-500">
-                          진행률
+                          {t('gantt.progress')}
                         </div>
                       </div>
                     </div>
@@ -1105,7 +1105,7 @@ const GanttView: React.FC = () => {
                 <div className="p-8 text-center text-gray-400 dark:text-dark-400 min-h-[200px] flex items-center justify-center">
                   <div>
                     <div className="text-2xl mb-2">📈</div>
-                    <div>간트차트에 표시할 태스크가 없습니다</div>
+                    <div>{t('gantt.noTasksToDisplay')}</div>
                   </div>
                 </div>
               ) : (

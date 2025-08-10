@@ -307,6 +307,34 @@ const TaskList: React.FC = function TaskList() {
     }
   };
 
+  // 팀이 없을 때 친화적인 안내 표시
+  if (!currentTeam) {
+    return (
+      <div className="bg-white dark:bg-dark-100 rounded-lg shadow transition-colors duration-200 p-8">
+        <div className="text-center">
+          <div className="mb-6">
+            <div className="mx-auto w-16 h-16 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center">
+              <Plus className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-900 mb-2">
+            {t('team.noTeams')}
+          </h3>
+          <p className="text-gray-600 dark:text-dark-600 mb-6">
+            팀에 가입하거나 새 팀을 만들어 시작하세요.
+          </p>
+          <div className="space-y-4">
+            <div className="bg-gray-50 dark:bg-dark-200 rounded-lg p-4">
+              <p className="text-sm text-gray-700 dark:text-dark-700">
+                우상단 메뉴에서 <strong>팀 관리</strong>를 통해 팀을 생성하거나 초대받은 팀에 가입할 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="bg-white dark:bg-dark-100 rounded-lg shadow transition-colors duration-200">
@@ -321,16 +349,16 @@ const TaskList: React.FC = function TaskList() {
                 className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
               >
                 <Plus className="w-4 h-4 mr-1" />
-                태스크 추가
+{t('button.addTask')}
               </button>
               <button
                 onClick={exportToExcel}
                 disabled={filteredAndSortedTasks.length === 0}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-100 hover:bg-gray-50 dark:hover:bg-dark-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Excel로 내보내기"
+                title={t('export.excel')}
               >
                 <Download className="w-4 h-4 mr-1" />
-                Excel 내보내기
+{t('export.excel')}
               </button>
             </div>
 
@@ -340,7 +368,7 @@ const TaskList: React.FC = function TaskList() {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="태스크 검색..."
+                  placeholder={t('filter.taskSearch')}
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   className="pl-10 pr-4 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-100 text-gray-900 dark:text-dark-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
@@ -368,11 +396,11 @@ const TaskList: React.FC = function TaskList() {
                 }
                 className="px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-100 text-gray-900 dark:text-dark-900 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
-                <option value="all">모든 상태</option>
-                <option value={TaskStatus.TODO}>시작 전</option>
-                <option value={TaskStatus.IN_PROGRESS}>진행중</option>
-                <option value={TaskStatus.REVIEW}>검토중</option>
-                <option value={TaskStatus.DONE}>완료</option>
+                <option value="all">{t('filter.allStatus')}</option>
+                <option value={TaskStatus.TODO}>{getStatusText(TaskStatus.TODO)}</option>
+                <option value={TaskStatus.IN_PROGRESS}>{getStatusText(TaskStatus.IN_PROGRESS)}</option>
+                <option value={TaskStatus.REVIEW}>{getStatusText(TaskStatus.REVIEW)}</option>
+                <option value={TaskStatus.DONE}>{getStatusText(TaskStatus.DONE)}</option>
               </select>
 
               {/* 우선순위 필터 */}
@@ -383,11 +411,11 @@ const TaskList: React.FC = function TaskList() {
                 }
                 className="px-3 py-2 border border-gray-300 dark:border-dark-400 rounded-md bg-white dark:bg-dark-100 text-gray-900 dark:text-dark-900 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
-                <option value="all">모든 우선순위</option>
-                <option value={TaskPriority.LOW}>낮음</option>
-                <option value={TaskPriority.MEDIUM}>보통</option>
-                <option value={TaskPriority.HIGH}>높음</option>
-                <option value={TaskPriority.URGENT}>긴급</option>
+                <option value="all">{t('filter.allPriority')}</option>
+                <option value={TaskPriority.LOW}>{getPriorityText(TaskPriority.LOW)}</option>
+                <option value={TaskPriority.MEDIUM}>{getPriorityText(TaskPriority.MEDIUM)}</option>
+                <option value={TaskPriority.HIGH}>{getPriorityText(TaskPriority.HIGH)}</option>
+                <option value={TaskPriority.URGENT}>{getPriorityText(TaskPriority.URGENT)}</option>
               </select>
             </div>
           </div>
@@ -699,7 +727,7 @@ const TaskList: React.FC = function TaskList() {
           <div className="bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-300">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-                새 태스크 추가
+{t('button.addTask')}
               </h2>
               <button
                 onClick={handleCreateClose}

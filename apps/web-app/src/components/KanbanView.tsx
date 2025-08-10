@@ -76,25 +76,25 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     () => [
       {
         id: TaskStatus.TODO,
-        title: '시작 전',
+        title: t('status.todo'),
         color: 'bg-pink-100 dark:bg-pink-900/30',
         wipLimit: wipLimits[TaskStatus.TODO],
       },
       {
         id: TaskStatus.IN_PROGRESS,
-        title: '진행 중',
+        title: t('status.inProgress'),
         color: 'bg-blue-100 dark:bg-blue-900/30',
         wipLimit: wipLimits[TaskStatus.IN_PROGRESS],
       },
       {
         id: TaskStatus.REVIEW,
-        title: '검토',
+        title: t('status.review'),
         color: 'bg-yellow-100 dark:bg-yellow-900/30',
         wipLimit: wipLimits[TaskStatus.REVIEW],
       },
       {
         id: TaskStatus.DONE,
-        title: '완료',
+        title: t('status.done'),
         color: 'bg-green-100 dark:bg-green-900/30',
         wipLimit: wipLimits[TaskStatus.DONE],
       },
@@ -160,7 +160,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
           col => col.id === destinationColumn
         )?.title;
         toast.warning(
-          `${columnTitle} 컬럼의 WIP 제한(${wipLimit})에 도달했습니다.`
+          t('kanban.wipLimitReached', { column: columnTitle, limit: wipLimit })
         );
         return;
       }
@@ -169,7 +169,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     try {
       const task = tasks?.find((t: TaskWithRelations) => t.id === draggableId);
       if (!task) {
-        toast.error('태스크를 찾을 수 없습니다.');
+        toast.error(t('task.taskNotFound'));
         return;
       }
 
@@ -196,7 +196,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
       );
     } catch (error) {
       // Error is shown to user via toast
-      toast.error('태스크 상태 업데이트에 실패했습니다. 다시 시도해주세요.');
+      toast.error(t('task.taskUpdateFailed'));
     }
   };
 
@@ -237,18 +237,18 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
 
   const handleDelete = async (taskId: string) => {
     const confirmed = await showConfirm({
-      title: '태스크 삭제',
-      message: '이 태스크를 삭제하시겠습니까?',
-      confirmText: '삭제',
-      cancelText: '취소',
+      title: t('task.deleteTask'),
+      message: t('task.confirmDelete'),
+      confirmText: t('common.delete'),
+      cancelText: t('common.cancel'),
       variant: 'danger',
     });
     if (confirmed) {
       try {
         await deleteTaskMutation.mutateAsync(taskId);
-        toast.success('태스크가 삭제되었습니다.');
+        toast.success(t('task.taskDeleted'));
       } catch (error) {
-        toast.error('태스크 삭제에 실패했습니다.');
+        toast.error(t('task.taskDeleteFailed'));
       }
     }
   };
@@ -271,15 +271,15 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
   const getPriorityText = (priority: TaskPriority) => {
     switch (priority) {
       case TaskPriority.LOW:
-        return '낮음';
+        return t('priority.low');
       case TaskPriority.MEDIUM:
-        return '보통';
+        return t('priority.medium');
       case TaskPriority.HIGH:
-        return '높음';
+        return t('priority.high');
       case TaskPriority.URGENT:
-        return '긴급';
+        return t('priority.urgent');
       default:
-        return '보통';
+        return t('priority.medium');
     }
   };
 
@@ -297,6 +297,27 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     );
   };
 
+  // 팀이 없을 때 안내 표시
+  if (!currentTeam) {
+    return (
+      <div className={`bg-white dark:bg-dark-100 rounded-lg shadow transition-colors duration-200 p-8 ${className}`}>
+        <div className="text-center">
+          <div className="mb-6">
+            <div className="mx-auto w-16 h-16 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center">
+              <Plus className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-900 mb-2">
+            {t('team.noTeams')}
+          </h3>
+          <p className="text-gray-600 dark:text-dark-600 mb-6">
+            {t('kanban.joinOrCreateTeam')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // 상태 변수 정의 - 로딩이나 에러 상태에서도 칸반 구조는 표시
   const hasError = error && !isLoading;
   const isEmpty = !tasks || tasks.length === 0;
@@ -308,19 +329,19 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white dark:bg-dark-100 rounded-t-lg border-b border-gray-200 dark:border-dark-300 transition-colors duration-200 gap-4">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-              칸반 보드
+              {t('view.kanban')}
             </h2>
             <button
               onClick={() => setShowCreateModal(true)}
               className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
             >
               <Plus className="w-4 h-4 mr-1" />
-              태스크 추가
+              {t('button.addTask')}
             </button>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <span className="text-sm text-gray-600 dark:text-dark-600 whitespace-nowrap">
-              WIP 제한 설정:
+              {t('button.wipSettings')}:
             </span>
             <div className="grid grid-cols-2 sm:flex gap-2">
               {columns.map(column => (
@@ -376,7 +397,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                         <button
                           onClick={() => handleAddTask(column.id)}
                           className="p-1 text-gray-600 dark:text-dark-600 hover:text-gray-900 dark:hover:text-dark-900 hover:bg-gray-200 dark:hover:bg-dark-300 rounded transition-colors"
-                          title={`${column.title}에 태스크 추가`}
+                          title={t('kanban.addTaskToColumn', { column: column.title })}
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -386,7 +407,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                         </span>
                         {isOverLimit && (
                           <span className="text-xs text-red-600 dark:text-red-400 font-medium">
-                            초과!
+                            {t('kanban.exceeded')}!
                           </span>
                         )}
                       </div>
@@ -408,20 +429,20 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                           {isLoading && (
                             <div className="text-center text-gray-400 dark:text-dark-400 text-sm py-8 flex items-center justify-center">
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600 mr-2"></div>
-                              로딩 중...
+                              {t('common.loading')}
                             </div>
                           )}
                           
                           {hasError && !isLoading && (
                             <div className="text-center text-red-400 dark:text-red-400 text-sm py-8">
                               <div className="mb-2">⚠️</div>
-                              <div>오류 발생</div>
+                              <div>{t('common.error')}</div>
                             </div>
                           )}
 
                           {!isLoading && !hasError && columnTasks.length === 0 && !snapshot.isDraggingOver && (
                             <div className="text-center text-gray-400 dark:text-dark-400 text-sm py-8">
-                              {isEmpty ? '태스크를 추가해보세요' : '태스크를 여기로 드래그하세요'}
+                              {isEmpty ? t('kanban.addTasksHere') : t('button.dragTaskHere')}
                             </div>
                           )}
 
@@ -540,7 +561,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                         {task.start_date && (
                                           <div className="flex items-center gap-1 text-gray-500 dark:text-dark-500">
                                             <Calendar className="w-3 h-3" />
-                                            <span>시작: {formatDate(task.start_date)}</span>
+                                            <span>{t('task.startDate')}: {formatDate(task.start_date)}</span>
                                           </div>
                                         )}
                                         {/* 마감일 */}
@@ -551,18 +572,18 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                                               : 'text-gray-500 dark:text-dark-500'
                                           }`}>
                                             <CalendarCheck className="w-3 h-3" />
-                                            <span>마감: {formatDate(task.due_date)}</span>
+                                            <span>{t('task.dueDate')}: {formatDate(task.due_date)}</span>
                                           </div>
                                         )}
                                       </div>
                                       <span className="text-gray-400 dark:text-dark-400 truncate ml-2 max-w-20">
-                                        👤 {task.assignee?.name || task.assignee?.email || '미지정'}
+                                        👤 {task.assignee?.name || task.assignee?.email || t('task.unassigned')}
                                       </span>
                                     </div>
                                     {/* 추가 메타데이터 - 팀과 생성일 */}
                                     <div className="flex items-center justify-between text-xs text-gray-400 dark:text-dark-400">
                                       <span className="truncate">
-                                        🏢 {task.team?.name || '팀 미지정'}
+                                        🏢 {task.team?.name || t('team.unassigned')}
                                       </span>
                                       <span className="ml-2 flex-shrink-0">
                                         {formatDate(task.created_at)}
@@ -603,8 +624,8 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
                 />
               </svg>
             </div>
-            <p className="text-lg font-medium mb-2">등록된 태스크가 없습니다</p>
-            <p className="text-sm">새 태스크를 추가해보세요!</p>
+            <p className="text-lg font-medium mb-2">{t('task.noTasks')}</p>
+            <p className="text-sm">{t('kanban.addNewTask')}</p>
           </div>
         )}
       </div>
@@ -654,7 +675,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
           <div className="bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-300">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-                새 태스크 추가
+                {t('task.createTask')}
                 {selectedStatus &&
                   ` - ${columns.find(c => c.id === selectedStatus)?.title}`}
               </h2>

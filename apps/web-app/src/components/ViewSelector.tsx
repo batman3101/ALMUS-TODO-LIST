@@ -25,9 +25,9 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
     },
     {
       id: 'calendar' as ViewType,
-      label: '캘린더',
+      label: t('view.calendar'),
       icon: '📅',
-      description: '월별 캘린더에서 태스크 일정 확인',
+      description: t('view.calendarDescription'),
     },
     {
       id: 'kanban' as ViewType,
@@ -43,9 +43,9 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
     },
     {
       id: 'team' as ViewType,
-      label: '팀 관리',
+      label: t('teamManagement.title'),
       icon: '👥',
-      description: '팀 생성, 편집 및 멤버 관리',
+      description: t('view.teamDescription'),
     },
   ];
 

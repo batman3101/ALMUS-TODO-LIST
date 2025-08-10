@@ -355,7 +355,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
 
         <div>
           <label htmlFor="team" className={labelClassName}>
-            팀 선택 *
+            {t('team.selectTeam')} *
           </label>
           <select
             id="team"
@@ -363,7 +363,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
             onChange={e => handleInputChange('team_id', e.target.value)}
             className={inputClassName}
           >
-            <option value="">팀을 선택해주세요</option>
+            <option value="">{t('team.selectTeamPlaceholder')}</option>
             {teams.map(team => (
               <option key={team.id} value={team.id}>
                 {team.name}
@@ -382,8 +382,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
             onChange={e => handleInputChange('assignee_id', e.target.value)}
             className={inputClassName}
           >
-            <option value="">담당자를 선택해주세요</option>
-            {!formData.team_id && <option disabled>팀을 먼저 선택해주세요</option>}
+            <option value="">{t('task.selectAssigneePlaceholder')}</option>
+            {!formData.team_id && <option disabled>{t('task.selectTeamFirst')}</option>}
             {formData.team_id && (() => {
               const selectedTeam = teams.find(t => t.id === formData.team_id);
               const ownerId = selectedTeam?.owner_id;
@@ -396,8 +396,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
               // 1. 현재 사용자 추가
               if (currentUserId) {
                 const currentUserLabel = isCurrentUserOwner 
-                  ? `${user?.displayName || user?.name || user?.email || '나'} (팀 소유자)`
-                  : `${user?.displayName || user?.name || user?.email || '나'} (현재 사용자)`;
+                  ? `${user?.displayName || user?.name || user?.email || t('common.me')} (${t('team.owner')})`
+                  : `${user?.displayName || user?.name || user?.email || t('common.me')} (${t('common.currentUser')})`;
                 
                 assigneeOptions.push(
                   <option key={currentUserId} value={currentUserId}>

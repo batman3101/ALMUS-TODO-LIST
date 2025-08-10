@@ -11,7 +11,9 @@
     "confirm": "Xác nhận",
     "back": "Quay lại",
     "next": "Tiếp theo",
-    "previous": "Trước"
+    "previous": "Trước",
+    "me": "Tôi",
+    "currentUser": "Người dùng hiện tại"
   },
   "app": {
     "title": "ALMUS ToDo List",
@@ -46,7 +48,8 @@
     "noTasks": "Không có nhiệm vụ nào.",
     "overdue": "Quá hạn",
     "movedTask": "Đã di chuyển nhiệm vụ từ \"{{source}}\" sang \"{{destination}}\".",
-    "close": "Đóng"
+    "close": "Đóng",
+    "loading": "Đang tải nhiệm vụ..."
   },
   "status": {
     "todo": "Cần làm",
@@ -71,7 +74,10 @@
     "listDescription": "Hình thức danh sách đơn giản",
     "gridDescription": "Hình thức bảng giống Excel",
     "kanbanDescription": "Bảng kéo thả",
-    "ganttDescription": "Trực quan hóa thời gian"
+    "ganttDescription": "Trực quan hóa thời gian",
+    "calendar": "Lịch",
+    "calendarDescription": "Xem lịch trình nhiệm vụ theo tháng",
+    "teamDescription": "Tạo, chỉnh sửa nhóm và quản lý thành viên"
   },
   "language": {
     "korean": "Tiếng Hàn",
@@ -103,7 +109,7 @@
     "teamDeleted": "Nhóm đã được xóa thành công.",
     "memberInvited": "Thành viên đã được mời thành công.",
     "memberRemoved": "Thành viên đã được xóa.",
-    "confirmDeleteTeam": "Bạn có chắc chắn muốn xóa nhóm này không?",
+    "confirmDeleteTeam": "Bạn có chắc chắn muốn xóa nhóm \"{{teamName}}\" không?",
     "confirmRemoveMember": "Bạn có chắc chắn muốn xóa thành viên này không?",
     "nameRequired": "Vui lòng nhập tên nhóm.",
     "selectTeam": "Vui lòng chọn nhóm",
@@ -130,7 +136,17 @@
     "uploadSuccess": "Tệp đã được tải lên thành công.",
     "uploadFailed": "Tải lên tệp thất bại.",
     "maxFiles": "Có thể tải lên tối đa {{count}} tệp.",
-    "fileSizeLimit": "Kích thước tệp không được vượt quá {{size}}MB."
+    "fileSizeLimit": "Kích thước tệp không được vượt quá {{size}}MB.",
+    "selectedFiles": "Tệp đã chọn",
+    "filesSelected": "{{count}} tệp đã được chọn.",
+    "uploadStarted": "Bắt đầu tải lên tệp... ({{count}} tệp)",
+    "uploadSuccessMultiple": "{{count}} tệp đã được tải lên thành công!",
+    "uploadFailedMultiple": "Tải lên {{count}} tệp thất bại.",
+    "uploadSuccessSingle": "Tệp \"{{name}}\" đã được tải lên thành công!",
+    "uploadError": "Có lỗi xảy ra khi tải lên tệp.",
+    "filesSelectedDrag": "{{count}} tệp đã được chọn bằng kéo thả.",
+    "uploading": "Đang tải lên...",
+    "uploadProgress": "{{percentage}}% hoàn thành"
   },
   "notification": {
     "settings": "Cài đặt thông báo",
@@ -167,14 +183,34 @@
     "previousMonth": "Tháng trước",
     "nextMonth": "Tháng sau",
     "adjustStartDate": "Điều chỉnh ngày bắt đầu",
-    "adjustEndDate": "Điều chỉnh ngày kết thúc"
+    "adjustEndDate": "Điều chỉnh ngày kết thúc",
+    "year": "năm",
+    "clickDateToAdd": "Nhấp vào ngày để thêm nhiệm vụ mới!",
+    "noStartDate": "Không có ngày bắt đầu",
+    "noDueDate": "Không có ngày hạn"
   },
   "gantt": {
     "timeline": "Dòng thời gian",
     "startDate": "Ngày bắt đầu",
     "endDate": "Ngày kết thúc",
     "duration": "Thời gian",
-    "progress": "Tiến độ"
+    "progress": "Tiến độ",
+    "addNewTask": "Thêm nhiệm vụ mới!",
+    "noTasksToDisplay": "Không có nhiệm vụ nào để hiển thị trên biểu đồ Gantt",
+    "goToToday": "Chuyển đến ngày hôm nay",
+    "showDependencies": "Hiển thị phụ thuộc",
+    "showProgress": "Hiển thị tiến độ",
+    "startLabel": "Bắt đầu",
+    "endLabel": "Kết thúc", 
+    "assigneeLabel": "Phụ trách",
+    "delayed": "Trễ hạn",
+    "zoomLevels": {
+      "day": "Ngày",
+      "week": "Tuần",
+      "month": "Tháng", 
+      "quarter": "Quý",
+      "year": "Năm"
+    }
   },
   "export": {
     "excel": "Xuất Excel",
@@ -182,5 +218,113 @@
     "csv": "Xuất CSV",
     "success": "Xuất thành công.",
     "failed": "Xuất thất bại."
+  },
+  "button": {
+    "addTask": "Thêm nhiệm vụ",
+    "today": "Hôm nay",
+    "viewTaskList": "Danh sách nhiệm vụ",
+    "wipSettings": "Cài đặt giới hạn WIP",
+    "startBefore": "Chưa bắt đầu",
+    "inProgress": "Đang thực hiện", 
+    "review": "Đánh giá",
+    "complete": "Hoàn thành",
+    "dragTaskHere": "Kéo nhiệm vụ vào đây"
+  },
+  "filter": {
+    "taskSearch": "Tìm kiếm nhiệm vụ",
+    "allStatus": "Tất cả trạng thái",
+    "allPriority": "Tất cả mức độ ưu tiên"
+  },
+  "weekdays": {
+    "monday": "T2",
+    "tuesday": "T3",
+    "wednesday": "T4",
+    "thursday": "T5",
+    "friday": "T6",
+    "saturday": "T7",
+    "sunday": "CN"
+  },
+  "teamManagement": {
+    "title": "Quản lý nhóm",
+    "description": "Tạo nhóm để hợp tác hiệu quả",
+    "currentTeamOwner": "Nhóm của trưởng nhóm hiện tại",
+    "memberCount": "thành viên",
+    "editTeam": "Chỉnh sửa nhóm",
+    "settings": "Cài đặt",
+    "joinTeam": "Tham gia nhóm",
+    "newTeamMember": "Thành viên nhóm mới"
+  },
+  "kanban": {
+    "wipLimitReached": "Cột {{column}} đã đạt giới hạn WIP ({{limit}}).",
+    "joinOrCreateTeam": "Tham gia hoặc tạo nhóm mới để sử dụng bảng Kanban.",
+    "addTaskToColumn": "Thêm nhiệm vụ vào {{column}}",
+    "exceeded": "Vượt quá",
+    "addTasksHere": "Thêm nhiệm vụ ở đây",
+    "addNewTask": "Thêm nhiệm vụ mới!"
+  },
+  "task": {
+    "title": "Tiêu đề",
+    "description": "Mô tả",
+    "assignee": "Người phụ trách",
+    "status": "Trạng thái",
+    "priority": "ƪu tiên",
+    "startDate": "Ngày bắt đầu",
+    "dueDate": "Ngày hạn",
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Ngày cập nhật",
+    "actions": "Hành động",
+    "createTask": "Tạo nhiệm vụ",
+    "editTask": "Chỉnh sửa nhiệm vụ",
+    "deleteTask": "Xóa nhiệm vụ",
+    "confirmDelete": "Bạn có chắc chắn muốn xóa nhiệm vụ này không?",
+    "taskCreated": "Nhiệm vụ đã được tạo thành công.",
+    "taskUpdated": "Nhiệm vụ đã được cập nhật thành công.",
+    "taskDeleted": "Nhiệm vụ đã được xóa thành công.",
+    "taskCreateFailed": "Tạo nhiệm vụ thất bại.",
+    "taskUpdateFailed": "Cập nhật nhiệm vụ thất bại.",
+    "taskDeleteFailed": "Xóa nhiệm vụ thất bại.",
+    "titleRequired": "Vui lòng nhập tiêu đề.",
+    "assigneeRequired": "Vui lòng nhập người phụ trách.",
+    "loadTasksFailed": "Không thể tải danh sách nhiệm vụ.",
+    "taskList": "Danh sách nhiệm vụ",
+    "noTasks": "Không có nhiệm vụ nào.",
+    "overdue": "Quá hạn",
+    "movedTask": "Đã di chuyển nhiệm vụ từ \"{{source}}\" sang \"{{destination}}\".",
+    "close": "Đóng",
+    "loading": "Đang tải nhiệm vụ...",
+    "taskNotFound": "Không thể tìm thấy nhiệm vụ.",
+    "unassigned": "Chưa phân công",
+    "selectAssigneePlaceholder": "Chọn người phụ trách",
+    "selectTeamFirst": "Vui lòng chọn nhóm trước"
+  },
+  "team": {
+    "title": "Nhóm",
+    "name": "Tên nhóm",
+    "description": "Mô tả nhóm",
+    "owner": "Chủ sở hữu",
+    "members": "Thành viên",
+    "createTeam": "Tạo nhóm",
+    "editTeam": "Chỉnh sửa nhóm",
+    "deleteTeam": "Xóa nhóm",
+    "manageMembers": "Quản lý thành viên",
+    "inviteMember": "Mời thành viên",
+    "removeMember": "Xóa thành viên",
+    "teamCreated": "Nhóm đã được tạo thành công.",
+    "teamUpdated": "Nhóm đã được cập nhật thành công.",
+    "teamDeleted": "Nhóm đã được xóa thành công.",
+    "memberInvited": "Thành viên đã được mời thành công.",
+    "memberRemoved": "Thành viên đã được xóa.",
+    "confirmDeleteTeam": "Bạn có chắc chắn muốn xóa nhóm \"{{teamName}}\" không?",
+    "confirmRemoveMember": "Bạn có chắc chắn muốn xóa thành viên này không?",
+    "nameRequired": "Vui lòng nhập tên nhóm.",
+    "selectTeam": "Chọn nhóm",
+    "selectTeamPlaceholder": "Vui lòng chọn nhóm",
+    "noTeams": "Không có nhóm nào.",
+    "unassigned": "Chưa phân nhóm",
+    "currentTeam": "Nhóm hiện tại",
+    "switchTeam": "Chuyển nhóm",
+    "active": "Hoạt động",
+    "inactive": "Không hoạt động",
+    "noDescription": "Không có mô tả."
   }
 }

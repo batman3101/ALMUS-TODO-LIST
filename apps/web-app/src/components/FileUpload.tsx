@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useFileUpload } from '../hooks/useFileUpload';
 import { FileMetadata } from '@almus/shared-types';
 import { useNotification } from '../contexts/NotificationContext';
@@ -23,6 +24,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   accept,
   className = '',
 }) => {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const { uploadFile, uploadMultipleFiles, uploadState, resetUploadState } =
@@ -33,7 +35,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(event.target.files || []);
       if (files.length > 0) {
-        info(`${files.length}개 파일이 선택되었습니다.`);
+        info(t('file.filesSelected', { count: files.length }));
       }
       setSelectedFiles(files);
     },
@@ -44,7 +46,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     if (selectedFiles.length === 0) return;
 
     try {
-      info(`파일 업로드를 시작합니다... (${selectedFiles.length}개 파일)`);
+      info(t('file.uploadStarted', { count: selectedFiles.length }));
       
       if (multiple) {
         const results = await uploadMultipleFiles(
@@ -60,21 +62,21 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         );
 
         if (successResults.length > 0) {
-          success(`${successResults.length}개 파일이 성공적으로 업로드되었습니다!`);
+          success(t('file.uploadSuccessMultiple', { count: successResults.length }));
           onUploadComplete?.(successResults);
         }
         if (errorResults.length > 0) {
-          const errorMessage = `${errorResults.length}개 파일 업로드에 실패했습니다.`;
+          const errorMessage = t('file.uploadFailedMultiple', { count: errorResults.length });
           showError(errorMessage);
           onUploadError?.(errorMessage);
         }
       } else {
         const result = await uploadFile(selectedFiles[0], path, metadata);
         if (result.id) {
-          success(`파일 "${selectedFiles[0].name}"이 성공적으로 업로드되었습니다!`);
+          success(t('file.uploadSuccessSingle', { name: selectedFiles[0].name }));
           onUploadComplete?.(result);
         } else {
-          const errorMessage = '파일 업로드에 실패했습니다.';
+          const errorMessage = t('file.uploadFailed');
           showError(errorMessage);
           onUploadError?.(errorMessage);
         }
@@ -87,7 +89,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       }
       resetUploadState();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '파일 업로드 중 오류가 발생했습니다.';
+      const errorMessage = error instanceof Error ? error.message : t('file.uploadError');
       showError(errorMessage);
       onUploadError?.(errorMessage);
     }
@@ -110,7 +112,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     event.preventDefault();
     const files = Array.from(event.dataTransfer.files);
     if (files.length > 0) {
-      info(`드래그로 ${files.length}개 파일이 선택되었습니다.`);
+      info(t('file.filesSelectedDrag', { count: files.length }));
     }
     setSelectedFiles(files);
   }, [info]);
@@ -170,10 +172,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
               onClick={() => fileInputRef.current?.click()}
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
             >
-              파일 선택
+              {t('file.selectFiles')}
             </button>
             <p className="mt-2 text-sm text-gray-500">
-              또는 파일을 여기에 드래그하세요
+              {t('file.dropFiles')}
             </p>
           </div>
         </div>
@@ -183,7 +185,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       {selectedFiles.length > 0 && (
         <div className="mt-4">
           <h4 className="text-sm font-medium text-gray-700 mb-2">
-            선택된 파일:
+            {t('file.selectedFiles')}:
           </h4>
           <ul className="space-y-2">
             {selectedFiles.map((file, index) => (
@@ -216,7 +218,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             disabled={uploadState.isUploading}
             className="mt-4 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {uploadState.isUploading ? '업로드 중...' : '업로드'}
+            {uploadState.isUploading ? t('file.uploading') : t('file.upload')}
           </button>
         </div>
       )}
@@ -231,7 +233,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             />
           </div>
           <p className="text-sm text-gray-600 mt-1">
-            {Math.round(uploadState.progress.percentage)}% 완료
+            {t('file.uploadProgress', { percentage: Math.round(uploadState.progress.percentage) })}
           </p>
         </div>
       )}

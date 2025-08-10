@@ -186,56 +186,7 @@ function MainApp({
     );
   }
 
-  // 팀이 없는 경우 팀 생성 UI 표시
-  if (teams.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-dark-50 transition-colors duration-200">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-md mx-auto mt-20">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-dark-900 mb-4">
-                환영합니다!
-              </h2>
-              <p className="text-gray-600 dark:text-dark-600">
-                시작하려면 첫 번째 팀을 만들어주세요.
-              </p>
-            </div>
-            <div className="bg-white dark:bg-dark-100 rounded-lg shadow p-6">
-              <div className="space-y-4">
-                <div>
-                  <input
-                    id="team-name-input"
-                    type="text"
-                    placeholder="팀 이름을 입력하세요"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-dark-300 text-gray-900 dark:text-dark-50"
-                    defaultValue=""
-                  />
-                </div>
-                <button
-                  onClick={async () => {
-                    const input = document.getElementById('team-name-input') as HTMLInputElement;
-                    const teamName = input?.value?.trim() || `${authUser?.name || '사용자'}의 팀`;
-                    
-                    try {
-                      await createTeam({
-                        name: teamName,
-                        description: '새로 생성된 팀입니다',
-                      });
-                      window.location.reload();
-                    } catch (error) {
-                      console.error('팀 생성 오류:', error);
-                    }
-                  }}
-                  className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-dark-100 transition-colors duration-200"
-                >
-                  팀 만들기</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // 팀이 없어도 메인 인터페이스 표시 (깜빡임 방지)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-50 transition-colors duration-200">

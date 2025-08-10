@@ -444,14 +444,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-dark-300">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-            캘린더 뷰
+{t('view.calendar')}
           </h2>
           <button
             onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
           >
             <Plus className="w-4 h-4 mr-1" />
-            태스크 추가
+{t('button.addTask')}
           </button>
         </div>
 
@@ -464,7 +464,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
           </button>
 
           <div className="text-lg font-medium text-gray-900 dark:text-dark-900 min-w-[200px] text-center">
-            {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
+            {currentDate.getFullYear()}{t('calendar.year')} {currentDate.getMonth() + 1}{t('calendar.month')}
           </div>
 
           <button
@@ -478,14 +478,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
             onClick={goToToday}
             className="px-3 py-1 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
           >
-            오늘
+{t('button.today')}
           </button>
         </div>
       </div>
 
       {/* 요일 헤더 */}
       <div className="grid grid-cols-7 border-b border-gray-200 dark:border-dark-300">
-        {['일', '월', '화', '수', '목', '금', '토'].map((day, index) => (
+        {[t('weekdays.sunday'), t('weekdays.monday'), t('weekdays.tuesday'), t('weekdays.wednesday'), t('weekdays.thursday'), t('weekdays.friday'), t('weekdays.saturday')].map((day, index) => (
           <div
             key={day}
             className={`p-3 text-center text-sm font-medium ${
@@ -525,7 +525,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
         {!isLoading && !hasError && isEmpty && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-dark-100 shadow-lg rounded-lg px-4 py-2 z-10 pointer-events-none">
             <div className="text-gray-500 dark:text-dark-500 text-center">
-              <div className="text-sm">📅 태스크가 없습니다. 날짜를 클릭하여 새 태스크를 추가해보세요!</div>
+              <div className="text-sm">📅 {t('task.noTasks')} {t('calendar.clickDateToAdd')}</div>
             </div>
           </div>
         )}
@@ -601,7 +601,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
                           height: '24px',
                           zIndex: 10,
                         }}
-                        title={`${task.title} (${task.start_date ? new Date(task.start_date).toLocaleDateString() : '시작일 없음'} - ${task.due_date ? new Date(task.due_date).toLocaleDateString() : '마감일 없음'})`}
+                        title={`${task.title} (${task.start_date ? new Date(task.start_date).toLocaleDateString() : t('calendar.noStartDate')} - ${task.due_date ? new Date(task.due_date).toLocaleDateString() : t('calendar.noDueDate')})`}
                       >
                         {/* 왼쪽 리사이즈 핸들 */}
                         <div
@@ -647,22 +647,22 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
       {/* 범례 */}
       <div className="p-4 border-t border-gray-200 dark:border-dark-300">
         <div className="flex items-center gap-4 text-sm">
-          <span className="text-gray-600 dark:text-dark-600">우선순위:</span>
+          <span className="text-gray-600 dark:text-dark-600">{t('task.priority')}:</span>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <span className="text-gray-600 dark:text-dark-600">낮음</span>
+            <span className="text-gray-600 dark:text-dark-600">{t('priority.low')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 bg-blue-200 dark:bg-blue-800 rounded"></div>
-            <span className="text-gray-600 dark:text-dark-600">보통</span>
+            <span className="text-gray-600 dark:text-dark-600">{t('priority.medium')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 bg-orange-200 dark:bg-orange-800 rounded"></div>
-            <span className="text-gray-600 dark:text-dark-600">높음</span>
+            <span className="text-gray-600 dark:text-dark-600">{t('priority.high')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 bg-red-200 dark:bg-red-800 rounded"></div>
-            <span className="text-gray-600 dark:text-dark-600">긴급</span>
+            <span className="text-gray-600 dark:text-dark-600">{t('priority.urgent')}</span>
           </div>
         </div>
       </div>
@@ -681,7 +681,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ className = '' }) => {
           <div className="bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-300">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-900">
-                새 태스크 추가{' '}
+                {t('task.createTask')}{' '}
                 {selectedDate && `- ${selectedDate.toLocaleDateString()}`}
               </h2>
               <button
