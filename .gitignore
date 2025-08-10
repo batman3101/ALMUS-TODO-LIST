@@ -15,6 +15,7 @@ firebase-adminsdk-*.json
 dist/
 build/
 lib/
+!apps/web-app/src/lib/
 
 # IDE
 .vscode/
