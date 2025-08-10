@@ -4,7 +4,6 @@
   "outputDirectory": "apps/web-app/dist",
   "installCommand": "npm install --include=dev",
   "framework": null,
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet .",
   "rewrites": [
     {
       "source": "/((?!api/).*)",
