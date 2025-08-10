@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { logger } from '../utils/logger';
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/lib/supabase-client.ts';
 import {
   testSupabaseConnection,
   validateSupabaseConfig,
-} from '@/lib/supabase-connection-test';
+} from '@/lib/supabase-connection-test.ts';
 import type { User } from '../../../libs/shared-types/src/supabase-schema';
 
 export interface AuthUser extends User {

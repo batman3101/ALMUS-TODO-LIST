@@ -93,7 +93,6 @@ function App() {
 
   return (
     <>
-      <StagewiseToolbar config={{ plugins: [ReactPlugin] }} />
       <NotificationProvider>
         <QueryProvider>
           <MainApp
