@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "cd apps/web-app && npm install && npm run build",
+  "buildCommand": "npm run build",
   "outputDirectory": "apps/web-app/dist",
-  "installCommand": "npm install",
+  "installCommand": "npm install --include=dev",
   "framework": null,
   "ignoreCommand": "git diff HEAD^ HEAD --quiet .",
   "rewrites": [
