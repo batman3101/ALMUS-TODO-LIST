@@ -1,7 +1,7 @@
 {
   "version": 2,
   "buildCommand": "npm run build --workspace=@almus/shared-types && npm run build --workspace=@almus/web-app",
-  "outputDirectory": "apps/web-app/dist",
+  "outputDirectory": "./apps/web-app/dist",
   "installCommand": "npm install --include=dev",
   "framework": null,
   "rewrites": [
