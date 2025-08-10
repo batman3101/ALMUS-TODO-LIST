@@ -1,20 +1,10 @@
 {
   "version": 2,
-  "buildCommand": "npm run build --workspace=@almus/web-app",
+  "buildCommand": "cd apps/web-app && npm install && npm run build",
   "outputDirectory": "apps/web-app/dist",
   "installCommand": "npm install",
   "framework": null,
   "ignoreCommand": "git diff HEAD^ HEAD --quiet .",
-  "env": {
-    "VITE_SUPABASE_URL": "@supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@supabase_anon_key"
-  },
-  "build": {
-    "env": {
-      "VITE_SUPABASE_URL": "@supabase_url",
-      "VITE_SUPABASE_ANON_KEY": "@supabase_anon_key"
-    }
-  },
   "rewrites": [
     {
       "source": "/((?!api/).*)",
