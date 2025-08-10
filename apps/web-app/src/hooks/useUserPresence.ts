@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { logger } from '../utils/logger';
-import { supabase } from '../../../lib/supabase/client';
+import { supabase } from '@lib/supabase/client';
 import { useAuth } from './useAuth';
 import type { PresenceStatus } from '@almus/shared-types';
 
