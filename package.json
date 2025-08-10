@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "npm run dev --workspace=apps/web-app",
     "build": "npm run build --workspace=apps/web-app",
+    "build:full": "npm run build --workspace=@almus/shared-types && npm run build --workspace=@almus/web-app && node scripts/copy-dist.js",
     "test": "echo 'Tests disabled for deployment'",
     "test:watch": "npm run test --workspace=apps/web-app",
     "test:coverage": "npm run test --workspace=apps/web-app",
