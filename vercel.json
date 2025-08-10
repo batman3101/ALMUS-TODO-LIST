@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm --workspace=@almus/shared-types run build && npm --workspace=@almus/web-app run build && cp -r apps/web-app/dist dist",
+  "buildCommand": "npm --workspace=@almus/shared-types run build && npm --workspace=@almus/web-app run build && mkdir -p dist && cp -r apps/web-app/dist/* dist/",
   "outputDirectory": "dist",
   "rewrites": [
     {
