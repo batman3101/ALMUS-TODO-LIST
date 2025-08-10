@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { logger } from '../utils/logger';
-import { supabase } from '../../../../lib/supabase/client';
-import type { User } from '../../../../libs/shared-types/src/supabase-schema';
+import { supabase } from '../../../lib/supabase/client';
+import type { User } from '../../../libs/shared-types/src/supabase-schema';
 
 export interface AuthUser extends User {
   // Compatibility aliases for existing code
