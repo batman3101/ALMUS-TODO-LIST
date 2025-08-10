@@ -72,7 +72,9 @@
       "Bash(tree:*)",
       "WebFetch(domain:vercel.link)",
       "WebFetch(domain:vercel.com)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(npm --workspace=@almus/shared-types run build)",
+      "Bash(npm --workspace=@almus/web-app run build)"
     ],
     "deny": []
   }

@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build:vercel",
+  "buildCommand": "npm --workspace=@almus/shared-types run build && npm --workspace=@almus/web-app run build && node scripts/copy-dist.js",
   "outputDirectory": "dist",
   "rewrites": [
     {
