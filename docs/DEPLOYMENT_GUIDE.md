@@ -274,5 +274,5 @@ npm install
 3. Supabase 공식 문서: https://supabase.com/docs
 
 ---
-**마지막 업데이트**: 2025년 1월
-**작성자**: Claude Code Assistant
+**마지막 업데이트**: 2025년 8월
+**작성자**: park young il

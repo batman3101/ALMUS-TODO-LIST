@@ -1,0 +1,64 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables - 보안 중요!
+# 모든 .env 파일 제외 (실제 API 키 보호)
+.env*
+!.env.example
+!.env.*.example
+
+# 구체적으로 제외할 환경 파일들
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.staging
+.env.vercel
+
+# Vercel
+.vercel
+
+# Build outputs
+build/
+dist/
+
+# Test outputs
+/test-results/
+/playwright-report/
+/coverage/
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# IDE files
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
