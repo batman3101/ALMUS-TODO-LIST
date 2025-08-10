@@ -18,7 +18,7 @@ import { Pencil, Trash2, Plus, Eye, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const TaskList: React.FC = function TaskList() {
-  const { currentTeam } = useTeams();
+  const { currentTeam, teams, isLoading: isLoadingTeams } = useTeams();
   const { canUpdateTask, canDeleteTask } = useTaskAuth();
   const { theme } = useTheme();
   const toast = createToast(theme === 'dark');
@@ -307,8 +307,8 @@ const TaskList: React.FC = function TaskList() {
     }
   };
 
-  // 팀이 없을 때 친화적인 안내 표시
-  if (!currentTeam) {
+  // 팀 로딩이 완료되었고 실제로 팀이 없을 때만 안내 표시
+  if (!isLoadingTeams && !currentTeam && teams.length === 0) {
     return (
       <div className="bg-white dark:bg-dark-100 rounded-lg shadow transition-colors duration-200 p-8">
         <div className="text-center">
@@ -333,6 +333,11 @@ const TaskList: React.FC = function TaskList() {
         </div>
       </div>
     );
+  }
+
+  // 팀은 있지만 currentTeam이 아직 설정되지 않은 경우 (초기화 중) 아무것도 렌더링하지 않음
+  if (!currentTeam) {
+    return null;
   }
 
   return (

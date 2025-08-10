@@ -38,7 +38,7 @@ interface Column {
 
 const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
   const { t } = useTranslation();
-  const { currentTeam } = useTeams();
+  const { currentTeam, teams, isLoading: isLoadingTeams } = useTeams();
   const { theme } = useTheme();
   const toast = createToast(theme === 'dark');
   const {
@@ -297,8 +297,8 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
     );
   };
 
-  // 팀이 없을 때 안내 표시
-  if (!currentTeam) {
+  // 팀 로딩이 완료되었고 실제로 팀이 없을 때만 안내 표시
+  if (!isLoadingTeams && !currentTeam && teams.length === 0) {
     return (
       <div className={`bg-white dark:bg-dark-100 rounded-lg shadow transition-colors duration-200 p-8 ${className}`}>
         <div className="text-center">
@@ -316,6 +316,11 @@ const KanbanView: React.FC<KanbanViewProps> = ({ className = '' }) => {
         </div>
       </div>
     );
+  }
+
+  // 팀은 있지만 currentTeam이 아직 설정되지 않은 경우 (초기화 중) 아무것도 렌더링하지 않음
+  if (!currentTeam) {
+    return null;
   }
 
   // 상태 변수 정의 - 로딩이나 에러 상태에서도 칸반 구조는 표시

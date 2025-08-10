@@ -34,7 +34,18 @@ interface TeamsContextValue {
 export const useTeams = (): TeamsContextValue => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  
   const [currentTeamId, setCurrentTeamId] = useState<string | null>(null);
+  
+  // 사용자가 로딩된 후 localStorage에서 저장된 팀 ID 복원 (새로고침 시 깜빡임 방지)
+  useEffect(() => {
+    if (user && !currentTeamId) {
+      const savedTeamId = localStorage.getItem(`currentTeam-${user.id}`);
+      if (savedTeamId) {
+        setCurrentTeamId(savedTeamId);
+      }
+    }
+  }, [user, currentTeamId]);
 
   // API 쿼리
   const {
@@ -52,20 +63,21 @@ export const useTeams = (): TeamsContextValue => {
   const updateRoleMutation = useUpdateMemberRole();
   const removeMemberMutation = useRemoveMember();
 
-  // 최적화된 초기 팀 설정 - debounced and cached
+  // 최적화된 초기 팀 설정 - 즉시 실행
   useEffect(() => {
-    if (!user || currentTeamId || teams.length === 0) return;
+    if (!user || teams.length === 0) return;
 
-    // Use micro-task to defer execution
-    queueMicrotask(() => {
-      const savedTeamId = localStorage.getItem(`currentTeam-${user.id}`);
-      const teamToSelect = teams.find(t => t.id === savedTeamId) || teams[0];
+    // 이미 팀이 선택되어 있고 해당 팀이 여전히 존재하는 경우는 건드리지 않음
+    if (currentTeamId && teams.find(t => t.id === currentTeamId)) return;
 
-      if (teamToSelect) {
-        setCurrentTeamId(teamToSelect.id);
-        localStorage.setItem(`currentTeam-${user.id}`, teamToSelect.id);
-      }
-    });
+    // 즉시 실행 (micro-task 제거)
+    const savedTeamId = localStorage.getItem(`currentTeam-${user.id}`);
+    const teamToSelect = teams.find(t => t.id === savedTeamId) || teams[0];
+
+    if (teamToSelect) {
+      setCurrentTeamId(teamToSelect.id);
+      localStorage.setItem(`currentTeam-${user.id}`, teamToSelect.id);
+    }
   }, [user, teams, currentTeamId]);
 
   // 현재 팀 객체 (memberCount 포함)
