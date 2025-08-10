@@ -6,12 +6,13 @@ import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig({
   plugins: [
     react(),
-    process.env.ANALYZE && visualizer({
-      filename: 'dist/stats.html',
-      open: true,
-      gzipSize: true,
-      brotliSize: true
-    })
+    process.env.ANALYZE &&
+      visualizer({
+        filename: 'dist/stats.html',
+        open: true,
+        gzipSize: true,
+        brotliSize: true,
+      }),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -68,66 +69,70 @@ export default defineConfig({
     assetsInlineLimit: 4096,
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
+        manualChunks: id => {
           // Core React chunks
           if (id.includes('react') || id.includes('react-dom')) {
             return 'react-vendor';
           }
-          
+
           // Supabase and database
           if (id.includes('@supabase') || id.includes('supabase')) {
             return 'supabase';
           }
-          
+
           // React Query and state management
           if (id.includes('@tanstack/react-query') || id.includes('@reduxjs')) {
             return 'state-management';
           }
-          
+
           // Router
           if (id.includes('react-router')) {
             return 'router';
           }
-          
+
           // UI libraries - split into smaller chunks
           if (id.includes('@radix-ui')) {
             return 'radix-ui';
           }
-          
+
           if (id.includes('lucide-react')) {
             return 'icons';
           }
-          
+
           // Charts and data visualization
           if (id.includes('recharts') || id.includes('react-beautiful-dnd')) {
             return 'charts-dnd';
           }
-          
+
           // Virtualization and performance
           if (id.includes('react-window') || id.includes('react-virtualized')) {
             return 'virtualization';
           }
-          
+
           // Utilities
-          if (id.includes('date-fns') || id.includes('clsx') || id.includes('class-variance-authority')) {
+          if (
+            id.includes('date-fns') ||
+            id.includes('clsx') ||
+            id.includes('class-variance-authority')
+          ) {
             return 'utils';
           }
-          
+
           // Excel and file handling
           if (id.includes('xlsx') || id.includes('socket.io')) {
             return 'file-socket';
           }
-          
+
           // Internationalization
           if (id.includes('react-i18next') || id.includes('i18next')) {
             return 'i18n';
           }
-          
+
           // Toast and notifications
           if (id.includes('react-hot-toast')) {
             return 'notifications';
           }
-          
+
           // Break down large vendor packages
           if (id.includes('node_modules')) {
             // Separate specific large libraries
@@ -137,7 +142,10 @@ export default defineConfig({
             if (id.includes('react-beautiful-dnd')) {
               return 'dnd';
             }
-            if (id.includes('react-window') || id.includes('react-virtualized')) {
+            if (
+              id.includes('react-window') ||
+              id.includes('react-virtualized')
+            ) {
               return 'virtualization';
             }
             if (id.includes('recharts')) {
@@ -147,9 +155,12 @@ export default defineConfig({
             return 'vendor';
           }
         },
-        chunkFileNames: (chunkInfo) => {
+        chunkFileNames: chunkInfo => {
           const facadeModuleId = chunkInfo.facadeModuleId
-            ? chunkInfo.facadeModuleId.split('/').pop().replace(/\.\w+$/, '')
+            ? chunkInfo.facadeModuleId
+                .split('/')
+                .pop()
+                .replace(/\.\w+$/, '')
             : 'chunk';
           return `assets/[name]-[hash].js`;
         },

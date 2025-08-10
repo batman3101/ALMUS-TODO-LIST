@@ -26,6 +26,7 @@
 ## 핵심 모듈과 파일
 
 ### 프런트엔드 `apps/web-app`
+
 - 인증 훅: `src/hooks/useAuth.ts`
   - `supabase.auth.getSession()` 기반 세션 로딩
   - 사용자 상태(`AuthUser`) 생성 및 로컬 상태 관리
@@ -41,9 +42,11 @@
 - 앱 엔트리: `src/main.tsx` (React Query 전역 옵션), `src/App.tsx`
 
 ### 공용 타입 `libs/shared-types`
+
 - DB 스키마/열거형/공용 타입을 앱/서비스 간 공유
 
 ### Supabase 유틸 `lib/supabase`
+
 - 브라우저 클라이언트: `client.ts`
   - `createClient<Database>(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)`
   - 환경 미설정 시 Mock 모드로 폴백(데모 용도)
@@ -51,6 +54,7 @@
 - 타입: `database.types.ts`, 연결 점검: `connection-test.ts`
 
 ### 백엔드 서비스 `services/*` (NestJS)
+
 - `auth-service`
   - 엔트리: `src/main.ts`, 루트 모듈: `src/app.module.ts`
   - OAuth/JWT, 가드/데코레이터/리졸버 구성
@@ -102,17 +106,20 @@ graph TD
 ```
 
 ## 데이터 흐름 요약
+
 - 클라이언트(웹앱)는 Supabase-js로 인증/DB/Realtime에 직접 접근
 - 서버 상태는 React Query로 캐싱(오프라인 친화적 설정)
 - 실시간 갱신은 Realtime 구독으로 UI 반영
 - 별도 복잡 로직/집계는 RPC(Postgres 함수) 또는 Nest 서비스로 확장
 
 ## 컨벤션
+
 - 언어/도구: TypeScript, React, NestJS, TypeORM, Supabase
 - 네이밍: 타입/클래스 파스칼, 변수/함수 카멜, 상수 UPPER_SNAKE_CASE
 - 아키텍처: 기능 기준 폴더, 컨트롤러/서비스/엔티티 계층화, 공용 타입 공유
 
 ## 문서 유지보수 가이드
+
 - 모듈/파일 이동 시 본 문서의 경로와 다이어그램 노드를 함께 갱신하세요.
 - Supabase 테이블/함수 추가 시 `api.ts` 사용처와 RPC 목록을 업데이트하세요.
 - 큰 구조 변경 시 루트 `README.md`에도 링크를 추가/갱신하세요.

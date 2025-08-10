@@ -27,6 +27,7 @@ ALMUS ToDo List/
 ### 3. Vite 설정
 
 Vite는 기본적으로 다음 순서로 .env 파일을 찾습니다:
+
 1. `apps/web-app/.env` (로컬)
 2. `.env` (프로젝트 루트)
 
@@ -73,22 +74,22 @@ const supabaseUrl = process.env.SUPABASE_URL;
 ```typescript
 // types/env.d.ts
 interface ImportMetaEnv {
-  readonly VITE_SUPABASE_URL: string
-  readonly VITE_SUPABASE_ANON_KEY: string
-  readonly VITE_API_BASE_URL: string
+  readonly VITE_SUPABASE_URL: string;
+  readonly VITE_SUPABASE_ANON_KEY: string;
+  readonly VITE_API_BASE_URL: string;
   // ... 기타 VITE_ 환경 변수
 }
 
 interface ImportMeta {
-  readonly env: ImportMetaEnv
+  readonly env: ImportMetaEnv;
 }
 
 // Node.js 환경 변수
 declare namespace NodeJS {
   interface ProcessEnv {
-    SUPABASE_URL: string
-    SUPABASE_SERVICE_ROLE_KEY: string
-    NODE_ENV: 'development' | 'production' | 'test'
+    SUPABASE_URL: string;
+    SUPABASE_SERVICE_ROLE_KEY: string;
+    NODE_ENV: 'development' | 'production' | 'test';
     // ... 기타 서버 환경 변수
   }
 }
@@ -127,11 +128,13 @@ NODE_ENV=production npm run build
 ### 9. 문제 해결
 
 #### Vite가 환경 변수를 읽지 못할 때:
+
 1. 파일 경로 확인
 2. `VITE_` 접두사 확인
 3. 서버 재시작
 
 #### 스크립트에서 환경 변수를 읽지 못할 때:
+
 ```javascript
 // 명시적으로 경로 지정
 import { config } from 'dotenv';

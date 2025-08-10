@@ -117,7 +117,7 @@
   },
   "member": {
     "role": "Vai trò",
-    "admin": "Quản trị viên", 
+    "admin": "Quản trị viên",
     "member": "Thành viên",
     "viewer": "Chỉ xem",
     "joinedAt": "Ngày tham gia",
@@ -177,7 +177,7 @@
   },
   "calendar": {
     "month": "Tháng",
-    "week": "Tuần", 
+    "week": "Tuần",
     "day": "Ngày",
     "today": "Hôm nay",
     "previousMonth": "Tháng trước",
@@ -201,13 +201,13 @@
     "showDependencies": "Hiển thị phụ thuộc",
     "showProgress": "Hiển thị tiến độ",
     "startLabel": "Bắt đầu",
-    "endLabel": "Kết thúc", 
+    "endLabel": "Kết thúc",
     "assigneeLabel": "Phụ trách",
     "delayed": "Trễ hạn",
     "zoomLevels": {
       "day": "Ngày",
       "week": "Tuần",
-      "month": "Tháng", 
+      "month": "Tháng",
       "quarter": "Quý",
       "year": "Năm"
     }
@@ -225,7 +225,7 @@
     "viewTaskList": "Danh sách nhiệm vụ",
     "wipSettings": "Cài đặt giới hạn WIP",
     "startBefore": "Chưa bắt đầu",
-    "inProgress": "Đang thực hiện", 
+    "inProgress": "Đang thực hiện",
     "review": "Đánh giá",
     "complete": "Hoàn thành",
     "dragTaskHere": "Kéo nhiệm vụ vào đây"

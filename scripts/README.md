@@ -25,10 +25,12 @@ nano scripts/.env.migration
 ### 2. 필요한 정보 준비
 
 #### Supabase 정보
+
 - `SUPABASE_URL`: Supabase 프로젝트 URL
 - `SUPABASE_SERVICE_KEY`: Supabase 서비스 역할 키 (service_role key)
 
 #### Firebase 정보
+
 - `FIREBASE_SERVICE_ACCOUNT_PATH`: Firebase 서비스 계정 JSON 파일 경로
 
 ### 3. 의존성 설치
@@ -41,12 +43,14 @@ npm install @supabase/supabase-js firebase-admin
 ### 4. 마이그레이션 실행
 
 #### 방법 1: 쉘 스크립트 사용 (권장)
+
 ```bash
 chmod +x scripts/run-migration.sh
 ./scripts/run-migration.sh
 ```
 
 #### 방법 2: 직접 실행
+
 ```bash
 # 1. 백업 실행 (선택사항)
 node scripts/backup-firebase-data.js
@@ -59,15 +63,15 @@ node scripts/migrate-firebase-to-supabase.js
 
 다음 Firebase 컬렉션들이 Supabase 테이블로 마이그레이션됩니다:
 
-| Firebase 컬렉션 | Supabase 테이블 | 설명 |
-|----------------|----------------|------|
-| `users` | `users` | 사용자 정보 |
-| `teams` | `teams` | 팀 정보 |
-| `team_members` | `team_members` | 팀 멤버십 |
-| `projects` | `projects` | 프로젝트 |
-| `tasks` | `tasks` | 태스크 |
-| `comments` | `comments` | 댓글 |
-| `notifications` | `notifications` | 알림 |
+| Firebase 컬렉션 | Supabase 테이블 | 설명        |
+| --------------- | --------------- | ----------- |
+| `users`         | `users`         | 사용자 정보 |
+| `teams`         | `teams`         | 팀 정보     |
+| `team_members`  | `team_members`  | 팀 멤버십   |
+| `projects`      | `projects`      | 프로젝트    |
+| `tasks`         | `tasks`         | 태스크      |
+| `comments`      | `comments`      | 댓글        |
+| `notifications` | `notifications` | 알림        |
 
 ## 🔄 마이그레이션 프로세스
 
@@ -81,17 +85,20 @@ node scripts/migrate-firebase-to-supabase.js
 ## ⚠️ 주의사항
 
 ### 실행 전 확인사항
+
 - [ ] Supabase 데이터베이스 스키마가 올바르게 설정되어 있는지 확인
 - [ ] 충분한 시간 여유 확보 (데이터량에 따라 수 시간 소요 가능)
 - [ ] 네트워크 연결 상태 양호
 - [ ] Firebase 프로젝트 권한 확인
 
 ### 데이터 무결성
+
 - ID 값은 Firebase 문서 ID를 그대로 사용하여 참조 무결성 유지
 - Timestamp 필드는 ISO 8601 형식으로 변환
 - Firebase 특수 타입들은 JSON 또는 적절한 PostgreSQL 타입으로 변환
 
 ### 오류 처리
+
 - 개별 문서 마이그레이션 실패는 전체 프로세스를 중단시키지 않음
 - 실패한 문서들은 로그에 기록되고 최종 리포트에 포함
 - 재시도 로직으로 일시적 네트워크 오류 대응
@@ -107,6 +114,7 @@ node scripts/migrate-firebase-to-supabase.js
 ### 일반적인 문제들
 
 1. **"Cannot resolve module" 오류**
+
    ```bash
    npm install @supabase/supabase-js firebase-admin
    ```

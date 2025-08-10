@@ -117,7 +117,7 @@
   },
   "member": {
     "role": "역할",
-    "admin": "관리자", 
+    "admin": "관리자",
     "member": "멤버",
     "viewer": "읽기 전용",
     "joinedAt": "가입일",
@@ -177,7 +177,7 @@
   },
   "calendar": {
     "month": "월",
-    "week": "주", 
+    "week": "주",
     "day": "일",
     "today": "오늘",
     "previousMonth": "이전 달",
@@ -206,7 +206,7 @@
     "delayed": "지연",
     "zoomLevels": {
       "day": "일",
-      "week": "주", 
+      "week": "주",
       "month": "월",
       "quarter": "분기",
       "year": "년"
@@ -225,7 +225,7 @@
     "viewTaskList": "태스크 목록",
     "wipSettings": "WIP 제한 설정",
     "startBefore": "시작 전",
-    "inProgress": "진행 중", 
+    "inProgress": "진행 중",
     "review": "검토",
     "complete": "완료",
     "dragTaskHere": "태스크를 여기에 드래그하세요"

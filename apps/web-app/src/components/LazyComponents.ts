@@ -32,4 +32,3 @@ export const TaskPermissionsPanel = lazy(
 // File handling components
 export const FileUpload = lazy(() => import('./FileUpload'));
 export const FileList = lazy(() => import('./FileList'));
-

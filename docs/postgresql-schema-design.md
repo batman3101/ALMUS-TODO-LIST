@@ -7,24 +7,28 @@ This document outlines the comprehensive PostgreSQL database schema designed to 
 ## Design Principles
 
 ### 1. Data Integrity and Consistency
+
 - **ACID Compliance**: Ensures data consistency across all operations
 - **Foreign Key Constraints**: Maintains referential integrity between related entities
 - **Check Constraints**: Validates data ranges and business rules
 - **Unique Constraints**: Prevents duplicate data where appropriate
 
 ### 2. Performance Optimization
+
 - **Strategic Indexing**: Optimized indexes for common query patterns
 - **Partitioning Strategy**: Time-based partitioning for high-volume tables
 - **Materialized Views**: Pre-computed aggregations for dashboard queries
 - **Query Optimization**: Designed for efficient JOIN operations
 
 ### 3. Scalability and Extensibility
+
 - **JSONB Fields**: Flexible schema evolution without migrations
 - **Modular Design**: Easy to extend with new features
 - **Horizontal Scaling**: Designed with sharding capabilities in mind
 - **Configurable Settings**: Team and project-level customizations
 
 ### 4. Security and Compliance
+
 - **Row Level Security (RLS)**: Fine-grained access control
 - **Audit Trails**: Complete permission and data change history
 - **Data Encryption**: Sensitive data protection at rest and in transit
@@ -51,11 +55,13 @@ Comments ←→ Mentions ←→ Attachments
 #### 1. Normalized vs. Denormalized Data
 
 **Normalized Approach:**
+
 - Separate tables for entities with clear relationships
 - Eliminates data duplication and ensures consistency
 - Enables complex queries with JOINs
 
 **Strategic Denormalization:**
+
 - Cached counters (member_count, task_count) for performance
 - User presence data for real-time features
 - Statistics in projects table for dashboard performance
@@ -63,12 +69,14 @@ Comments ←→ Mentions ←→ Attachments
 #### 2. JSONB Usage Strategy
 
 **Appropriate JSONB Usage:**
+
 - `teams.settings`: Team configuration that varies by team
 - `tasks.custom_fields`: Extensible task properties
 - `edit_operations.operation_data`: Complex operational transform data
 - `notifications.data`: Variable notification metadata
 
 **Avoided JSONB for:**
+
 - Core business entities (users, tasks, projects)
 - Frequently queried fields
 - Fields requiring strict validation
@@ -76,11 +84,13 @@ Comments ←→ Mentions ←→ Attachments
 #### 3. Permission System Design
 
 **Hierarchical Permissions:**
+
 ```
 Team Level → Project Level → Task Level
 ```
 
 **Permission Objects Structure:**
+
 ```json
 {
   "resource": "TASK|PROJECT|TEAM",
@@ -96,6 +106,7 @@ Team Level → Project Level → Task Level
 ```
 
 **Benefits:**
+
 - Fine-grained access control
 - Time-based permissions
 - Conditional permissions (IP, device type)
@@ -104,12 +115,14 @@ Team Level → Project Level → Task Level
 #### 4. Real-time Collaboration Architecture
 
 **Operational Transform Support:**
+
 - `collaborative_sessions`: Active editing sessions
 - `session_participants`: Users in each session
 - `edit_operations`: Individual edit operations with conflict resolution
 - `document_versions`: Point-in-time snapshots
 
 **Conflict Resolution Strategy:**
+
 - Operation-based transformation
 - Last-writer-wins for simple conflicts
 - Manual resolution for complex conflicts
@@ -118,12 +131,14 @@ Team Level → Project Level → Task Level
 #### 5. Notification System Design
 
 **Multi-channel Support:**
+
 - Email, Push, In-app, Slack, Teams, KakaoTalk
 - Per-user channel preferences
 - Frequency control (immediate, hourly, daily, weekly, never)
 - Quiet hours support
 
 **Template System:**
+
 - Internationalization support
 - Variable substitution
 - Channel-specific templates
@@ -134,6 +149,7 @@ Team Level → Project Level → Task Level
 ### 1. Indexing Strategy
 
 #### Core Performance Indexes
+
 ```sql
 -- Task queries (most frequent)
 CREATE INDEX idx_tasks_team_status ON tasks(team_id, status, created_at);
@@ -151,6 +167,7 @@ CREATE INDEX idx_notifications_unread ON notifications(user_id, created_at) WHER
 ```
 
 #### Composite Indexes for Complex Queries
+
 - Team + Status + Date for filtered task lists
 - User + Resource + Permission for access control
 - Resource + Type + Date for activity feeds
@@ -158,10 +175,11 @@ CREATE INDEX idx_notifications_unread ON notifications(user_id, created_at) WHER
 ### 2. Query Optimization Features
 
 #### Materialized Views for Dashboards
+
 ```sql
 -- Project statistics for fast dashboard loading
 CREATE VIEW v_project_statistics AS
-SELECT 
+SELECT
     p.id,
     p.name,
     COUNT(DISTINCT t.id) as total_tasks,
@@ -175,6 +193,7 @@ GROUP BY p.id, p.name;
 ```
 
 #### Cached Counters with Triggers
+
 ```sql
 -- Automatically maintain member counts
 CREATE TRIGGER trigger_update_team_member_count
@@ -185,6 +204,7 @@ CREATE TRIGGER trigger_update_team_member_count
 ### 3. Partitioning Strategy
 
 #### Time-based Partitioning for High-volume Tables
+
 ```sql
 -- Partition notifications by month
 CREATE TABLE notifications_2025_01 PARTITION OF notifications
@@ -192,6 +212,7 @@ FOR VALUES FROM ('2025-01-01') TO ('2025-02-01');
 ```
 
 **Benefits:**
+
 - Faster queries on recent data
 - Efficient archival of old data
 - Parallel maintenance operations
@@ -202,22 +223,24 @@ FOR VALUES FROM ('2025-01-01') TO ('2025-02-01');
 ### 1. Row Level Security (RLS)
 
 #### User Data Access
+
 ```sql
 -- Users can only access their own data or data they have permissions for
 CREATE POLICY users_policy ON users
     FOR ALL TO PUBLIC
-    USING (id = current_setting('app.current_user_id')::uuid OR 
+    USING (id = current_setting('app.current_user_id')::uuid OR
            current_setting('app.user_role') = 'ADMIN');
 ```
 
 #### Team-based Access Control
+
 ```sql
 -- Team members can access team resources
 CREATE POLICY teams_policy ON teams
     FOR SELECT TO PUBLIC
     USING (id IN (
-        SELECT team_id FROM team_members 
-        WHERE user_id = current_setting('app.current_user_id')::uuid 
+        SELECT team_id FROM team_members
+        WHERE user_id = current_setting('app.current_user_id')::uuid
         AND is_active = true
     ));
 ```
@@ -225,6 +248,7 @@ CREATE POLICY teams_policy ON teams
 ### 2. Audit Trail Implementation
 
 #### Permission Changes
+
 ```sql
 -- Log all permission modifications
 CREATE TABLE permission_audit_log (
@@ -244,6 +268,7 @@ CREATE TABLE permission_audit_log (
 ```
 
 #### Data Modification Tracking
+
 - `created_at`, `updated_at`, `deleted_at` on all core tables
 - Trigger-based automatic timestamp updates
 - Soft deletes for data recovery
@@ -251,11 +276,13 @@ CREATE TABLE permission_audit_log (
 ### 3. Database User Roles
 
 #### Application Roles
+
 - `almus_app_user`: Standard application access
 - `almus_app_admin`: Administrative operations
 - `almus_readonly`: Read-only access for reporting
 
 #### Permission Model
+
 ```sql
 -- Minimal permissions for application user
 GRANT SELECT, INSERT, UPDATE, DELETE ON core_tables TO almus_app_user;
@@ -273,6 +300,7 @@ GRANT SELECT ON ALL TABLES TO almus_readonly;
 ### 1. Real-time Editing Architecture
 
 #### Operational Transform Implementation
+
 ```sql
 -- Edit operations for conflict-free collaborative editing
 CREATE TABLE edit_operations (
@@ -288,19 +316,21 @@ CREATE TABLE edit_operations (
 ```
 
 #### Operation Types
+
 ```json
 {
   "type": "INSERT|DELETE|REPLACE|FORMAT",
-  "position": {"line": 1, "column": 10, "fieldPath": "description"},
+  "position": { "line": 1, "column": 10, "fieldPath": "description" },
   "content": "inserted text",
   "length": 5,
-  "attributes": {"bold": true, "italic": false}
+  "attributes": { "bold": true, "italic": false }
 }
 ```
 
 ### 2. Comment System with Threading
 
 #### Hierarchical Comments
+
 ```sql
 -- Support for threaded discussions
 CREATE TABLE comments (
@@ -317,6 +347,7 @@ CREATE TABLE comments (
 ```
 
 #### Mention System
+
 ```sql
 -- Automatic mention notifications
 CREATE TRIGGER trigger_handle_mention_notifications
@@ -328,6 +359,7 @@ CREATE TRIGGER trigger_handle_mention_notifications
 ### 3. User Presence Tracking
 
 #### Real-time Status Updates
+
 ```sql
 CREATE TABLE user_presence (
     user_id UUID PRIMARY KEY,
@@ -345,18 +377,21 @@ CREATE TABLE user_presence (
 ### 1. Data Migration Approach
 
 #### Phase 1: Schema Creation
+
 1. Create PostgreSQL database and schema
 2. Set up indexes and constraints
 3. Create triggers and functions
 4. Configure security policies
 
 #### Phase 2: Data Migration
+
 1. Export data from Firestore in batches
 2. Transform data to PostgreSQL format
 3. Import data with validation
 4. Verify data integrity
 
 #### Phase 3: Application Migration
+
 1. Update database connection configuration
 2. Replace Firestore queries with SQL
 3. Implement real-time features
@@ -365,6 +400,7 @@ CREATE TABLE user_presence (
 ### 2. Data Transformation Examples
 
 #### Firestore Timestamp Conversion
+
 ```sql
 -- Convert Firestore timestamps to PostgreSQL
 CREATE FUNCTION migrate_firestore_timestamp(firestore_timestamp JSONB)
@@ -372,7 +408,7 @@ RETURNS TIMESTAMP WITH TIME ZONE AS $$
 BEGIN
     IF firestore_timestamp ? '_seconds' THEN
         RETURN to_timestamp(
-            (firestore_timestamp->>'_seconds')::BIGINT + 
+            (firestore_timestamp->>'_seconds')::BIGINT +
             (firestore_timestamp->>'_nanoseconds')::BIGINT / 1000000000.0
         );
     END IF;
@@ -381,6 +417,7 @@ $$ LANGUAGE plpgsql;
 ```
 
 #### Array Field Migration
+
 ```sql
 -- Convert Firestore arrays to PostgreSQL arrays
 CREATE FUNCTION migrate_firestore_array(firestore_array JSONB)
@@ -398,6 +435,7 @@ $$ LANGUAGE plpgsql;
 ### 3. Migration Validation
 
 #### Data Integrity Checks
+
 ```sql
 -- Verify migration completeness
 CREATE FUNCTION validate_schema_integrity()
@@ -420,12 +458,13 @@ $$ LANGUAGE plpgsql;
 ### 1. Database Maintenance
 
 #### Automated Cleanup Functions
+
 ```sql
 -- Clean up old notifications
 CREATE FUNCTION cleanup_old_notifications(days_to_keep INTEGER DEFAULT 90)
 RETURNS INTEGER AS $$
 BEGIN
-    DELETE FROM notifications 
+    DELETE FROM notifications
     WHERE created_at < CURRENT_TIMESTAMP - (days_to_keep || ' days')::INTERVAL
     AND is_read = true;
     RETURN deleted_count;
@@ -434,12 +473,13 @@ $$ LANGUAGE plpgsql;
 ```
 
 #### Performance Monitoring
+
 ```sql
 -- Monitor table sizes and index usage
 CREATE VIEW v_table_sizes AS
 SELECT tablename,
        pg_size_pretty(pg_total_relation_size(tablename)) as size
-FROM pg_tables 
+FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY pg_total_relation_size(tablename) DESC;
 ```
@@ -447,12 +487,14 @@ ORDER BY pg_total_relation_size(tablename) DESC;
 ### 2. Backup and Recovery
 
 #### Backup Strategy
+
 - **Full Backups**: Daily full database backups
 - **Incremental Backups**: WAL-based continuous archiving
 - **Point-in-time Recovery**: 30-day retention period
 - **Cross-region Replication**: Disaster recovery setup
 
 #### Recovery Procedures
+
 1. Identify recovery point objective (RPO)
 2. Restore from appropriate backup
 3. Apply WAL files to reach target time
@@ -462,11 +504,13 @@ ORDER BY pg_total_relation_size(tablename) DESC;
 ### 3. Scaling Considerations
 
 #### Read Replicas
+
 - **Master-Slave Configuration**: For read-heavy workloads
 - **Load Balancing**: Distribute read queries across replicas
 - **Lag Monitoring**: Ensure replica consistency
 
 #### Horizontal Scaling
+
 - **Sharding Strategy**: By team_id for natural data distribution
 - **Connection Pooling**: Efficient connection management
 - **Query Routing**: Direct queries to appropriate shards
@@ -476,12 +520,14 @@ ORDER BY pg_total_relation_size(tablename) DESC;
 ### Expected Performance Improvements
 
 #### Query Performance
+
 - **Task List Queries**: 10x faster with proper indexing
 - **Dashboard Aggregations**: 50x faster with materialized views
 - **Search Operations**: Native full-text search vs. Firestore client-side filtering
 - **Permission Checks**: Efficient JOIN operations vs. multiple Firestore queries
 
 #### Scalability Metrics
+
 - **Concurrent Users**: 10,000+ with connection pooling
 - **Transactions per Second**: 5,000+ with optimized queries
 - **Storage Efficiency**: 60% reduction in storage size
@@ -490,6 +536,7 @@ ORDER BY pg_total_relation_size(tablename) DESC;
 ### Monitoring and Alerting
 
 #### Key Metrics
+
 - Query response times
 - Index usage statistics
 - Connection pool utilization
@@ -498,6 +545,7 @@ ORDER BY pg_total_relation_size(tablename) DESC;
 - Cache hit ratios
 
 #### Alert Thresholds
+
 - Query time > 1 second
 - Connection pool > 80% utilization
 - Replication lag > 5 seconds

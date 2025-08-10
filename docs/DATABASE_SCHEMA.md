@@ -60,6 +60,7 @@ CREATE INDEX idx_users_email ON users(email);
 ```
 
 **컬럼 설명:**
+
 - `id`: 고유 사용자 ID (UUID)
 - `email`: 로그인용 이메일 주소 (유니크)
 - `name`: 사용자 표시명
@@ -87,6 +88,7 @@ CREATE INDEX idx_teams_is_active ON teams(is_active);
 ```
 
 **컬럼 설명:**
+
 - `id`: 고유 팀 ID (UUID)
 - `name`: 팀 이름
 - `description`: 팀 설명
@@ -107,7 +109,7 @@ CREATE TABLE team_members (
   status VARCHAR NOT NULL DEFAULT 'ACTIVE',
   joined_at TIMESTAMPTZ DEFAULT NOW(),
   invited_by UUID REFERENCES users(id),
-  
+
   UNIQUE(team_id, user_id)
 );
 
@@ -118,6 +120,7 @@ CREATE INDEX idx_team_members_status ON team_members(status);
 ```
 
 **컬럼 설명:**
+
 - `id`: 고유 멤버 관계 ID (UUID)
 - `team_id`: 팀 ID (teams.id 참조)
 - `user_id`: 사용자 ID (users.id 참조)
@@ -157,6 +160,7 @@ CREATE INDEX idx_tasks_created_by ON tasks(created_by);
 ```
 
 **컬럼 설명:**
+
 - `id`: 고유 태스크 ID (UUID)
 - `title`: 태스크 제목
 - `description`: 태스크 상세 설명
@@ -198,6 +202,7 @@ CREATE INDEX idx_file_metadata_uploaded_by ON file_metadata(uploaded_by);
 ```
 
 **컬럼 설명:**
+
 - `id`: 고유 파일 메타데이터 ID (UUID)
 - `file_name`: 원본 파일명
 - `file_path`: Supabase Storage 내 파일 경로
@@ -214,6 +219,7 @@ CREATE INDEX idx_file_metadata_uploaded_by ON file_metadata(uploaded_by);
 ## 🔐 Row Level Security (RLS) 정책
 
 ### Users Table 정책
+
 ```sql
 -- 사용자는 자신의 정보만 조회/수정 가능
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -226,6 +232,7 @@ CREATE POLICY "Users can update own profile" ON users
 ```
 
 ### Teams Table 정책
+
 ```sql
 -- 팀 멤버만 팀 정보 조회 가능, 소유자만 수정 가능
 ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
@@ -233,7 +240,7 @@ ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Team members can view team" ON teams
   FOR SELECT USING (
     id IN (
-      SELECT team_id FROM team_members 
+      SELECT team_id FROM team_members
       WHERE user_id = auth.uid()::text AND status = 'ACTIVE'
     )
   );
@@ -243,6 +250,7 @@ CREATE POLICY "Team owners can update team" ON teams
 ```
 
 ### Tasks Table 정책
+
 ```sql
 -- 팀 멤버만 태스크 조회/수정 가능
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
@@ -250,7 +258,7 @@ ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Team members can view tasks" ON tasks
   FOR SELECT USING (
     team_id IN (
-      SELECT team_id FROM team_members 
+      SELECT team_id FROM team_members
       WHERE user_id = auth.uid()::text AND status = 'ACTIVE'
     )
   );
@@ -258,13 +266,14 @@ CREATE POLICY "Team members can view tasks" ON tasks
 CREATE POLICY "Team members can create tasks" ON tasks
   FOR INSERT WITH CHECK (
     team_id IN (
-      SELECT team_id FROM team_members 
+      SELECT team_id FROM team_members
       WHERE user_id = auth.uid()::text AND status = 'ACTIVE'
     )
   );
 ```
 
 ### File_Metadata Table 정책
+
 ```sql
 -- 팀 멤버만 파일 접근 가능
 ALTER TABLE file_metadata ENABLE ROW LEVEL SECURITY;
@@ -272,7 +281,7 @@ ALTER TABLE file_metadata ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Team members can view files" ON file_metadata
   FOR SELECT USING (
     team_id IN (
-      SELECT team_id FROM team_members 
+      SELECT team_id FROM team_members
       WHERE user_id = auth.uid()::text AND status = 'ACTIVE'
     )
   );
@@ -281,6 +290,7 @@ CREATE POLICY "Team members can view files" ON file_metadata
 ## 🚀 데이터베이스 초기화 스크립트
 
 ### 전체 스키마 생성
+
 ```sql
 -- Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -375,18 +385,22 @@ ALTER TABLE file_metadata ENABLE ROW LEVEL SECURITY;
 ## 📈 성능 최적화
 
 ### 1. 인덱스 최적화
+
 - 주요 쿼리 패턴에 맞는 복합 인덱스 생성
 - `team_id`와 `status` 조합 쿼리가 많으므로 복합 인덱스 고려
 
 ### 2. 쿼리 최적화
+
 - JOIN 최소화: 필요한 데이터만 조회
 - Pagination: LIMIT/OFFSET 대신 cursor 기반 페이징
 
 ### 3. 데이터 아카이브
+
 - 완료된 태스크 정기적 아카이브
 - 파일 메타데이터 정리
 
 ---
+
 **스키마 버전**: 1.0  
 **마지막 업데이트**: 2025년 1월  
 **호환성**: Supabase PostgreSQL 15+
