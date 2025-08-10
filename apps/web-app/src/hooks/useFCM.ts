@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { logger } from '../utils/logger';
-import { supabase } from '../lib/supabase-client';
+import { supabase } from '@/lib/supabase-client';
 import { useAuth } from './useAuth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 

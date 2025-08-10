@@ -20,7 +20,6 @@ export default defineConfig({
         __dirname,
         '../../libs/shared-types/dist'
       ),
-      '@lib': path.resolve(__dirname, '../../lib'),
     },
   },
   optimizeDeps: {

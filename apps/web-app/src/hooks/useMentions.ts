@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { logger } from '../utils/logger';
 import { useAuth } from './useAuth';
-import { supabase } from '../lib/supabase-client';
+import { supabase } from '@/lib/supabase-client';
 import type { Mention as SupabaseMention } from '@almus/shared-types';
 
 interface CommentInfo {

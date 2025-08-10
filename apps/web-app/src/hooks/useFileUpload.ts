@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { logger } from '../utils/logger';
-import { supabase } from '../lib/supabase-client';
+import { supabase } from '@/lib/supabase-client';
 import { useAuth } from './useAuth';
 import { FileMetadata, UploadState } from '@almus/shared-types';
 

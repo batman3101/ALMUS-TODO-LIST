@@ -1,5 +1,5 @@
 // 임시 간단한 팀 조회 테스트
-import { supabase } from '../lib/supabase-client';
+import { supabase } from '@/lib/supabase-client';
 
 export const getTeamsSimple = async (userId) => {
   console.log('Getting teams for user:', userId);
