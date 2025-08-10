@@ -1,5 +1,5 @@
 export * from './supabase-schema';
-export { TaskStatus, TaskPriority, TeamRole, ProjectStatus, MemberStatus, InvitationStatus } from './enums';
+export { TaskStatus, TaskPriority, TeamRole, ProjectStatus, MemberStatus, InvitationStatus, } from './enums';
 export type { UserRole, User, Task, ResourceType, PermissionAction, NotificationType, NotificationChannel, NotificationFrequency, Notification, NotificationSettings, NotificationTemplate, CreateNotificationInput, UpdateNotificationInput, CreateNotificationSettingsInput, UpdateNotificationSettingsInput, CreateNotificationTemplateInput, UpdateNotificationTemplateInput, } from './supabase-schema';
 export type UUID = string;
 export type ISODateString = string;

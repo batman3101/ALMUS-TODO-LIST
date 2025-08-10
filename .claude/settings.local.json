@@ -69,7 +69,9 @@
       "Bash(taskkill:*)",
       "mcp__ide__getDiagnostics",
       "Bash(git check-ignore:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "WebFetch(domain:vercel.link)",
+      "WebFetch(domain:vercel.com)"
     ],
     "deny": []
   }

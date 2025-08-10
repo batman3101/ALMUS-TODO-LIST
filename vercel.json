@@ -1,9 +1,6 @@
 {
-  "version": 2,
-  "buildCommand": "npm run build --workspace=@almus/shared-types && npm run build --workspace=@almus/web-app",
-  "outputDirectory": "./apps/web-app/dist",
-  "installCommand": "npm install --include=dev",
-  "framework": null,
+  "buildCommand": "npm run build --workspace=@almus/shared-types && npm run build --workspace=@almus/web-app && node scripts/copy-dist.js",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/((?!api/).*)",
