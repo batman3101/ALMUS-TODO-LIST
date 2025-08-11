@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npm run build:vercel",
-  "outputDirectory": "dist",
+  "buildCommand": "npm run build --workspace=@almus/shared-types && npm run build --workspace=@almus/web-app",
+  "outputDirectory": "apps/web-app/dist",
   "rewrites": [
     {
       "source": "/((?!api/).*)",
