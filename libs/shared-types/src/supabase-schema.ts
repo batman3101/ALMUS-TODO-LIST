@@ -174,6 +174,8 @@ export interface Task {
   version: number;
   created_at: string;
   updated_at: string;
+  file_count?: number;
+  files?: FileMetadata[];
 }
 
 export interface TaskDependency {
@@ -182,6 +184,24 @@ export interface TaskDependency {
   target_task_id: string;
   type: DependencyType;
   lag: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FileMetadata {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  bucket: string;
+  path: string;
+  uploader_id: string;
+  uploader_name: string;
+  task_id?: string;
+  project_id?: string;
+  team_id?: string;
+  version: number;
   created_at: string;
   updated_at: string;
 }

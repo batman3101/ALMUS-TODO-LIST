@@ -180,7 +180,36 @@ class ApiService {
         query = query.lte('due_date', filters.end_date);
       }
 
-      return query;
+      const { data: tasks, error } = await query;
+      if (error) throw error;
+
+      // 각 태스크에 대한 파일 개수 가져오기
+      if (tasks && tasks.length > 0) {
+        const taskIds = tasks.map(t => t.id);
+        
+        // 파일 개수를 효율적으로 가져오기
+        const { data: fileCounts, error: fileError } = await supabase
+          .from('file_metadata')
+          .select('task_id')
+          .in('task_id', taskIds);
+        
+        if (!fileError && fileCounts) {
+          // task_id별로 파일 개수 집계
+          const fileCountMap = fileCounts.reduce((acc, file) => {
+            if (file.task_id) {
+              acc[file.task_id] = (acc[file.task_id] || 0) + 1;
+            }
+            return acc;
+          }, {} as Record<string, number>);
+          
+          // 각 태스크에 file_count 추가
+          tasks.forEach(task => {
+            task.file_count = fileCountMap[task.id] || 0;
+          });
+        }
+      }
+
+      return { data: tasks, error: null };
     });
   }
 

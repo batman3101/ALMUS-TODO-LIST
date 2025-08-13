@@ -14,7 +14,7 @@ import { createToast } from '../utils/toast';
 import { useNotification } from '../contexts/NotificationContext';
 import CreateTaskForm from './CreateTaskForm';
 import TaskDetailModal from './TaskDetailModal';
-import { Pencil, Trash2, Plus, Eye, Download } from 'lucide-react';
+import { Pencil, Trash2, Plus, Eye, Download, Paperclip } from 'lucide-react';
 // XLSX를 지연 로딩으로 변경
 
 const TaskList: React.FC = function TaskList() {
@@ -515,6 +515,9 @@ const TaskList: React.FC = function TaskList() {
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-500 uppercase tracking-wider">
+                  파일
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-500 uppercase tracking-wider">
                   {t('task.startDate')}
                 </th>
                 <th
@@ -542,7 +545,7 @@ const TaskList: React.FC = function TaskList() {
             <tbody className="bg-white dark:bg-dark-100 divide-y divide-gray-200 dark:divide-dark-300">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center">
+                  <td colSpan={9} className="px-6 py-8 text-center">
                     <div className="flex justify-center items-center text-gray-900 dark:text-dark-900">
                       {t('common.loading')}
                     </div>
@@ -550,7 +553,7 @@ const TaskList: React.FC = function TaskList() {
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center">
+                  <td colSpan={9} className="px-6 py-8 text-center">
                     <div className="text-red-500 dark:text-red-400">
                       {t('task.loadTasksFailed')}
                     </div>
@@ -558,7 +561,7 @@ const TaskList: React.FC = function TaskList() {
                 </tr>
               ) : paginatedTasks.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center">
+                  <td colSpan={9} className="px-6 py-8 text-center">
                     <div className="text-gray-500 dark:text-dark-500">
                       {!tasks || tasks.length === 0
                         ? t('task.noTasks')
@@ -600,6 +603,18 @@ const TaskList: React.FC = function TaskList() {
                       >
                         {getPriorityText(task.priority)}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        {task.file_count && task.file_count > 0 ? (
+                          <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                            <Paperclip className="w-4 h-4 mr-1" />
+                            <span>{task.file_count}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-600">-</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-dark-900">
                       {task.start_date
