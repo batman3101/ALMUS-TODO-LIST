@@ -141,7 +141,7 @@ export const useFileUpload = (): UseFileUploadReturn => {
         uploader_name: user.displayName || user.name || user.email || 'Unknown',
         task_id: metadata?.taskId || null,
         project_id: metadata?.projectId || null,
-        team_id: metadata?.teamId || metadata?.team_id || null,
+        team_id: metadata?.teamId || null,
         version: 1,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -149,6 +149,8 @@ export const useFileUpload = (): UseFileUploadReturn => {
 
       if (process.env.NODE_ENV === 'development') {
         console.log('DB 메타데이터 저장 시도:', fileMetadata);
+        console.log('전달받은 metadata:', metadata);
+        console.log('User info:', { uid: user.uid, id: user.id, user });
       }
 
       const { data: dbData, error: dbError } = await supabase
@@ -250,7 +252,7 @@ export const useFileUpload = (): UseFileUploadReturn => {
       // Supabase Storage에서 파일 삭제
       const { error: storageError } = await supabase.storage
         .from('files')
-        .remove([fileData.path]);
+        .remove([fileData.file_path]);
 
       if (storageError) {
         logger.warn('Storage 파일 삭제 실패:', storageError);
@@ -292,7 +294,12 @@ export const useFileUpload = (): UseFileUploadReturn => {
         return { success: false, error: '파일을 찾을 수 없습니다.' };
       }
 
-      return { success: true, url: fileData.url };
+      // Storage URL 생성 (실제 파일이 삭제되었을 수도 있으므로 Public URL을 재생성)
+      const { data: urlData } = supabase.storage
+        .from('files')
+        .getPublicUrl(fileData.file_path);
+      
+      return { success: true, url: urlData.publicUrl };
     } catch (error) {
       return {
         success: false,

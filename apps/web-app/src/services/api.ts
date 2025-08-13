@@ -191,7 +191,20 @@ class ApiService {
         const { data: fileCounts, error: fileError } = await supabase
           .from('file_metadata')
           .select('task_id')
-          .in('task_id', taskIds);
+          .in('task_id', taskIds)
+          .not('task_id', 'is', null);
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('File counts query result:', { fileCounts, fileError, taskIds });
+          
+          // 디버깅을 위해 모든 파일 메타데이터를 조회해보기
+          const { data: allFiles, error: allFilesError } = await supabase
+            .from('file_metadata')
+            .select('*')
+            .limit(10);
+          
+          console.log('All file metadata in API (first 10):', { allFiles, allFilesError });
+        }
         
         if (!fileError && fileCounts) {
           // task_id별로 파일 개수 집계
@@ -202,10 +215,16 @@ class ApiService {
             return acc;
           }, {} as Record<string, number>);
           
+          if (process.env.NODE_ENV === 'development') {
+            console.log('File count map:', fileCountMap);
+          }
+          
           // 각 태스크에 file_count 추가
           tasks.forEach(task => {
             task.file_count = fileCountMap[task.id] || 0;
           });
+        } else if (fileError) {
+          console.error('Failed to fetch file counts:', fileError);
         }
       }
 

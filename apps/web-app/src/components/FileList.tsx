@@ -59,6 +59,18 @@ export const FileList: React.FC<FileListProps> = ({
       }
 
       const { data: fileList, error: queryError } = await query;
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('FileList query result:', { fileList, queryError, taskId, projectId, teamId });
+        
+        // 디버깅을 위해 모든 파일 메타데이터를 조회해보기
+        const { data: allFiles, error: allFilesError } = await supabase
+          .from('file_metadata')
+          .select('*')
+          .limit(10);
+        
+        console.log('All file metadata (first 10):', { allFiles, allFilesError });
+      }
 
       if (queryError) {
         throw queryError;
@@ -115,13 +127,19 @@ export const FileList: React.FC<FileListProps> = ({
 
   const handleView = async (file: FileMetadata) => {
     try {
+      const type = file.mime_type || file.type;
+      // Storage에서 최신 URL 가져오기
+      const { data: urlData } = supabase.storage
+        .from('files')
+        .getPublicUrl(file.file_path || file.path);
+      
       // 이미지 파일인지 확인
-      if (file.type.startsWith('image/')) {
+      if (type?.startsWith('image/')) {
         // Windows 기본 이미지 뷰어로 열기 (새 탭에서 열기)
-        window.open(file.url, '_blank');
-      } else if (file.type === 'application/pdf') {
+        window.open(urlData.publicUrl, '_blank');
+      } else if (type === 'application/pdf') {
         // PDF는 브라우저에서 열기
-        window.open(file.url, '_blank');
+        window.open(urlData.publicUrl, '_blank');
       } else {
         // 다른 파일은 다운로드
         handleDownload(file);
@@ -177,8 +195,9 @@ export const FileList: React.FC<FileListProps> = ({
     }
   };
 
-  const getFileIcon = (type: string) => {
-    if (type.startsWith('image/')) {
+  const getFileIcon = (file: FileMetadata) => {
+    const type = file.mime_type || file.type;
+    if (type?.startsWith('image/')) {
       return <Eye className="h-6 w-6 text-blue-500" />;
     } else if (type === 'application/pdf') {
       return <FileText className="h-6 w-6 text-red-500" />;
@@ -243,20 +262,20 @@ export const FileList: React.FC<FileListProps> = ({
         >
           <div className="flex items-center space-x-3 flex-1">
             <div className="flex-shrink-0">
-              {getFileIcon(file.type)}
+              {getFileIcon(file)}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                {file.name}
+                {file.file_name || file.name}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {formatFileSize(file.size)} • {file.uploader_name} •{' '}
+                {formatFileSize(file.file_size || file.size)} • Unknown •{' '}
                 {new Date(file.created_at).toLocaleDateString('ko-KR')}
               </p>
             </div>
           </div>
           <div className="flex items-center space-x-1">
-            {file.type.startsWith('image/') && (
+            {(file.mime_type || file.type)?.startsWith('image/') && (
               <button
                 onClick={() => handleView(file)}
                 className="p-1.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-all"

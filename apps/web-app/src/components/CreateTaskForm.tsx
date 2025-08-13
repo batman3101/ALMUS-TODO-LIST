@@ -8,6 +8,8 @@ import {
   TaskPriority,
 } from '@almus/shared-types';
 import { FileUpload } from './FileUpload';
+import { FileList } from './FileList';
+import { Paperclip } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTeams } from '../hooks/useTeams';
 import { useTeamMembers } from '../hooks/useTeamMembers';
@@ -574,24 +576,14 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
           </div>
         </div>
 
-        {/* 파일 업로드 섹션 */}
-        <div>
-          <label className={labelClassName}>{t('task.attachments')}</label>
-          <FileUpload
-            path="tasks"
-            metadata={{
-              uploaderId: user?.uid || '',
-              uploaderName: user?.displayName || user?.email || 'Unknown',
-              teamId: currentTeam?.id || '',
-            }}
-            onUploadComplete={handleFileUploadComplete}
-            onUploadError={handleFileUploadError}
-            multiple={true}
-            accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,text/csv"
-            maxFiles={5}
-            className="mt-2"
-          />
-        </div>
+        {/* 파일 업로드 섹션 - 새 태스크 생성 시에는 비활성화 */}
+        {!editingTask && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              📎 파일 첨부는 태스크 생성 후 편집 모드에서 가능합니다.
+            </p>
+          </div>
+        )}
 
         {/* 업로드된 파일 목록 */}
         {uploadedFiles.length > 0 && (
@@ -609,6 +601,41 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* 첨부 파일 섹션 - 편집 모드에서만 표시 */}
+        {editingTask && (
+          <div className="border-t border-gray-200 dark:border-dark-300 pt-4 mt-4">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-dark-700 mb-3 flex items-center">
+              <Paperclip className="w-4 h-4 mr-1" />
+              첨부 파일
+            </h3>
+            
+            {/* 파일 업로드 */}
+            <FileUpload
+              path={`tasks/${editingTask.id}`}
+              metadata={{
+                taskId: editingTask.id,
+                teamId: editingTask.teamId || editingTask.team_id,
+                projectId: editingTask.projectId || editingTask.project_id,
+              }}
+              multiple={true}
+              accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
+              onUploadComplete={() => {
+                // 파일 업로드 완료 후 전체 페이지 새로고침하여 파일 카운트 업데이트
+                setTimeout(() => window.location.reload(), 1000);
+              }}
+              className="mb-4"
+            />
+            
+            {/* 파일 목록 */}
+            <FileList
+              taskId={editingTask.id}
+              teamId={editingTask.teamId || editingTask.team_id}
+              editable={true}
+              className="mt-4"
+            />
           </div>
         )}
 

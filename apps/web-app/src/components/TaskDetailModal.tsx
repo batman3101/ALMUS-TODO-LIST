@@ -1,7 +1,8 @@
 import React from 'react';
-import { X, Calendar, Clock, User, Tag, AlertCircle } from 'lucide-react';
+import { X, Calendar, Clock, User, Tag, AlertCircle, Paperclip } from 'lucide-react';
 import { Task } from '../types/team';
 import { TaskStatus, TaskPriority } from '@almus/shared-types';
+import { FileList } from './FileList';
 
 interface TaskDetailModalProps {
   task: Task;
@@ -175,6 +176,20 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 {formatDate(task.due_date)}
               </p>
             </div>
+          </div>
+
+          {/* 첨부 파일 섹션 */}
+          <div className="border-t border-gray-200 dark:border-dark-300 pt-4">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-dark-700 mb-3 flex items-center">
+              <Paperclip className="w-4 h-4 mr-1" />
+              첨부 파일
+            </h3>
+            <FileList
+              taskId={task.id}
+              teamId={task.teamId || task.team_id}
+              editable={false}
+              className="mt-2"
+            />
           </div>
 
           {/* 생성/수정 정보 */}
